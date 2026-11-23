@@ -1,3 +1,4 @@
+import { normalizeSearchText } from "shared";
 import { formatLocalDate, formatLocalDateTime, formatLocalTime } from "@/lib/utils/dateTime";
 import { getVoucherStatus } from "@/lib/vouchers/client/status";
 import type { Voucher, VoucherForm, VoucherStatusFilter } from 'shared';
@@ -59,10 +60,10 @@ export function filterVouchers(
   searchTerm: string,
   statusFilter: VoucherStatusFilter,
 ) {
-  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const normalizedSearch = normalizeSearchText(searchTerm.trim());
 
   return vouchers.filter((voucher) => {
-    const matchesSearch = voucher.code.toLowerCase().includes(normalizedSearch);
+    const matchesSearch = normalizeSearchText(voucher.code).includes(normalizedSearch);
     const matchesStatus = statusFilter === "all" || getVoucherStatus(voucher) === statusFilter;
 
     return matchesSearch && matchesStatus;

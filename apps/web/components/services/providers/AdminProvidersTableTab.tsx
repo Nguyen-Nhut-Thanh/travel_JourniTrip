@@ -1,5 +1,7 @@
 "use client";
 
+import { normalizeSearchText } from "shared";
+
 import { useEffect, useMemo, useState } from "react";
 import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
 import { AdminPagination } from "@/components/common/admin_shared/tables/AdminPagination";
@@ -31,9 +33,9 @@ export function ProvidersTableTab({
   const filteredProviders = useMemo(() => {
     return providers.filter((p) => {
       if (search.trim()) {
-        const q = search.toLowerCase();
-        const matchName = p.name.toLowerCase().includes(q);
-        const matchContact = p.contact_info?.toLowerCase().includes(q);
+        const q = normalizeSearchText(search);
+        const matchName = normalizeSearchText(p.name).includes(q);
+        const matchContact = normalizeSearchText(p.contact_info).includes(q);
         if (!matchName && !matchContact) return false;
       }
       if (statusFilter !== "" && String(p.status) !== statusFilter) return false;

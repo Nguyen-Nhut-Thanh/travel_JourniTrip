@@ -10,6 +10,7 @@ export type LocationItem = {
     slug: string;
     level_id: number;
     parent_id?: number | null;
+    country_code?: string | null;
     note?: string | null;
     updated_at?: string | null;
     featured_image?: string | null;

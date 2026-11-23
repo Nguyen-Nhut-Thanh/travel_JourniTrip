@@ -33,11 +33,11 @@ export function deleteAdminLocation(locationId: number) {
   );
 }
 
-export function updateAdminLocation(
+export function updateAdminLocation<T = unknown>(
   locationId: number,
   body: Record<string, unknown>,
 ) {
-  return requestAdminJson(
+  return requestAdminJson<T>(
     `/admin/locations/${locationId}`,
     {
       method: "PATCH",
@@ -47,11 +47,11 @@ export function updateAdminLocation(
   );
 }
 
-export function saveAdminLocation(
+export function saveAdminLocation<T = unknown>(
   locationId: string | number | null,
   body: Record<string, unknown>,
 ) {
-  return requestAdminJson(
+  return requestAdminJson<T>(
     locationId ? `/admin/locations/${locationId}` : "/admin/locations",
     {
       method: locationId ? "PATCH" : "POST",

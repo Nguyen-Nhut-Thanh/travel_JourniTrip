@@ -228,6 +228,7 @@ function TripsContent() {
         busy={busy}
         onlyMine={mode === "mine"}
         initialStatusFilter={scheduleId || mode === "mine" ? "all" : "upcoming"}
+        focusedScheduleId={scheduleId}
         onRegion={async (id, code, reasonStr) => {
           await mutate(
             () => workforceApi.setRegion(id, code as RegionCode, reasonStr),

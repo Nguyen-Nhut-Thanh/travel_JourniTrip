@@ -2,7 +2,7 @@
 
 import { TourRecommendationCard } from "@/components/tour_cards/featured/UserTourRecommendationCard";
 import { requestJson } from "@/lib/http/requestJson";
-import { Bot, Headset, LoaderCircle, RotateCcw, Send, X } from "lucide-react";
+import { Bot, LoaderCircle, Send, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { AiChatRequest, AiChatResponse, AiChatTourReference } from "shared";
@@ -12,7 +12,7 @@ const AI_CHAT_STORAGE_KEY = "journitrip_ai_chat_turns_v1";
 function readStoredTurns(): Turn[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(AI_CHAT_STORAGE_KEY);
+    const raw = sessionStorage.getItem(AI_CHAT_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) return parsed;
@@ -33,7 +33,7 @@ type Turn = {
   response: AiChatResponse;
 };
 
-export function AiChatView({ onContactSupport }: { onContactSupport?: () => void }) {
+export function AiChatView(_: { onContactSupport?: () => void }) {
   const pathname = usePathname();
   const [turns, setTurns] = useState<Turn[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -49,6 +49,12 @@ export function AiChatView({ onContactSupport }: { onContactSupport?: () => void
   const latest = turns.at(-1)?.response;
 
   useEffect(() => {
+    // Discard history saved before conversations were scoped to a browser tab.
+    try {
+      localStorage.removeItem(AI_CHAT_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
     const stored = readStoredTurns();
     if (stored.length > 0) {
       setTurns(stored);
@@ -60,9 +66,9 @@ export function AiChatView({ onContactSupport }: { onContactSupport?: () => void
     if (!loaded) return;
     try {
       if (turns.length === 0) {
-        localStorage.removeItem(AI_CHAT_STORAGE_KEY);
+        sessionStorage.removeItem(AI_CHAT_STORAGE_KEY);
       } else {
-        localStorage.setItem(AI_CHAT_STORAGE_KEY, JSON.stringify(turns.slice(-40)));
+        sessionStorage.setItem(AI_CHAT_STORAGE_KEY, JSON.stringify(turns.slice(-40)));
       }
     } catch {
       // ignore
@@ -133,25 +139,6 @@ export function AiChatView({ onContactSupport }: { onContactSupport?: () => void
             </div>
           </div>
         )}
-        {turns.length > 0 && (
-          <div className="flex items-center justify-between pb-1 text-[11px] text-slate-400 border-b border-slate-200/60">
-            <span>Đang lưu lịch sử chat</span>
-            <button
-              type="button"
-              onClick={() => {
-                setTurns([]);
-                try {
-                  localStorage.removeItem(AI_CHAT_STORAGE_KEY);
-                } catch {}
-              }}
-              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-slate-500 hover:bg-slate-200/70 hover:text-slate-800 transition"
-              title="Xóa lịch sử và bắt đầu hội thoại mới"
-            >
-              <RotateCcw size={11} />
-              <span>Làm mới hội thoại</span>
-            </button>
-          </div>
-        )}
         {turns.map(({ message, response }, index) => (
           <div key={index} className="space-y-3">
             <p className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-tr-sm bg-blue-700 px-3 py-2 text-sm text-white shadow-sm">
@@ -182,33 +169,23 @@ export function AiChatView({ onContactSupport }: { onContactSupport?: () => void
             )}
             {response.tours.map((tour) => (
               <div key={tour.id} className="space-y-1">
-                <TourRecommendationCard tour={tour} />
-                <div className="flex justify-end gap-2 px-1">
-                  <button
-                    type="button"
-                    disabled={Boolean(pending)}
-                    onClick={() => void send(
-                      `Tư vấn tour ${tour.title}`,
-                      "advice", { tourId: tour.id, scheduleId: tour.schedule_id },
-                    )}
-                    className="rounded-lg px-2.5 py-1 text-xs font-semibold text-blue-800 hover:bg-blue-100 disabled:opacity-50"
-                  >Tư vấn</button>
-                  <button
-                    type="button"
-                    disabled={Boolean(pending)}
-                    onClick={() => {
-                      if (quotingTourId === tour.id) {
-                        setQuotingTourId(null);
-                      } else {
-                        setQuotingTourId(tour.id);
-                        setAdultCount(2);
-                        setChildCount(0);
-                        setInfantCount(0);
-                      }
-                    }}
-                    className={`rounded-lg px-2.5 py-1 text-xs font-semibold disabled:opacity-50 ${quotingTourId === tour.id ? "bg-blue-700 text-white" : "text-blue-800 hover:bg-blue-100"}`}
-                  >Tính giá</button>
-                </div>
+                <TourRecommendationCard
+                  tour={tour}
+                  onAdvice={() => void send(
+                    `Tư vấn tour ${tour.title}`,
+                    "advice", { tourId: tour.id, scheduleId: tour.schedule_id },
+                  )}
+                  onQuote={() => {
+                    if (quotingTourId === tour.id) {
+                      setQuotingTourId(null);
+                    } else {
+                      setQuotingTourId(tour.id);
+                      setAdultCount(2);
+                      setChildCount(0);
+                      setInfantCount(0);
+                    }
+                  }}
+                />
 
                 {quotingTourId === tour.id && (
                   <div className="mt-2 rounded-2xl border border-blue-200 bg-blue-50/80 p-3 text-xs text-slate-800 shadow-md">
@@ -346,13 +323,6 @@ export function AiChatView({ onContactSupport }: { onContactSupport?: () => void
             className="rounded-xl bg-blue-700 px-3.5 text-white hover:bg-blue-800 shadow-sm disabled:opacity-40 transition-colors"
           ><Send size={17} /></button>
         </form>
-        {onContactSupport && (
-          <button
-            type="button"
-            onClick={onContactSupport}
-            className="mt-2 inline-flex items-center gap-1.5 rounded text-xs font-semibold text-slate-600 hover:text-blue-800 transition-colors"
-          ><Headset size={14} /> Chuyển sang chat với tư vấn viên</button>
-        )}
       </div>
     </div>
   );

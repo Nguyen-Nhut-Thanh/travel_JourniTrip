@@ -15,12 +15,19 @@ import { useToast } from "@/lib/notifications/useToast";
 import { AdminScenicHeaderBackground } from "@/components/common/admin_shared/layout/AdminScenicHeaderBackground";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { LOCATION_TYPE_BY_LEVEL, type AdminLocationItem, type LocationDetailForm } from "shared";
 
 export default function AdminLocationDetailPage() {
+  return <Suspense fallback={<div className="p-8 text-sm text-slate-500">Đang tải thông tin địa điểm...</div>}><AdminLocationDetailContent /></Suspense>;
+}
+
+function AdminLocationDetailContent() {
   const { id } = useParams();
+  const searchParams = useSearchParams();
+  const newLevel = Number(searchParams.get("level_id"));
+  const newParentId = Number(searchParams.get("parent_id"));
   const router = useRouter();
   const { success, error: showError } = useToast();
   const isNew = id === "new";
@@ -84,7 +91,20 @@ export default function AdminLocationDetailPage() {
       setLevel3List(await fetchByLevel(3));
       setLoadingL3(false);
 
-      if (!isNew) {
+      if (isNew) {
+        setForm(createDefaultLocationDetailForm());
+        if ([4, 5, 6].includes(newLevel) && Number.isSafeInteger(newParentId) && newParentId > 0) {
+          try {
+            const parent = await getAdminLocationDetail<AdminLocationItem>(newParentId);
+            if (parent.level_id !== newLevel - 1) throw new Error("Cấp cha không phù hợp với loại địa điểm cần thêm.");
+            const hierarchy = await buildLocationHierarchyState(adminFetch, newLevel, newParentId);
+            setForm(previous => ({ ...previous, level_id: newLevel, location_type: LOCATION_TYPE_BY_LEVEL[newLevel], parent_id: String(newParentId) }));
+            applyHierarchyState(hierarchy);
+          } catch (error) {
+            showError(error instanceof Error ? error.message : "Không thể chọn sẵn cấp cha. Vui lòng chọn lại.");
+          }
+        }
+      } else {
         try {
           const data = await getAdminLocationDetail<{
             name?: string;
@@ -132,7 +152,7 @@ export default function AdminLocationDetailPage() {
     };
 
     void init();
-  }, [id, isNew]);
+  }, [id, isNew, newLevel, newParentId]);
 
   useEffect(() => {
     if (level3Id && form.level_id >= 5) {

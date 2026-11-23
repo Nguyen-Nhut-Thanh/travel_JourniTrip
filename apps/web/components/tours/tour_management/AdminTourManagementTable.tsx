@@ -9,6 +9,8 @@ import { getTourTypeLabel } from "@/lib/tours/admin/filters";
 import { formatVND } from "@/lib/utils/currency";
 import type { ToursPageTour } from "shared";
 import { TourRowActions } from "@/components/tours/tour_management/AdminTourRowActions";
+import { AdminSearchHighlight } from "@/components/common/admin_shared/tables/AdminSearchHighlight";
+import { AdminTourSearchMatches } from "@/components/common/admin_shared/tables/AdminTourSearchMatches";
 
 export function TourManagementTable({
   items,
@@ -18,6 +20,7 @@ export function TourManagementTable({
   pendingIds,
   onToggle,
   onDelete,
+  searchTerm = "",
 }: {
   items: ToursPageTour[];
   loading: boolean;
@@ -26,6 +29,7 @@ export function TourManagementTable({
   pendingIds: number[];
   onToggle: (tour: ToursPageTour) => void;
   onDelete: (tour: ToursPageTour) => void;
+  searchTerm?: string;
 }) {
   const [selected, setSelected] = useState<number[]>([]);
   const checkbox = useRef<HTMLInputElement>(null);
@@ -183,10 +187,10 @@ export function TourManagementTable({
                         />
                         <div className="min-w-0">
                           <strong title={tour.name} className="block overflow-hidden text-ellipsis font-bold text-[13px] text-[#0b1747] group-hover:text-[#075bff] transition-colors mb-0.5">
-                            {tour.name}
+                            <AdminSearchHighlight text={tour.name} query={searchTerm} />
                           </strong>
                           <span className="block text-xs font-mono text-[#7387aa]">
-                            Mã: {tour.code}
+                            Mã: <AdminSearchHighlight text={tour.code} query={searchTerm} />
                           </span>
                           {tour.summary && (
                             <span title={tour.summary} className="block overflow-hidden text-ellipsis text-xs text-[#7387aa] max-w-[280px]">
@@ -195,6 +199,7 @@ export function TourManagementTable({
                           )}
                         </div>
                       </Link>
+                      <AdminTourSearchMatches tour={tour} query={searchTerm} links />
                     </td>
                     <td className="px-3.5 py-2.5">
                       <span className="inline-block rounded-lg border border-blue-100 bg-blue-50 text-[#075bff] px-2 py-0.5 text-[11px] font-[650]">

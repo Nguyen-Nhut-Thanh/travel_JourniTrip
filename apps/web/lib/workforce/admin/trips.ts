@@ -1,7 +1,27 @@
+import { matchesSearchText } from "shared";
 import type { WorkforceSchedule } from 'shared';
 
 export type WorkforceTripStatus = 'upcoming' | 'ongoing' | 'completed';
 export type WorkforceTripFilter = WorkforceTripStatus | 'all';
+
+export type WorkforceTripTourGroup = {
+  key: string;
+  tour: WorkforceSchedule['tours'];
+  schedules: WorkforceSchedule[];
+};
+
+/** Group filtered trips without changing the active trip order. */
+export function groupWorkforceTripsByTour(schedules: WorkforceSchedule[]): WorkforceTripTourGroup[] {
+  const groups = new Map<string, WorkforceTripTourGroup>();
+  for (const schedule of schedules) {
+    const tourId = schedule.tours.tour_id ?? schedule.tour_id;
+    const key = tourId != null ? `tour-${tourId}` : `schedule-${schedule.tour_schedule_id}`;
+    const group = groups.get(key);
+    if (group) group.schedules.push(schedule);
+    else groups.set(key, { key, tour: schedule.tours, schedules: [schedule] });
+  }
+  return [...groups.values()];
+}
 
 export const WORKFORCE_TRIP_STATUSES = {
   upcoming: { label: 'Sắp khởi hành', className: 'bg-blue-50 text-blue-700' },
@@ -25,13 +45,12 @@ export function filterWorkforceTrips(schedules: WorkforceSchedule[], filters: {
   missingCrew: boolean;
   userId?: number;
 }, now = Date.now()) {
-  const search = filters.search.trim().toLocaleLowerCase('vi');
   const rank = { ongoing: 0, upcoming: 1, completed: 2 };
   return schedules.filter(schedule =>
     (filters.status === 'all' || getWorkforceTripStatus(schedule, now) === filters.status)
     && (!filters.missingCrew || !schedule.crew_ready)
     && (filters.userId === undefined || schedule.crew.some(member => member.user_id === filters.userId))
-    && `${schedule.tours.name} ${schedule.code || ''} ${schedule.departure_location.name}`.toLocaleLowerCase('vi').includes(search),
+    && matchesSearchText(filters.search, schedule.tours.name, schedule.tours.code, schedule.code, `#${schedule.tour_schedule_id}`, schedule.departure_location.name),
   ).sort((a, b) => {
     const statusA = getWorkforceTripStatus(a, now);
     const statusB = getWorkforceTripStatus(b, now);

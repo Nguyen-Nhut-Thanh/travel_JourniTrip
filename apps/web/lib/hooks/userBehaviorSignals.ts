@@ -74,10 +74,12 @@ export function saveUserSignals(signals: Partial<UserBehaviorSignals>) {
 export function trackTourView(tourId: number) {
   if (!isId(tourId) || typeof window === "undefined") return;
   const current = getUserSignals();
-  saveUserSignals({ viewed_tours: [
-    { tourId, viewedAt: new Date().toISOString() },
-    ...current.viewed_tours.filter(view => view.tourId !== tourId),
-  ] });
+  saveUserSignals({
+    viewed_tours: [
+      { tourId, viewedAt: new Date().toISOString() },
+      ...current.viewed_tours.filter(view => view.tourId !== tourId),
+    ]
+  });
 }
 
 export function trackSearchKeyword(keyword: string) {

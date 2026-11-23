@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import {
   CANCELLATION_REASONS,
+  cancellationPortion,
   POPULAR_VIETNAMESE_BANKS,
   type CancelBookingPayload,
 } from "shared";
@@ -48,12 +49,17 @@ export function BookingCancelModal({
 
   useEffect(() => setMounted(true), []);
 
+  const [travelerIds, setTravelerIds] = useState<number[]>([]);
+  let portionAmount = Number(booking?.total_amount || booking?.price || 0), portionError = "";
+  try { if (travelerIds.length && booking) portionAmount = cancellationPortion(booking, travelerIds).amount; }
+  catch (error) { portionError = (error as Error).message; }
   const { isPaid, startDate, totalAmount, estimate, theme } =
-    useBookingCancelPolicy(booking);
+    useBookingCancelPolicy(booking ? { ...booking, total_amount: portionAmount } : booking);
 
   // Reset form khi mở modal
   useEffect(() => {
     if (open && booking) {
+      setTravelerIds([]);
       setSelectedReason(CANCELLATION_REASONS[0]);
       setCustomReason("");
       setBankName(POPULAR_VIETNAMESE_BANKS[0]);
@@ -82,6 +88,7 @@ export function BookingCancelModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (portionError) { showError(portionError); return; }
 
     const finalReason =
       selectedReason === "Lý do khác"
@@ -106,6 +113,7 @@ export function BookingCancelModal({
     }
 
     const payload: CancelBookingPayload = {
+      travelerIds: travelerIds.length ? travelerIds : undefined,
       reason: finalReason,
       bankName: isPaid && estimate.refundAmount > 0 ? finalBank : undefined,
       bankAccountNumber:
@@ -219,6 +227,16 @@ export function BookingCancelModal({
 
         {/* Form Body: Chia làm 2 cột chính */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
+          {isPaid && booking.booking_travelers?.length > 1 && <fieldset className="space-y-2 rounded-xl border border-blue-100 bg-blue-50 p-4">
+            <legend className="px-1 text-sm font-bold">Hủy toàn bộ hoặc chọn hành khách cần hủy</legend>
+            <label className="flex gap-2 text-sm"><input type="checkbox" checked={!travelerIds.length} onChange={() => setTravelerIds([])} />Hủy toàn bộ booking</label>
+            {booking.booking_travelers.map((traveler: any) => <label key={traveler.traveler_id} className="flex gap-2 text-sm">
+              <input type="checkbox" checked={travelerIds.includes(traveler.traveler_id)} onChange={event => setTravelerIds(ids => event.target.checked ? [...ids, traveler.traveler_id] : ids.filter(id => id !== traveler.traveler_id))} />
+              {traveler.full_name} ({traveler.traveler_type})
+            </label>)}
+            <p className="text-xs text-slate-600">Hủy một phần chỉ tính trên phần giá vé thực trả của người được chọn. Phòng và dịch vụ dùng chung được giữ nguyên cho đoàn còn lại; liên hệ trước nếu cần thay đổi phòng/dịch vụ. Đoàn còn lại phải có người lớn.</p>
+            {portionError && <p role="alert" className="text-sm text-red-700">{portionError}</p>}
+          </fieldset>}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 items-start">
             {/* CỘT TRÁI: Phần đầu (Đếm ngược thời gian, 3 ô chi phí, Bảng quy định hoàn hủy tour) */}
             <BookingCancelPolicySection

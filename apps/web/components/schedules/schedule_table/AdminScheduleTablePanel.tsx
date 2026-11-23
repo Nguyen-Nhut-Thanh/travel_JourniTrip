@@ -19,10 +19,12 @@ import {
 import type { ScheduleTablePanelProps } from "shared";
 import { ScheduleRowActions } from "@/components/schedules/schedule_table/AdminScheduleRowActions";
 import { ScheduleTableSkeleton } from "@/components/schedules/schedule_table/AdminScheduleTableSkeleton";
+import { AdminSearchHighlight } from "@/components/common/admin_shared/tables/AdminSearchHighlight";
 import { useAdminContentReadOnly } from '@/components/common/admin_shared/guards/AdminContentPermission';
 import { ADMIN_CONTENT_DENIED, applyDiscount } from 'shared';
 
 export function ScheduleTablePanel({
+  searchTerm = "",
   selectedTourId,
   selectedTour,
   schedules,
@@ -261,6 +263,7 @@ export function ScheduleTablePanel({
                             </strong>
                           </div>
                           <div>
+                            <span className="mb-1 block font-mono text-xs text-blue-700"><AdminSearchHighlight text={schedule.code || `#${schedule.tour_schedule_id}`} query={searchTerm} /></span>
                             <strong className="ui-schedule-overview-departureDate text-[13px] font-bold text-[#182d53]">
                               {start.toLocaleDateString("vi-VN", {
                                 weekday: "short",

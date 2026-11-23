@@ -563,6 +563,9 @@ export class SchedulesAdminService {
               current.start_date.getTime()) ||
           (body.end_date !== undefined &&
             new Date(body.end_date).getTime() !== current.end_date.getTime());
+        if (current._count.bookings > 0 && datesChanged) {
+          throw new BadRequestException("Chuyến đã có booking: cần gửi đề xuất đổi lịch và để khách xác nhận, không sửa trực tiếp ngày giờ.");
+        }
         if ((current.crew_locked_at || current.crew_snapshot) && datesChanged)
           throw new BadRequestException(
             "Nhân sự chuyến đã chốt/công bố; không thể đổi ngày giờ làm sai thông tin đã gửi cho khách.",

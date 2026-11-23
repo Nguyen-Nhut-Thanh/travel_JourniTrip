@@ -104,6 +104,7 @@ export type ScheduleLike = Pick<AdminSchedule, 'start_date' | 'quota' | 'status'
     };
 };
 export type AdminSchedule = {
+    code?: string | null;
     departure_location_id?: number;
     departure_location?: { location_id: number; name: string };
     pickup_points?: import("../../tours/models").SchedulePickupPoint[];

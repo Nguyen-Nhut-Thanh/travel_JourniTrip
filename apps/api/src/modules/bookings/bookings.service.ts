@@ -1,7 +1,9 @@
+import { DEFAULT_CANCELLATION_TIERS } from "shared";
+import { BookingWorkflow } from "./booking-workflow";
 import { calculateBookingTourPrice } from "./helpers/booking-tour-price";
 import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
-import type { BookingCancellationMeta, BookingPayload, CancelBookingPayload } from "shared";
-import { BOOKING_EXTRAS, applyDiscount, calculateCancellationEstimate, isValidCitizenId, isValidEmail, isValidVietnamesePhone, membershipDiscount, membershipPrice, voucherAudienceAllows, voucherAudienceLabel } from "shared";
+import type { BookingCancellationMeta, BookingPayload } from "shared";
+import { BOOKING_EXTRAS, applyDiscount, isValidCitizenId, isValidEmail, isValidVietnamesePhone, membershipDiscount, membershipPrice, voucherAudienceAllows, voucherAudienceLabel } from "shared";
 import {
   customerCrewBooking,
   formatCurrency,
@@ -44,6 +46,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
      * Tự động quét và hủy các đơn hàng chờ thanh toán (pending) quá hạn 15 phút hoặc đợt khởi hành đã đến/qua ngày
      */
     async cancelExpiredPendingBookings(olderThanMinutes = BOOKING_PAYMENT_TIMEOUT_MINUTES): Promise<number> {
+        await new BookingWorkflow(this.prisma, this.mailService).expireHolds().catch(error => this.logger.error(error));
         const threshold = new Date(Date.now() - olderThanMinutes * 60 * 1000);
         const now = new Date();
 
@@ -81,6 +84,9 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
                 const totalGuests = (b.adult_count || 0) + (b.child_count || 0) + (b.infant_count || 0);
                 const isDeparted = b.tour_schedules && b.tour_schedules.start_date <= now;
                 const cancelMeta: BookingCancellationMeta = {
+                    ...((b.cancellation_meta as object) || {}),
+                    seatsReleased: true,
+                    benefitsReleased: true,
                     type: isDeparted ? 'expired_departure' : 'expired_15m',
                     actor: 'Hệ thống tự động',
                     title: isDeparted
@@ -107,15 +113,8 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
 
                         // Giảm booked_count trên schedule để nhả chỗ cho khách khác
                         if (totalGuests > 0 && b.tour_schedule_id) {
-                            const sched = await tx.tour_schedules.findUnique({
-                                where: { tour_schedule_id: b.tour_schedule_id },
-                                select: { booked_count: true },
-                            });
-                            const newCount = Math.max(0, (sched?.booked_count || 0) - totalGuests);
-                            await tx.tour_schedules.update({
-                                where: { tour_schedule_id: b.tour_schedule_id },
-                                data: { booked_count: newCount },
-                            });
+                            const released = await tx.tour_schedules.updateMany({ where: { tour_schedule_id: b.tour_schedule_id, booked_count: { gte: totalGuests } }, data: { booked_count: { decrement: totalGuests } } });
+                            if (released.count !== 1) throw new BadRequestException("Số chỗ không khớp, cần đối soát.");
                         }
 
                         // Hoàn trả voucher nếu có
@@ -127,7 +126,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
                         }
 
                         // Hoàn trả ưu đãi đợt khởi hành nếu có
-                        if (b.tour_schedule_id) {
+                        if (b.tour_schedule_id && (b.membership_snapshot as any)?.promoType === 'schedule_promotion') {
                             const promoGuests = (b.adult_count || 0) + (b.child_count || 0);
                             if (promoGuests > 0) {
                                 await tx.schedule_promotions.updateMany({
@@ -181,6 +180,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
         return this.createBooking({ ...dto, user_id: userId });
     }
     async createForAccount(accountId: number, dto: BookingPayload) {
+        if (dto.policyAccepted !== true) throw new BadRequestException("Vui lòng xác nhận đã đọc chính sách hủy trước khi đặt tour.");
         return this.createBooking({ ...dto, user_id: await getAccountUserId(this.prisma, accountId, "Không tìm thấy người dùng.") });
     }
     async listForAccount(accountId: number) { return this.getMyBookings(await getAccountUserId(this.prisma, accountId, "Không tìm thấy người dùng.")); }
@@ -406,6 +406,10 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
             throw new BadRequestException("Phương thức thanh toán chưa được hỗ trợ.");
         if (!Array.isArray(dto.travelers))
             throw new BadRequestException("Danh sách hành khách không hợp lệ.");
+        if (dto.travelers.length !== dto.adult_count + dto.child_count + dto.infant_count ||
+            ["adult", "child", "infant"].some(type => dto.travelers.filter((t: any) => t.type === type).length !== dto[`${type}_count`])) {
+            throw new BadRequestException("Danh sách hành khách phải khớp số lượng từng loại khách.");
+        }
         for (const traveler of dto.travelers) {
             if (!["male", "female"].includes(traveler.gender) || !["adult", "child", "infant"].includes(traveler.type) || typeof traveler.fullName !== "string") {
                 throw new BadRequestException("Thông tin hành khách không hợp lệ.");
@@ -460,6 +464,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
                             tour_type: true,
                             name: true,
                             status: true,
+                            cut_off_hours: true,
                         },
                     },
                 },
@@ -469,6 +474,9 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
             }
             if (!schedule.tours || schedule.tours.status !== 1) {
                 throw new BadRequestException('Tour này hiện đang tạm ẩn và không nhận đặt mới.');
+            }
+            if (new Date(schedule.start_date).getTime() - Date.now() < (schedule.tours.cut_off_hours ?? 24) * 3600000) {
+                throw new BadRequestException('Lịch đã vào thời gian chốt nhận khách.');
             }
             const pickup = schedule.pickup_points.find((point: { pickup_point_id: number }) => point.pickup_point_id === dto.pickup_point_id);
             if ((schedule.pickup_points.length > 0 && !pickup) || (dto.pickup_point_id != null && !pickup)) {
@@ -563,7 +571,8 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
             const totalAmount = Math.max(subtotal + singleRoomSurcharge + extras.total - discountAmount, 0);
             const roomSelection = {
                 type: dto.room_type === 'single' ? 'single' : 'shared',
-                surcharge: dto.room_type === 'single' ? singleRoomSurcharge : 0,
+                surcharge: singleRoomSurcharge,
+                single_room_count: singleRoomCount,
             };
             const promoNote = activeSchedulePromo
                 ? `[ƯU ĐÃI ĐỢT KHỞI HÀNH]: ${appliedPromoTitle}${appliedGiftDescription ? ` (Quà tặng: ${appliedGiftDescription})` : ''}`
@@ -588,6 +597,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
                     discount_amount: discountAmount,
                     total_amount: totalAmount,
                     status: 'pending',
+                    cancellation_meta: { policyVersion: 2, policyAcceptedAt: dto.policyAccepted ? new Date().toISOString() : null, policySource: dto.policyAccepted ? "customer" : "staff_assisted", policyTiers: DEFAULT_CANCELLATION_TIERS },
                     note: mergedNote,
                     room_selection: roomSelection,
                     contact_id_card: dto.contact_id_card?.trim() || null,
@@ -724,7 +734,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
             this.prisma.bookings.count({
                 where: {
                     user_id: userId,
-                    status: { not: 'cancelled' },
+                    status: { in: ['pending', 'paid', 'cancel_requested', 'cancel_proposed'] },
                     tour_schedules: {
                         start_date: { gte: new Date() },
                     },
@@ -783,337 +793,17 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
         });
         return booking ? customerCrewBooking(booking) : null;
     }
-    async requestCancel(bookingId: any, userId: any, dtoOrReason: any) {
-        const booking = await this.prisma.bookings.findFirst({
-            where: { booking_id: bookingId, user_id: userId },
-            include: {
-                tour_schedules: {
-                    include: {
-                        tours: {
-                            select: { name: true },
-                        },
-                    },
-                },
-            },
-        });
-        if (!booking) {
-            throw new NotFoundException('Không tìm thấy booking.');
-        }
-        if (booking.status === 'cancelled') {
-            throw new BadRequestException('Đơn đặt tour này đã bị hủy trước đó.');
-        }
-        if (booking.status === 'cancel_requested') {
-            throw new BadRequestException('Đơn đặt tour này đã gửi yêu cầu hủy và đang chờ xử lý.');
-        }
-        if (!['pending', 'paid'].includes(booking.status)) {
-            throw new BadRequestException('Booking hiện không thể hủy hoặc gửi yêu cầu hủy.');
-        }
-        if (booking.tour_schedules?.start_date && new Date(booking.tour_schedules.start_date).getTime() <= Date.now()) {
-            throw new BadRequestException('Chuyến đi đã hoặc đang trong thời gian khởi hành, không thể thực hiện hủy tour.');
-        }
-
-        const payload: CancelBookingPayload = typeof dtoOrReason === 'string'
-            ? { reason: dtoOrReason }
-            : (dtoOrReason || { reason: 'Khách hàng yêu cầu hủy' });
-
-        const reasonText = (payload.reason || '').trim() || 'Khách hàng yêu cầu hủy tour';
-
-        const isPending = booking.status === 'pending';
-        let estimate: any = undefined;
-
-        if (!isPending) {
-            estimate = calculateCancellationEstimate({
-                startDate: booking.tour_schedules.start_date,
-                totalAmount: Number(booking.total_amount),
-                isPaid: true,
-            });
-        }
-
-        const cancellationMeta: BookingCancellationMeta = {
-            type: 'customer_cancel_request',
-            actor: 'Khách hàng',
-            title: isPending ? 'Yêu cầu hủy giữ chỗ từ khách hàng' : 'Yêu cầu hủy tour & hoàn tiền từ khách hàng',
-            reason: reasonText,
-            time: new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
-            refundAmount: estimate ? `${formatCurrency(estimate.refundAmount)}đ` : '0đ',
-            cancelRequest: {
-                reason: reasonText,
-                requestedAt: new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
-                daysRemaining: estimate ? `${estimate.daysRemaining} ngày (${estimate.hoursRemaining} giờ)` : undefined,
-                tierPenalty: estimate ? `${estimate.tier.penaltyPercent}% (${estimate.tier.title})` : undefined,
-                totalPaid: isPending ? '0đ' : `${formatCurrency(Number(booking.total_amount))}đ`,
-                penaltyAmount: estimate ? `${formatCurrency(estimate.penaltyAmount)}đ` : '0đ',
-                refundEstimated: estimate ? `${formatCurrency(estimate.refundAmount)}đ` : '0đ',
-                numericRefundAmount: estimate ? estimate.refundAmount : 0,
-                bankName: payload.bankName,
-                bankAccountNumber: payload.bankAccountNumber,
-                bankAccountName: payload.bankAccountName,
-            },
-        };
-
-        const updated = await this.prisma.bookings.update({
-            where: { booking_id: bookingId },
-            data: {
-                status: 'cancel_requested',
-                cancellation_meta: cancellationMeta as any,
-            },
-        });
-
-        await this.mailService.sendCancelRequestEmail({
-            email: booking.contact_email,
-            contactName: booking.contact_name,
-            bookingId: booking.booking_id,
-            tourName: booking.tour_schedules?.tours?.name || 'Tour',
-        }).catch(() => {});
-
-        await this.mailService.sendCancelRequestAdminNotification({
-            bookingId: booking.booking_id,
-            tourName: booking.tour_schedules?.tours?.name || 'Tour',
-            contactName: booking.contact_name,
-            contactEmail: booking.contact_email,
-            contactPhone: booking.contact_phone,
-            reason: reasonText,
-        }).catch(() => {});
-
-        // Gửi thông báo đến trang Thông báo trong tài khoản của khách
-        await sendBookingNotification(this.prisma, {
-            type: 'cancel_requested',
-            userId: booking.user_id,
-            bookingId: booking.booking_id,
-            tourName: booking.tour_schedules?.tours?.name || 'Tour',
-            reason: reasonText,
-        });
-
-        return {
-            ...updated,
-            cancellation_type: 'cancel_requested',
-            estimate,
-            message: isPending
-                ? 'Yêu cầu hủy đơn đặt tour đã được gửi đến ban quản trị xem xét và phê duyệt.'
-                : 'Yêu cầu hủy tour và hoàn tiền đã được gửi đến ban quản trị xem xét và phê duyệt.',
-        };
+    async requestCancel(bookingId: number, userId: number, dto: any) {
+        return new BookingWorkflow(this.prisma, this.mailService).requestCancel(bookingId, userId, typeof dto === 'string' ? { reason: dto } : dto);
     }
 
-    async resolveProposalForAccount(
-        bookingId: number,
-        accountId: number,
-        dto: {
-            decision: 'full_refund' | 'reschedule' | 'contact_support';
-            bankName?: string;
-            bankAccountNumber?: string;
-            bankAccountName?: string;
-            supportNote?: string;
-        },
-    ) {
-        const userId = await getAccountUserId(this.prisma, accountId, "Không tìm thấy người dùng.");
-        const booking = await this.prisma.bookings.findFirst({
-            where: { booking_id: bookingId, user_id: userId },
-            include: {
-                tour_schedules: { include: { tours: true } },
-            },
-        });
-        if (!booking) throw new NotFoundException('Không tìm thấy booking.');
-
-        const existingMeta = (booking.cancellation_meta as BookingCancellationMeta) || {};
-        const proposal = existingMeta.resolutionProposal;
-        if (!proposal) {
-            throw new BadRequestException('Booking này không có đề xuất phương án từ Ban quản trị.');
-        }
-
-        const totalGuests = (booking.adult_count || 0) + (booking.child_count || 0) + (booking.infant_count || 0);
-
-        // Trường hợp 1: Khách hàng chọn Hoàn tiền 100%
-        if (dto.decision === 'full_refund') {
-            if (!proposal.allowedOptions.includes('full_refund')) {
-                throw new BadRequestException('Phương án hoàn tiền không khả dụng cho đơn này.');
-            }
-            if (!dto.bankName || !dto.bankAccountNumber || !dto.bankAccountName) {
-                throw new BadRequestException('Vui lòng cung cấp đầy đủ thông tin tài khoản ngân hàng để nhận tiền hoàn.');
-            }
-
-            const customerDecision = {
-                selectedOption: 'full_refund' as const,
-                decidedAt: new Date().toISOString(),
-                bankAccount: {
-                    bankName: dto.bankName.trim(),
-                    accountNumber: dto.bankAccountNumber.trim(),
-                    accountHolder: dto.bankAccountName.trim().toUpperCase(),
-                },
-            };
-
-            const updatedMeta: BookingCancellationMeta = {
-                ...existingMeta,
-                title: 'Khách hàng chọn Hoàn tiền 100% (Chờ kế toán chuyển tiền)',
-                resolutionProposal: {
-                    ...proposal,
-                    status: 'accepted_refund',
-                    customerDecision,
-                },
-            };
-
-            const updated = await this.prisma.$transaction(async (tx) => {
-                const res = await tx.bookings.update({
-                    where: { booking_id: bookingId },
-                    data: {
-                        status: 'refund_pending',
-                        cancellation_meta: updatedMeta as any,
-                    },
-                });
-
-                // Nhả chỗ ngay cho tour
-                if (totalGuests > 0 && booking.tour_schedule_id) {
-                    const currentSchedule = await tx.tour_schedules.findUnique({
-                        where: { tour_schedule_id: booking.tour_schedule_id },
-                        select: { booked_count: true },
-                    });
-                    const newCount = Math.max(0, (currentSchedule?.booked_count || 0) - totalGuests);
-                    await tx.tour_schedules.update({
-                        where: { tour_schedule_id: booking.tour_schedule_id },
-                        data: { booked_count: newCount },
-                    });
-                }
-
-                return res;
-            });
-
-            return updated;
-        }
-
-        // Trường hợp 2: Khách hàng chọn Dời sang đợt khởi hành mới
-        if (dto.decision === 'reschedule') {
-            if (!proposal.allowedOptions.includes('reschedule')) {
-                throw new BadRequestException('Phương án dời lịch không khả dụng cho đơn này.');
-            }
-            const newScheduleId = proposal.suggestedScheduleId;
-            if (!newScheduleId) {
-                throw new BadRequestException('Không tìm thấy đợt khởi hành mới được đề xuất.');
-            }
-
-            const newSchedule = await this.prisma.tour_schedules.findUnique({
-                where: { tour_schedule_id: newScheduleId },
-                include: { tours: true },
-            });
-            if (!newSchedule) throw new BadRequestException('Đợt khởi hành mới không tồn tại.');
-
-            // Kiểm tra cơ chế chốt tour trước giờ khởi hành (cut_off_hours)
-            const cutOffHours = newSchedule.tours?.cut_off_hours ?? 24;
-            const diffHours = (new Date(newSchedule.start_date).getTime() - Date.now()) / (1000 * 60 * 60);
-            if (diffHours < cutOffHours) {
-                throw new BadRequestException(
-                    `Đợt khởi hành mới đã bước vào thời gian chốt tour (dưới ${cutOffHours} giờ trước giờ khởi hành). Vui lòng chọn phương án hoàn tiền hoặc liên hệ quản trị viên.`
-                );
-            }
-
-            const remainingSlots = (newSchedule.quota || 0) - (newSchedule.booked_count || 0);
-            if (totalGuests > remainingSlots) {
-                throw new BadRequestException(`Đợt khởi hành mới chỉ còn ${remainingSlots} chỗ, không đủ cho ${totalGuests} khách.`);
-            }
-
-            const customerDecision = {
-                selectedOption: 'reschedule' as const,
-                decidedAt: new Date().toISOString(),
-                bankAccount: dto.bankName && dto.bankAccountNumber ? {
-                    bankName: dto.bankName.trim(),
-                    accountNumber: dto.bankAccountNumber.trim(),
-                    accountHolder: dto.bankAccountName?.trim().toUpperCase() || '',
-                } : undefined,
-            };
-
-            const updatedMeta: BookingCancellationMeta = {
-                ...existingMeta,
-                reschedule: {
-                    oldScheduleId: booking.tour_schedule_id,
-                    newScheduleId,
-                    reason: proposal.reason,
-                    note: proposal.adminNote,
-                    rescheduledAt: new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
-                },
-                resolutionProposal: {
-                    ...proposal,
-                    status: 'accepted_reschedule',
-                    customerDecision,
-                },
-            };
-
-            const updated = await this.prisma.$transaction(async (tx) => {
-                const res = await tx.bookings.update({
-                    where: { booking_id: bookingId },
-                    data: {
-                        tour_schedule_id: newScheduleId,
-                        status: 'paid',
-                        cancellation_meta: updatedMeta as any,
-                    },
-                });
-
-                // Giảm booked_count đợt cũ
-                if (totalGuests > 0 && booking.tour_schedule_id) {
-                    const currentSchedule = await tx.tour_schedules.findUnique({
-                        where: { tour_schedule_id: booking.tour_schedule_id },
-                        select: { booked_count: true },
-                    });
-                    const newCount = Math.max(0, (currentSchedule?.booked_count || 0) - totalGuests);
-                    await tx.tour_schedules.update({
-                        where: { tour_schedule_id: booking.tour_schedule_id },
-                        data: { booked_count: newCount },
-                    });
-                }
-
-                // Tăng booked_count đợt mới
-                await tx.tour_schedules.update({
-                    where: { tour_schedule_id: newScheduleId },
-                    data: { booked_count: { increment: totalGuests } },
-                });
-
-                return res;
-            });
-
-            // Gửi email xác nhận dời lịch cho khách
-            if (booking.contact_email) {
-                await this.mailService.sendRescheduleConfirmedEmail({
-                    email: booking.contact_email,
-                    contactName: booking.contact_name,
-                    bookingId: booking.booking_id,
-                    tourName: newSchedule.tours?.name || booking.tour_schedules?.tours?.name || 'Tour',
-                    newStartDate: newSchedule.start_date,
-                    newEndDate: newSchedule.end_date,
-                    priceDifference: proposal.priceDifference,
-                });
-            }
-
-            // Gửi thông báo trong hệ thống
-            await sendBookingNotification(this.prisma, {
-                type: 'rescheduled_confirmed',
-                userId: booking.user_id,
-                bookingId: booking.booking_id,
-                tourName: newSchedule.tours?.name || 'Tour',
-            });
-
-            return updated;
-        }
-
-        // Trường hợp 3: Khách hàng muốn liên hệ đổi phương án khác
-        if (dto.decision === 'contact_support') {
-            const customerDecision = {
-                selectedOption: 'contact_support' as const,
-                decidedAt: new Date().toISOString(),
-                supportNote: dto.supportNote?.trim(),
-            };
-
-            const updatedMeta: BookingCancellationMeta = {
-                ...existingMeta,
-                resolutionProposal: {
-                    ...proposal,
-                    status: 'contact_support',
-                    customerDecision,
-                },
-            };
-
-            return this.prisma.bookings.update({
-                where: { booking_id: bookingId },
-                data: { cancellation_meta: updatedMeta as any },
-            });
-        }
-
-        throw new BadRequestException('Lựa chọn không hợp lệ.');
+    async resolveProposalForAccount(bookingId: number, accountId: number, dto: any) {
+        return new BookingWorkflow(this.prisma, this.mailService).resolve(bookingId, await getAccountUserId(this.prisma, accountId, "Không tìm thấy người dùng."), dto);
+    }
+    async updateRefundBankForAccount(id: number, accountId: number, dto: any) {
+        return new BookingWorkflow(this.prisma, this.mailService).updateRefundBank(id, await getAccountUserId(this.prisma, accountId, "Không tìm thấy người dùng."), dto);
+    }
+    async withdrawCancelForAccount(id: number, accountId: number) {
+        return new BookingWorkflow(this.prisma, this.mailService).withdrawCancel(id, await getAccountUserId(this.prisma, accountId, "Không tìm thấy người dùng."));
     }
 }

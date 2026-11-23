@@ -37,6 +37,19 @@ export async function getAdminReviewDetail(reviewId: number): Promise<AdminRevie
   );
 }
 
+export async function getAllAdminReviews(): Promise<AdminReviewListResponse> {
+  const first = await getAdminReviews({ take: 100 });
+  const items = [...first.items];
+  while (items.length < first.total) {
+    const next = await getAdminReviews({ take: 100, skip: items.length });
+    if (!next.items.length) {
+      throw new Error("Danh sách đánh giá đã thay đổi. Vui lòng tải lại.");
+    }
+    items.push(...next.items);
+  }
+  return { ...first, items };
+}
+
 export async function updateAdminReviewStatus(
   reviewId: number,
   payload: AdminUpdateReviewStatusPayload,

@@ -1,4 +1,6 @@
 "use client";
+
+import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
 import { useRef, useState } from "react";
 import { AdminModalShell } from "@/components/common/admin_shared/layout/AdminModalShell";
 import { AdminPagination } from "@/components/common/admin_shared/tables/AdminPagination";
@@ -6,7 +8,7 @@ import { workforceApi, workforceDate } from "@/lib/workforce/admin/api";
 import {
   filterWorkforceTrips,
   getWorkforceTripStatus,
-  WORKFORCE_TRIP_STATUSES,
+  groupWorkforceTripsByTour,
   type WorkforceTripFilter,
 } from "@/lib/workforce/admin/trips";
 import {
@@ -21,6 +23,7 @@ import {
   requiresCrewOverride,
 } from "@/components/workforce/shifts_and_crew/AdminCrewScheduleCard";
 import { ScheduleManifestModal } from "@/components/schedules/schedule_modals/AdminScheduleManifestModal";
+import { TripTourList } from "@/components/workforce/trips/AdminTripTourList";
 
 export function CrewPanel({
   actor,
@@ -32,6 +35,7 @@ export function CrewPanel({
   onRespond,
   onlyMine = false,
   initialStatusFilter = "upcoming",
+  focusedScheduleId,
 }: {
   actor: WorkforceActor;
   schedules: WorkforceSchedule[];
@@ -39,6 +43,7 @@ export function CrewPanel({
   busy: boolean;
   onlyMine?: boolean;
   initialStatusFilter?: "upcoming" | "all";
+  focusedScheduleId?: number;
   onRegion: (id: number, region: string, reason?: string) => Promise<void>;
   onAssign: (id: number, body: CrewPayload) => Promise<boolean>;
   onRespond: (id: number, action: string, note?: string) => Promise<boolean>;
@@ -86,9 +91,10 @@ export function CrewPanel({
       : matchingTrips.filter(
           (schedule) => getWorkforceTripStatus(schedule, now) === statusFilter,
         );
-  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const tourGroups = groupWorkforceTripsByTour(rows);
+  const totalPages = Math.max(1, Math.ceil(tourGroups.length / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const visibleRows = rows.slice(
+  const visibleGroups = tourGroups.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
   );
@@ -153,13 +159,13 @@ export function CrewPanel({
           </div>
 
           <div className="flex items-center gap-3 shrink-0 flex-1 sm:flex-initial justify-end">
-            <input
+            <AdminSearchInput
               aria-label="Tìm chuyến"
-              className="min-w-0 w-full sm:w-64 rounded-lg border border-slate-200 bg-white h-8.5 px-3 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#075bff] focus:ring-1 focus:ring-blue-100 focus:outline-none shadow-2xs"
+              inputClassName="min-w-0 w-full sm:w-64 rounded-lg border border-slate-200 bg-white h-8.5 px-3 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#075bff] focus:ring-1 focus:ring-blue-100 focus:outline-none shadow-2xs"
               placeholder="Tìm tour, mã chuyến hoặc nơi xuất phát…"
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
+              onChange={(value) => {
+                setSearch(value);
                 setPage(1);
               }}
             />
@@ -181,13 +187,11 @@ export function CrewPanel({
         </div>
       </div>
       <div className="overflow-hidden rounded-[14px] border border-[#e1edfc] bg-white shadow-xs">
-        <div className="divide-y divide-[#edf2fb]">
-          {!rows.length && (
-            <div className="p-12 text-center text-sm text-slate-500">
-              Không có chuyến phù hợp với bộ lọc hiện tại.
-            </div>
-          )}
-          {visibleRows.map((schedule) => (
+        <TripTourList
+          searchTerm={search}
+          groups={visibleGroups}
+          focusedScheduleId={focusedScheduleId}
+          renderSchedule={(schedule) => (
             <CrewScheduleCard
               key={schedule.tour_schedule_id}
               actor={actor}
@@ -211,17 +215,17 @@ export function CrewPanel({
               }}
               onManifest={(id) => setManifestScheduleId(id)}
             />
-          ))}
-        </div>
+          )}
+        />
         <div className="border-t border-[#edf2fb]">
           <AdminPagination
             variant="numbered"
             showSinglePage
             currentPage={currentPage}
             totalPages={totalPages}
-            totalItems={rows.length}
+            totalItems={tourGroups.length}
             pageSize={pageSize}
-            itemLabel="chuyến"
+            itemLabel="tour"
             onPageChange={(nextPage) => {
               setPage(nextPage);
               listRef.current?.scrollIntoView({ block: "start" });

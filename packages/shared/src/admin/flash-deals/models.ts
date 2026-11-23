@@ -7,6 +7,8 @@ export type FlashDealRecord = {
     status: number;
 };
 export type FlashDealSchedule = {
+    code?: string | null;
+    tour_id?: number;
     status?: number;
     booked_count?: number;
     cover_image_url?: string | null;
@@ -17,6 +19,11 @@ export type FlashDealSchedule = {
     tours?: {
         tour_id?: number;
         status?: number;
+        summary?: string | null;
+        tour_type?: string | null;
+        duration_days?: number;
+        duration_nights?: number;
+        base_price?: number | string;
         tour_images?: { image_url: string }[];
         tour_destinations?: { locations: { location_id: number; name: string } }[];
         code?: string | null;

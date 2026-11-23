@@ -1,9 +1,11 @@
 "use client";
 
+import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
+
 import { AdminModalShell } from "@/components/common/admin_shared/layout/AdminModalShell";
 import { CalendarDays } from "lucide-react";
 import { getPublicTours } from "@/lib/tours/client/api";
-import { Search, SendHorizontal, Map } from "lucide-react";
+import { SendHorizontal, Map } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { ChatWorkspaceProps, PublicTourCard } from "shared";
 
@@ -62,7 +64,7 @@ export function TourSharePicker({ disabled, onSend, customerId }: {
     <button ref={trigger} type="button" disabled={disabled} aria-expanded={open} aria-controls="tour-share-panel" onClick={() => {setMode("share");setOpen(true);}} className="flex w-full items-center gap-2 rounded-lg bg-blue-50 p-3 text-xs text-blue-600 hover:bg-blue-100 disabled:opacity-40"><Map size={14}/>Gửi thông tin tour</button>
     <button type="button" disabled={disabled} onClick={() => {setMode("booking");setOpen(true);}} className="flex w-full items-center gap-2 rounded-lg bg-blue-50 p-3 text-xs text-blue-600 hover:bg-blue-100 disabled:opacity-40"><CalendarDays size={14}/>Tạo booking</button>
     {open && <AdminModalShell title={mode === "share" ? "Gửi thông tin tour" : "Chọn tour để tạo booking"} onClose={() => {if(sending === null) close();}}><section id="tour-share-panel" className="p-5">
-      <label className="mb-2 flex items-center gap-2 rounded-lg border border-blue-100 px-2"><Search size={15} className="text-blue-400"/><input ref={input} aria-label="Tìm tour để gửi" value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} placeholder="Tìm tên tour, điểm đến…" className="min-w-0 flex-1 py-2 text-xs outline-none"/></label>
+      <label className="mb-2 block"><AdminSearchInput loading={loading} inputRef={input} aria-label="Tìm tour để gửi" value={search} onChange={value => { setSearch(value); setPage(0); }} placeholder="Tìm tên tour, điểm đến…" inputClassName="min-w-0 flex-1 py-2 text-xs outline-none"/></label>
       {error && <p role="alert" className="mb-2 text-xs text-red-500">{error}</p>}
       <div className="max-h-96 space-y-3 overflow-y-auto">
         {loading ? <p className="p-4 text-center text-xs text-slate-400">Đang tìm tour…</p> : !tours.length ? <p className="p-4 text-center text-xs text-slate-400">Không tìm thấy tour phù hợp.</p> : tours.map(tour => <div key={tour.tour_id} className="flex items-center gap-3 rounded-lg bg-blue-50/40 p-3">

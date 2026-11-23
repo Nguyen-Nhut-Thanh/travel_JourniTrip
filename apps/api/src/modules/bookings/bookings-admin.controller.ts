@@ -28,6 +28,11 @@ export class BookingsAdminController {
     @Query() filters?: AdminBookingFilters) {
         return this.service.listAdminBookings(Boolean(req.workforce.isManager), Number(page || 1), Number(limit || 10), filters);
     }
+    @Get("admin/tours")
+    @UseGuards(AdminAuthGuard)
+    adminTourList(@Req() req: any, @Query("page") page?: string, @Query("limit") limit?: string, @Query() filters?: AdminBookingFilters) {
+        return this.service.listAdminBookingTours(Boolean(req.workforce.isManager), Number(page || 1), Number(limit || 10), filters);
+    }
     @Get("admin/:id")
     @UseGuards(AdminAuthGuard)
     adminDetail(
@@ -49,7 +54,7 @@ export class BookingsAdminController {
     },
     @Req()
     req: any) {
-        return this.service.approveCancel(id, Boolean(req.workforce.isManager || req.workforce.isAdmin), dto.note, dto.refundAmount);
+        return this.service.approveCancel(id, Boolean(req.workforce.isManager || req.workforce.isAdmin), dto.note, dto.refundAmount, req.workforce.userId);
     }
     @Post("admin/:id/reject-cancel")
     @UseGuards(AdminAuthGuard)
@@ -92,6 +97,11 @@ export class BookingsAdminController {
             allowedOptions?: ('full_refund' | 'reschedule')[];
             newScheduleId?: number;
             waiveDifference?: boolean;
+            companyBankInfo?: { bankName: string; bankAccountNumber: string; bankAccountName: string };
+            pickupPointId?: number;
+            bankName?: string;
+            bankAccountNumber?: string;
+            bankAccountName?: string;
         },
         @Req()
         req: any,
@@ -107,6 +117,7 @@ export class BookingsAdminController {
             dto.newScheduleId,
             dto.allowedOptions,
             dto.waiveDifference,
+            { ...dto, actorId: req.workforce.userId },
         );
     }
 
@@ -120,6 +131,7 @@ export class BookingsAdminController {
             transactionCode?: string;
             note?: string;
             amount?: number;
+            refundId?: string;
         },
         @Req()
         req: any,
@@ -130,6 +142,33 @@ export class BookingsAdminController {
             dto.transactionCode,
             dto.note,
             dto.amount,
+            dto.refundId,
+            req.workforce.userId,
         );
+    }
+    @Post("admin/:id/confirm-collection")
+    @UseGuards(AdminAuthGuard)
+    confirmCollection(@Param("id", ParseIntPipe) id: number, @Body() dto: any, @Req() req: any) {
+        return this.service.confirmCollection(id, Boolean(req.workforce.isManager || req.workforce.isAdmin), { ...dto, actorId: req.workforce.userId });
+    }
+    @Post("admin/departures/:id/cancel")
+    @UseGuards(AdminAuthGuard)
+    cancelDeparture(@Param("id", ParseIntPipe) id: number, @Body() dto: { reason: string }, @Req() req: any) {
+        return this.service.cancelDeparture(id, Boolean(req.workforce.isManager || req.workforce.isAdmin), dto.reason);
+    }
+    @Post("admin/:id/incident")
+    @UseGuards(AdminAuthGuard)
+    recordIncident(@Param("id", ParseIntPipe) id: number, @Body() dto: any, @Req() req: any) {
+        return this.service.recordIncident(id, Boolean(req.workforce.isManager || req.workforce.isAdmin), { ...dto, actorId: req.workforce.userId });
+    }
+    @Post("admin/:id/reconcile-review")
+    @UseGuards(AdminAuthGuard)
+    reconcileReview(@Param("id", ParseIntPipe) id: number, @Body() dto: any, @Req() req: any) {
+        return this.service.reconcileReview(id, Boolean(req.workforce.isManager || req.workforce.isAdmin), { ...dto, actorId: req.workforce.userId });
+    }
+    @Post("admin/:id/refund-processing")
+    @UseGuards(AdminAuthGuard)
+    beginRefundTransfer(@Param("id", ParseIntPipe) id: number, @Body() dto: any, @Req() req: any) {
+        return this.service.beginRefundTransfer(id, Boolean(req.workforce.isManager || req.workforce.isAdmin), { ...dto, actorId: req.workforce.userId });
     }
 }

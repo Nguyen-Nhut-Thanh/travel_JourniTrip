@@ -23,9 +23,16 @@ export type CrewAssignment = {
   report_at: string; release_at: string; note?: string | null; response_note?: string | null; user: { full_name: string; phone?: string | null; email?: string | null };
 };
 export type WorkforceSchedule = {
+  tour_id?: number;
   tour_schedule_id: number; code: string | null; start_date: string; end_date: string; status: number; booked_count: number;
   cover_image_url?: string | null;
-  operating_region: RegionCode | null; departure_location: { name: string }; tours: { name: string; summary?: string | null }; crew: CrewAssignment[]; crew_ready: boolean;
+  operating_region: RegionCode | null; departure_location: { name: string };
+  tours: {
+    tour_id?: number; name: string; code?: string | null; summary?: string | null;
+    tour_type?: string | null; duration_days?: number; duration_nights?: number;
+    base_price?: number; status?: number; image_url?: string | null;
+  };
+  crew: CrewAssignment[]; crew_ready: boolean;
   crew_required_count: number; crew_confirmed_count: number; crew_issues: string[];
   operating_region_source?: 'departure' | 'admin';
   crew_locked_at?: string | null; crew_locked_by?: number | null;

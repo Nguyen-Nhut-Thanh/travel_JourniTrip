@@ -1,7 +1,9 @@
 "use client";
 
+import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
+
 import { formatConversationTime, getConversationPreview } from "@/lib/chat/format";
-import { RefreshCw, Search } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import type { ConversationSidebarProps } from "shared";
 
 export function ConversationSidebar({
@@ -35,16 +37,15 @@ export function ConversationSidebar({
         <p className="!mt-0 text-xs leading-5 text-slate-400">
           Quản lý và hỗ trợ khách hàng của bạn.
         </p>
-        <label className="flex items-center gap-2 rounded-lg border border-blue-100 px-3">
-          <Search size={15} className="text-blue-300 shrink-0" />
-          <input
+        <div>
+          <AdminSearchInput
             value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(value) => onSearchChange(value)}
             placeholder="Tìm tên khách, tin nhắn…"
             aria-label="Tìm hội thoại"
-            className="min-w-0 flex-1 bg-transparent py-2 text-xs outline-none"
+            inputClassName="min-w-0 flex-1 bg-transparent py-2 text-xs outline-none"
           />
-        </label>
+        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">

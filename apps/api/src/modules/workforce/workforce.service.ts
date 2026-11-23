@@ -529,6 +529,7 @@ export class WorkforceService {
       },
       select: {
         tour_schedule_id: true,
+        tour_id: true,
         code: true,
         start_date: true,
         end_date: true,
@@ -545,8 +546,15 @@ export class WorkforceService {
         departure_location: { select: { name: true } },
         tours: {
           select: {
+            tour_id: true,
             name: true,
+            code: true,
             summary: true,
+            tour_type: true,
+            duration_days: true,
+            duration_nights: true,
+            base_price: true,
+            status: true,
             tour_images: {
               select: { image_url: true },
               orderBy: [
@@ -573,7 +581,18 @@ export class WorkforceService {
         ).toISOString(),
         cover_image_url:
           row.cover_image_url || row.tours.tour_images[0]?.image_url || null,
-        tours: { name: row.tours.name, summary: row.tours.summary },
+        tours: {
+          tour_id: row.tours.tour_id,
+          name: row.tours.name,
+          code: row.tours.code,
+          summary: row.tours.summary,
+          tour_type: row.tours.tour_type,
+          duration_days: row.tours.duration_days,
+          duration_nights: row.tours.duration_nights,
+          base_price: Number(row.tours.base_price),
+          status: row.tours.status,
+          image_url: row.tours.tour_images[0]?.image_url ?? null,
+        },
         crew_ready: assessment.ready,
         crew_confirmed_count: assessment.confirmed.length,
         crew_issues: assessment.issues,

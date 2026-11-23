@@ -1,6 +1,8 @@
 "use client";
 
-import { Search, Star, X } from "lucide-react";
+import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
+
+import { Search, Star } from "lucide-react";
 import CustomDropdown from "@/components/common/form_controls/CustomDropdown";
 
 export type ReviewStatusFilter = "all" | "0" | "1" | "2";
@@ -98,26 +100,13 @@ export function ReviewFilterTabs({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Search */}
         <div className="relative flex-1">
-          <Search
-            size={16}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-          <input
-            type="text"
+          <AdminSearchInput
             value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(value) => onSearchChange(value)}
             placeholder="Tìm theo tên khách hàng, mã/tên tour, nội dung đánh giá..."
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-9 text-xs text-slate-800 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
+            inputClassName="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-9 text-xs text-slate-800 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
           />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => onSearchChange("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-            >
-              <X size={14} />
-            </button>
-          )}
+
         </div>
 
         {/* Rating filter */}

@@ -1,3 +1,4 @@
+import { sqlSearchText } from "../../common/search";
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import type { BestSellerStat, PublicItineraryRecord, PublicListParams, PublicScheduleRecord } from 'shared';
@@ -98,22 +99,16 @@ export class ToursPublicService {
         }
         const search = params.search?.trim();
         if (search) {
-            where.OR = [
-                { code: { contains: search, mode: 'insensitive' } },
-                { name: { contains: search, mode: 'insensitive' } },
-                {
-                    tour_schedules: { some: { status: 1, start_date: { gte: today }, departure_location: { name: { contains: search, mode: 'insensitive' } } } },
-                },
-                {
-                    tour_destinations: {
-                        some: {
-                            locations: {
-                                name: { contains: search, mode: 'insensitive' },
-                            },
-                        },
-                    },
-                },
-            ];
+            const matches = await this.prisma.$queryRaw<{ tour_id: number }[]>(Prisma.sql`
+                SELECT DISTINCT t.tour_id FROM tours t
+                LEFT JOIN tour_destinations d ON d.tour_id = t.tour_id
+                LEFT JOIN locations l ON l.location_id = d.location_id
+                LEFT JOIN tour_schedules s ON s.tour_id = t.tour_id AND s.status = 1 AND s.start_date >= ${today}
+                LEFT JOIN locations departure ON departure.location_id = s.departure_location_id
+                WHERE t.status = 1 AND ${sqlSearchText(Prisma.sql`concat_ws(' ', t.code, t.name, l.name, departure.name, s.code)`, search)}
+            `);
+            // Keep search constraints when collections also narrow tour_id.
+            where.AND = [{ tour_id: { in: matches.map(item => item.tour_id) } }];
         }
         const destination = params.destination?.trim();
         if (destination) {

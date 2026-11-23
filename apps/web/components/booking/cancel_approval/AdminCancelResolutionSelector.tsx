@@ -47,7 +47,7 @@ export function AdminCancelResolutionSelector({
       </div>
 
       <p className="text-[11.5px] text-slate-600 leading-snug">
-        Tích chọn 1 hoặc cả 2 phương án bên dưới để gửi đến khách hàng. Khách hàng sẽ xem và xác nhận phương án mong muốn trên giao diện của mình.
+        Khách luôn có quyền chọn hoàn tiền. Nếu thỏa thuận được lịch mới cùng tour, bật thêm phương án đổi lịch để khách xác nhận.
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
@@ -55,7 +55,7 @@ export function AdminCancelResolutionSelector({
         <button
           type="button"
           disabled={disabled}
-          onClick={() => toggleOption("full_refund")}
+          onClick={() => { if (!isRefundSelected) toggleOption("full_refund"); }}
           className={`flex items-start gap-2.5 p-3 rounded-xl border text-left transition-colors duration-150 motion-reduce:transition-none cursor-pointer relative ${
             isRefundSelected
               ? "border-emerald-500 bg-white shadow-2xs ring-1 ring-emerald-500/25"

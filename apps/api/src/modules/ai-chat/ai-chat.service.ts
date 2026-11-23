@@ -21,6 +21,9 @@ const directIntent: TourIntent = {
   duration_days: null,
   max_per_person: null,
   max_total: null,
+  target_budget: null,
+  budget_type: null,
+  off_topic_subject: null,
   adults: null,
   children: null,
   infants: null,
@@ -123,8 +126,14 @@ export class AiChatService {
       intent.use_selected_tour = true;
     }
 
-    if (intent.intent === "greeting" || intent.intent === "other") {
-      return asResponse("Mình có thể tìm tour JourniTrip, tư vấn lịch trình, tính giá cho nhóm hoặc kiểm tra ưu đãi. Bạn muốn đi đâu?");
+    if (intent.intent === "greeting") {
+      return asResponse("Dạ chào bạn! Mình là trợ lý ảo của JourniTrip ✈️. Mình có thể hỗ trợ bạn tìm tour du lịch, xem lịch trình, tính giá vé hoặc săn voucher ưu đãi. Bạn đang quan tâm đến chuyến đi nào ạ?");
+    }
+    if (intent.intent === "other") {
+      const subject = intent.off_topic_subject ? `"${intent.off_topic_subject}"` : "vấn đề này";
+      return asResponse(
+        `Dạ, mình là trợ lý ảo chuyên hỗ trợ thông tin du lịch và đặt tour tại JourniTrip. Về ${subject} thì hiện tại mình chưa thể hỗ trợ bạn được rồi ạ 😊.\n\nMình có thể giúp bạn tìm tour du lịch phù hợp, tư vấn lịch trình hoặc tính giá vé. Nếu bạn có kế hoạch đi du lịch ở đâu thì nhắn mình hỗ trợ nhé!`,
+      );
     }
     if (intent.departure_from && intent.departure_until && intent.departure_from > intent.departure_until) {
       return asResponse("Bạn kiểm tra lại khoảng ngày khởi hành giúp mình nhé.");
@@ -181,17 +190,42 @@ export class AiChatService {
       return this.quote(match, party, intent.voucher_code, accountId);
     }
 
+    const target = match ? referenceFor(match.card) : undefined;
+
     if (intent.intent === "advice" && match) {
-      const target = referenceFor(match.card);
-      return asResponse(await this.tours.advise(target, intent.topic, intent.policy_key), cards, target);
+      const tourTarget = referenceFor(match.card);
+      return asResponse(await this.tours.advise(tourTarget, intent.topic, intent.policy_key), cards, tourTarget);
     }
 
-    return asResponse(
-      intent.intent === "advice"
-        ? "Mình tìm thấy những tour này theo nhu cầu bạn vừa nêu. Bạn chọn Tư vấn trên thẻ để xem thông tin chi tiết."
-        : `Mình tìm thấy ${cards.length === 5 ? "5 lựa chọn đầu tiên" : `${cards.length} tour`} phù hợp. Giá trên thẻ là giá cho một người lớn ở ngày khởi hành hiển thị.`,
-      cards, match && referenceFor(match.card),
-    );
+    let intro = "";
+    if (intent.target_budget || (intent.budget_type === "around" && intent.max_per_person)) {
+      const bVal = intent.target_budget ?? intent.max_per_person;
+      intro = `Dạ, với ngân sách khoảng ${vnd.format(bVal!)}/khách, mình gợi ý cho bạn ${cards.length === 1 ? "tour" : `${cards.length} hành trình`} phù hợp nhất sau nhé:`;
+    } else if (intent.max_per_person) {
+      intro = `Dạ, với ngân sách dưới ${vnd.format(intent.max_per_person)}/khách, mình tìm thấy ${cards.length} tour phù hợp sau:`;
+    } else if (intent.destination) {
+      intro = `Dạ, mình tìm thấy ${cards.length === 1 ? "tour" : `${cards.length} tour`} khám phá ${intent.destination} phù hợp với yêu cầu của bạn:`;
+    } else {
+      intro = `Dạ, mình tìm thấy ${cards.length === 1 ? "hành trình" : `${cards.length} hành trình`} nổi bật sau nhé:`;
+    }
+
+    const summaries = cards.slice(0, 3).map((c, i) => {
+      const details = [
+        c.duration,
+        c.transport ? `Di chuyển: ${c.transport}` : "",
+        c.departure_date ? `Khởi hành: ${new Date(c.departure_date).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}` : "",
+      ].filter(Boolean).join(" • ");
+      const discountText = c.original_price && c.price != null && c.original_price > c.price
+        ? ` (tiết kiệm ${vnd.format(c.original_price - c.price)})`
+        : "";
+      const priceText = c.price != null ? vnd.format(c.price) : "Liên hệ";
+      return `${i + 1}. **${c.title}** (${details})\n   👉 Giá từ: **${priceText} / khách**${discountText}`;
+    });
+
+    const outro = `Bạn có thể bấm vào nút **...** trên thẻ tour bên dưới để chọn **Tư vấn** hoặc **Tính giá** nhanh nhé!`;
+    const replyText = `${intro}\n\n${summaries.join("\n\n")}\n\n${outro}`;
+
+    return asResponse(replyText, cards, target);
   }
 
   private async interpret(message: string, previousQuestions: string[], recentTourCount: number, hasSelectedTour: boolean) {
@@ -218,25 +252,49 @@ export class AiChatService {
   private async quote(match: SearchResult, party: Party, code: string | null, accountId?: number) {
     const { pricing, card } = match;
     const target = referenceFor(card);
-    if (pricing.missingChildPrice || pricing.missingInfantPrice) {
-      return asResponse(
-        "Lịch khởi hành này chưa có giá công bố cho mọi nhóm tuổi bạn chọn. Bạn có thể nhắn tư vấn viên để lấy báo giá đầy đủ.",
-        [card], target,
+    const hasEstimate = pricing.hasPriceEstimate;
+    const pieces: string[] = [];
+
+    if (hasEstimate) {
+      const missingGroups: string[] = [];
+      if (pricing.missingChildPrice) missingGroups.push("trẻ em");
+      if (pricing.missingInfantPrice) missingGroups.push("em bé");
+      pieces.push(
+        `Lưu ý: Lịch khởi hành này hiện chưa có giá công bố chính thức cho ${missingGroups.join(" và ")} (chi tiết tour đang để "Liên hệ"). Thông thường giá trẻ em khoảng 50% giá người lớn và em bé được miễn phí.`,
       );
     }
 
-    const pieces = [
-      `Người lớn: ${party.adults} × ${vnd.format(pricing.adultPrice)}`,
-      party.children ? `Trẻ em: ${party.children} × ${vnd.format(pricing.childPrice)}` : "",
-      party.infants ? `Em bé: ${party.infants} × ${vnd.format(pricing.infantPrice)}` : "",
-      pricing.appliedPromoTitle ? `Đã tính ưu đãi: ${pricing.appliedPromoTitle}.` : "",
-      pricing.appliedGiftDescription ? `Quà tặng: ${pricing.appliedGiftDescription}.` : "",
-    ].filter(Boolean);
+    pieces.push(`Người lớn: ${party.adults} × ${vnd.format(pricing.adultPrice)}`);
 
-    let total = pricing.subtotal;
+    if (party.children) {
+      if (pricing.missingChildPrice) {
+        pieces.push(
+          `Trẻ em: ${party.children} × ${vnd.format(pricing.estimatedChildPrice)} (tạm tính 50% giá người lớn)`,
+        );
+      } else {
+        pieces.push(`Trẻ em: ${party.children} × ${vnd.format(pricing.childPrice)}`);
+      }
+    }
+
+    if (party.infants) {
+      if (pricing.missingInfantPrice) {
+        pieces.push(`Em bé: ${party.infants} × 0 đ (tạm tính miễn phí)`);
+      } else {
+        pieces.push(`Em bé: ${party.infants} × ${vnd.format(pricing.infantPrice)}`);
+      }
+    }
+
+    if (pricing.appliedPromoTitle) {
+      pieces.push(`Đã tính ưu đãi: ${pricing.appliedPromoTitle}.`);
+    }
+    if (pricing.appliedGiftDescription) {
+      pieces.push(`Quà tặng: ${pricing.appliedGiftDescription}.`);
+    }
+
+    let total = pricing.estimatedSubtotal;
     if (code) {
       try {
-        const amount = String(pricing.subtotal);
+        const amount = String(pricing.estimatedSubtotal);
         const result = accountId
           ? await this.vouchers.validateForAccount(accountId, code, amount, card.id)
           : await this.vouchers.validatePublicVoucher(code, amount, undefined, card.id);
@@ -251,12 +309,17 @@ export class AiChatService {
     const date = card.departure_date
       ? new Date(card.departure_date).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })
       : "";
-    return asResponse([
+
+    const lines = [
       `${card.title} — khởi hành ${date} từ ${match.departure}`,
       ...pieces,
-      `Tiền tour dự kiến: ${vnd.format(total)}.`,
-      "Phụ thu phòng đơn, dịch vụ thêm và giảm theo hạng thành viên sẽ được tính ở bước đặt tour.",
-    ].join("\n"), [card], target);
+      `Tiền tour dự kiến: ${vnd.format(total)}${hasEstimate ? " (tạm tính)" : ""}.`,
+      hasEstimate
+        ? "Để biết thêm thông tin chính xác vui lòng liên hệ nhân viên hỗ trợ."
+        : "Phụ thu phòng đơn, dịch vụ thêm và giảm theo hạng thành viên sẽ được tính ở bước đặt tour.",
+    ];
+
+    return asResponse(lines.join("\n"), [card], target);
   }
 
   private async listOffers(found: SearchResult[], hasTourQuery: boolean) {

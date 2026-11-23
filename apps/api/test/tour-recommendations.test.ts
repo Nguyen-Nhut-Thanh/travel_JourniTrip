@@ -147,6 +147,29 @@ test("removed favorites in the database override stale client wishlist signals",
   assert.ok(result.recommendations.every(item => !item.is_personalized));
 });
 
+test("all saved tours seed recommendations, including different destinations and cumulative matches", async () => {
+  const { service, queries } = engine([
+    tour(1, { name: "Đà Nẵng đã lưu", tour_destinations: [destination(1, "Đà Nẵng")] }),
+    tour(2, { name: "Hội An đã lưu", tour_destinations: [destination(2, "Hội An")] }),
+    tour(3, { name: "Phú Quốc đã lưu", tour_destinations: [destination(3, "Phú Quốc")] }),
+    tour(101, { tour_destinations: [destination(1, "Đà Nẵng")] }),
+    tour(102, { tour_destinations: [destination(2, "Hội An")] }),
+    tour(103, { tour_destinations: [destination(3, "Phú Quốc")] }),
+    tour(104, { tour_destinations: [destination(1, "Đà Nẵng"), destination(2, "Hội An")] }),
+  ], { favorites: [1, 2, 3].map(tour_id => ({ user_id: 1, tour_id })) });
+  const result = await service.getRecommendations({}, 7);
+  const seedQuery = queries.find(query => query.kind === "tours" && query.select);
+  assert.deepEqual(seedQuery.where.tour_id.in, [1, 2, 3]);
+  for (const [id, name] of [[101, "Đà Nẵng"], [102, "Hội An"], [103, "Phú Quốc"]] as const) {
+    const item = result.recommendations.find(item => item.tour_id === id)!;
+    assert.ok(item.is_personalized);
+    assert.match(item.ai_reason, new RegExp(`${name}.*đã lưu`));
+  }
+  const oneMatch = result.recommendations.find(item => item.tour_id === 101)!;
+  const twoMatches = result.recommendations.find(item => item.tour_id === 104)!;
+  assert.equal(twoMatches.match_score! - oneMatch.match_score!, 14, "both saved tours must contribute even though the reason names one");
+});
+
 test("filters select the earliest bookable departure within effective budget and departure location", async () => {
   const promotion = { discount_type: "percentage", discount_value: 50 };
   const result = await engine([tour(1, { tour_schedules: [

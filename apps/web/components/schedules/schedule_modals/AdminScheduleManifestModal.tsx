@@ -1,5 +1,9 @@
 "use client";
 
+import { normalizeSearchText } from "shared";
+
+import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
+
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { formatVND } from "@/lib/utils/currency";
@@ -26,7 +30,6 @@ import {
   Loader2,
   MapPin,
   PhoneCall,
-  Search,
   Tag,
   Trash2,
   User,
@@ -132,14 +135,14 @@ export function ScheduleManifestModal({
     if (!data?.bookings) return [];
     return data.bookings.filter((b) => {
       if (search.trim()) {
-        const q = search.toLowerCase();
+        const q = normalizeSearchText(search);
         const matchBooker =
-          b.contact_name.toLowerCase().includes(q) ||
+          normalizeSearchText(b.contact_name).includes(q) ||
           b.contact_phone.includes(q) ||
           `#bk${b.booking_id}`.includes(q);
         const matchTravelers = b.travelers.some(
           (t) =>
-            t.full_name.toLowerCase().includes(q) ||
+            normalizeSearchText(t.full_name).includes(q) ||
             (t.phone && t.phone.includes(q)) ||
             (t.id_number && t.id_number.includes(q)),
         );
@@ -152,10 +155,10 @@ export function ScheduleManifestModal({
       }
 
       if (paymentFilter !== "all") {
-        const isPaid = ["paid", "completed"].includes(b.status.toLowerCase());
+        const isPaid = ["paid", "completed"].includes(normalizeSearchText(b.status));
         if (paymentFilter === "paid" && !isPaid) return false;
-        if (paymentFilter === "pending" && b.status.toLowerCase() !== "pending") return false;
-        if (paymentFilter === "cancel_requested" && b.status.toLowerCase() !== "cancel_requested") return false;
+        if (paymentFilter === "pending" && normalizeSearchText(b.status) !== "pending") return false;
+        if (paymentFilter === "cancel_requested" && normalizeSearchText(b.status) !== "cancel_requested") return false;
       }
 
       return true;
@@ -241,7 +244,7 @@ export function ScheduleManifestModal({
     let counter = 1;
 
     filteredBookings.forEach((b) => {
-      const isPaid = ["paid", "completed"].includes(b.status.toLowerCase());
+      const isPaid = ["paid", "completed"].includes(normalizeSearchText(b.status));
       const paymentText = isPaid ? "Đã thanh toán" : "Chờ thanh toán";
       const pickupText = b.pickup_snapshot
         ? `${b.pickup_snapshot.name || ""} - ${b.pickup_snapshot.address || ""}`.trim()
@@ -249,7 +252,7 @@ export function ScheduleManifestModal({
       const parsed = parseBookingNote(b.note, b);
 
       b.travelers.forEach((t) => {
-        const normType = (t.traveler_type || "adult").toLowerCase();
+        const normType = normalizeSearchText((t.traveler_type || "adult"));
         const travelerType =
           { adult: "Người lớn", child: "Trẻ em", infant: "Em bé" }[normType] || t.traveler_type;
         const phone = normType === "adult" ? t.phone || b.contact_phone : "Theo người đặt";
@@ -423,16 +426,11 @@ export function ScheduleManifestModal({
             <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[#edf2fb] bg-slate-50/70 px-6 py-2.5">
               <div className="flex flex-1 flex-wrap items-center gap-3">
                 <div className="relative w-full sm:w-64">
-                  <Search
-                    size={15}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
-                  <input
-                    type="text"
+                  <AdminSearchInput
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(value) => setSearch(value)}
                     placeholder="Tìm theo tên khách, SĐT, mã đơn..."
-                    className="w-full h-9 rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-xs text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none transition shadow-2xs"
+                    inputClassName="w-full h-9 rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-xs text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none transition shadow-2xs"
                   />
                 </div>
 
@@ -495,7 +493,7 @@ export function ScheduleManifestModal({
                 filteredBookings.map((b) => {
                   const isCancelRequested = b.status === "cancel_requested";
                   const isPaid = ["paid", "completed"].includes(
-                    b.status.toLowerCase(),
+                    normalizeSearchText(b.status),
                   );
                   const isPending = b.status === "pending";
                   const isCancelling = cancellingBookingId === b.booking_id;
@@ -820,7 +818,7 @@ export function ScheduleManifestModal({
                               </thead>
                               <tbody className="divide-y divide-[#edf2fb]">
                                 {b.travelers.map((t) => {
-                                  const normType = (t.traveler_type || "adult").toLowerCase();
+                                  const normType = normalizeSearchText((t.traveler_type || "adult"));
                                   const isAdult = normType === "adult";
                                   const isChild = normType === "child";
 

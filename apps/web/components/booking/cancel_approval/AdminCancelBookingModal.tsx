@@ -35,6 +35,8 @@ import {
   type AdminCancelResolution,
 } from "@/components/booking/cancel_approval/AdminCancelResolutionSelector";
 import { AdminRescheduleSchedulePicker } from "@/components/booking/cancel_approval/AdminRescheduleSchedulePicker";
+import { BookingBankFields, emptyBookingBank } from "@/components/booking/BookingBankFields";
+import { getAdminScheduleDetail } from "@/lib/schedules/admin/api";
 
 export interface AdminCancelBookingModalProps {
   booking: any | null;
@@ -51,6 +53,11 @@ export interface AdminCancelBookingModalProps {
     allowedOptions?: AdminCancelResolution[];
     newScheduleId?: number;
     waiveDifference?: boolean;
+    companyBankInfo?: import("shared").BookingBankAccount;
+    pickupPointId?: number;
+    bankName?: string;
+    bankAccountNumber?: string;
+    bankAccountName?: string;
   }) => Promise<void> | void;
 }
 
@@ -83,6 +90,30 @@ export function AdminCancelBookingModal({
   const [allowedOptions, setAllowedOptions] =
     useState<AdminCancelResolution[]>(["full_refund", "reschedule"]);
   const [newScheduleId, setNewScheduleId] = useState<number | undefined>();
+  const [companyBank, setCompanyBank] = useState(emptyBookingBank);
+  const [customerBank, setCustomerBank] = useState(emptyBookingBank);
+  const [pickupPoints, setPickupPoints] = useState<any[]>([]);
+  const [pickupPointId, setPickupPointId] = useState<number | undefined>();
+  const [pickupError, setPickupError] = useState("");
+  useEffect(() => {
+    if (!open || !booking) return;
+    if (booking.status === "cancel_proposed") setCancelType("operator_fault");
+    setCompanyBank(booking.cancellation_meta?.resolutionProposal?.companyBankInfo || emptyBookingBank);
+    const request = booking.cancellation_meta?.cancelRequest;
+    setCustomerBank(request?.bankAccountNumber ? { bankName: request.bankName, bankAccountNumber: request.bankAccountNumber, bankAccountName: request.bankAccountName } : emptyBookingBank);
+  }, [open, booking?.booking_id]);
+  useEffect(() => {
+    if (!newScheduleId || !open) return;
+    let active = true;
+    setPickupPoints([]); setPickupPointId(undefined); setPickupError("");
+    void getAdminScheduleDetail<any>(newScheduleId).then(result => {
+      if (!active) return;
+      const points = result?.pickup_points || [];
+      setPickupPoints(points);
+      if (points.length === 1) setPickupPointId(points[0].pickup_point_id);
+    }).catch(e => { if (active) setPickupError(e instanceof Error ? e.message : "Không tải được điểm đón."); });
+    return () => { active = false; };
+  }, [newScheduleId, open]);
   const [selectedSchedule, setSelectedSchedule] = useState<any | null>(null);
   const [waiveDifference, setWaiveDifference] = useState<boolean>(true);
 
@@ -273,6 +304,9 @@ export function AdminCancelBookingModal({
         : undefined;
 
     await onConfirm({
+      companyBankInfo: cancelType === "operator_fault" && priceDifference !== null && priceDifference > 0 && !waiveDifference ? companyBank : undefined,
+      pickupPointId,
+      ...(cancelType === "customer_request" && !isPendingHold ? customerBank : {}),
       reason: finalReason,
       refundAmount: isPendingHold ? undefined : numericRefund,
       note: adminNote.trim() || finalReason,
@@ -528,6 +562,7 @@ export function AdminCancelBookingModal({
               )}
 
               {/* 2. Phương án giải quyết (Nếu chọn Do công ty) */}
+              {!isPendingHold && cancelType === "customer_request" && Number(refundAmount.replace(/[^0-9]/g, "")) > 0 && <BookingBankFields label="Tài khoản của khách nhận hoàn tiền" value={customerBank} onChange={setCustomerBank} disabled={loading} />}
               {!isPendingHold && cancelType === "operator_fault" && (
                 <AdminCancelResolutionSelector
                   allowedOptions={allowedOptions}
@@ -551,6 +586,17 @@ export function AdminCancelBookingModal({
                     disabled={disabledOrLoading(loading, isDeparted)}
                   />
 
+                  {pickupError && <p role="alert" className="text-sm text-red-700">{pickupError}</p>}
+                  {pickupPoints.length > 0 && <label className="block text-sm font-semibold">Điểm đón của lịch mới
+                    <select required value={pickupPointId || ""} onChange={e => setPickupPointId(Number(e.target.value))} className="mt-1 w-full rounded-lg border p-2">
+                      <option value="">Chọn điểm đón</option>
+                      {pickupPoints.map(point => <option key={point.pickup_point_id} value={point.pickup_point_id}>{point.name} — {point.address}</option>)}
+                    </select>
+                  </label>}
+                  {priceDifference !== null && priceDifference > 0 && !waiveDifference && <>
+                    <BookingBankFields label="Tài khoản công ty nhận tiền khách nộp thêm" value={companyBank} onChange={setCompanyBank} disabled={loading} />
+                    <p className="text-xs text-slate-500">Khách chuyển khoản bổ sung vào tài khoản công ty này sau khi đồng ý đổi lịch.</p>
+                  </>}
                   {priceDifference !== null && (
                     <div className="space-y-2">
                       {priceDifference > 0 ? (
@@ -578,7 +624,7 @@ export function AdminCancelBookingModal({
                             <strong className="text-emerald-700 font-extrabold">−{formatVND(Math.abs(priceDifference))}</strong>
                           </div>
                           <p className="text-[11.5px] text-emerald-800 leading-snug">
-                            Đợt mới có giá thấp hơn. Khoản chênh lệch thừa này sẽ được hoàn lại vào tài khoản ngân hàng của khách sau khi khách xác nhận dời lịch.
+                            Đợt mới có giá thấp hơn. Khi đồng ý đổi lịch, khách sẽ nhập ngân hàng, số tài khoản và tên chủ tài khoản nhận tiền. Admin dùng thông tin đó để hoàn khoản chênh lệch cho khách.
                           </p>
                         </div>
                       ) : (

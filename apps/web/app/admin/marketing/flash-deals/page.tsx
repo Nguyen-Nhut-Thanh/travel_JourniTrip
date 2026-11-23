@@ -74,9 +74,9 @@ export default function AdminFlashDealsPage() {
 
   return <div className="ui-flash-deal-management-page flex flex-col gap-[18px] min-w-0 text-[#12234c] [&_:is(button,_input,_a):focus-visible]:[outline:2px_solid_#3b82f6] [&_:is(button,_input,_a):focus-visible]:outline-offset-[3px] admin-max-650:gap-[14px]">
     <FlashDealPageHeader overview={overview} loading={loading} />
-    <FlashDealFilters value={draftFilters} onChange={setDraftFilters} onApply={() => { setFilters({ ...draftFilters }); setPage(1); }} onReset={() => { setDraftFilters({ ...DEFAULT_FLASH_DEAL_FILTERS }); setFilters({ ...DEFAULT_FLASH_DEAL_FILTERS }); setPage(1); }} destinations={destinations} count={filteredSchedules.length} active={filterActive} />
+    <FlashDealFilters value={draftFilters} onChange={next => { setDraftFilters(next); if (next.search !== draftFilters.search) { setFilters(current => ({ ...current, search: next.search })); setPage(1); } }} onApply={() => { setFilters({ ...draftFilters }); setPage(1); }} onReset={() => { setDraftFilters({ ...DEFAULT_FLASH_DEAL_FILTERS }); setFilters({ ...DEFAULT_FLASH_DEAL_FILTERS }); setPage(1); }} destinations={destinations} count={filteredSchedules.length} active={filterActive} />
     {failure && <div role="alert" className="ui-flash-deal-management-error flex justify-between gap-[12px] [border:1px_solid_#fecdd3] rounded-[12px] [background:#fff1f3] p-[14px_16px] text-[#ba3550] text-[13px] [&_button]:underline [&_button]:font-[650]"><span>{failure}</span><button type="button" onClick={loadData}>Thử lại</button></div>}
-    <FlashDealTable items={filteredSchedules} loading={loading} busy={saving || deleting} now={now} page={page} onPageChange={setPage} onEdit={openDealModal} onDelete={schedule => { if (!deleting && schedule.flash_deals) setDeleteTarget(schedule); }} />
+    <FlashDealTable searchTerm={filters.search} items={filteredSchedules} loading={loading} busy={saving || deleting} now={now} page={page} onPageChange={setPage} onEdit={openDealModal} onDelete={schedule => { if (!deleting && schedule.flash_deals) setDeleteTarget(schedule); }} />
     <ConfirmDialog
       open={deleteTarget !== null}
       icon={<Trash2 size={28} />}

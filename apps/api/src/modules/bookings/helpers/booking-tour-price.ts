@@ -63,12 +63,26 @@ export function calculateBookingTourPrice(schedule: Schedule, party: Party, now 
     (baseAdultPrice - adultPrice) * party.adults + (baseChildPrice - childPrice) * party.children,
   );
 
+  const missingChildPrice = party.children > 0 && configuredChildPrice == null;
+  const missingInfantPrice = party.infants > 0 && configuredInfantPrice == null;
+  const estimatedChildPrice = missingChildPrice ? Math.round(adultPrice * 0.5) : childPrice;
+  const estimatedInfantPrice = missingInfantPrice ? 0 : infantPrice;
+  const estimatedSubtotal =
+    party.adults * adultPrice +
+    party.children * estimatedChildPrice +
+    party.infants * estimatedInfantPrice;
+  const hasPriceEstimate = missingChildPrice || missingInfantPrice;
+
   return {
     adultPrice, childPrice, infantPrice, baseAdultPrice, baseChildPrice, subtotal, promoDiscount,
     activeSchedulePromo, appliedPromoType, appliedPromoTitle,
     appliedGiftDescription: activeSchedulePromo ? promo?.gift_description ?? null : null,
-    missingChildPrice: party.children > 0 && configuredChildPrice == null,
-    missingInfantPrice: party.infants > 0 && configuredInfantPrice == null,
+    missingChildPrice,
+    missingInfantPrice,
+    estimatedChildPrice,
+    estimatedInfantPrice,
+    estimatedSubtotal,
+    hasPriceEstimate,
   };
 }
 

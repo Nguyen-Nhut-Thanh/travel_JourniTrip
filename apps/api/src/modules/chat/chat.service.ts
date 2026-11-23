@@ -412,6 +412,7 @@ export class ChatService {
         price,
         schedule_id: schedule.tour_schedule_id,
         departure_date: schedule.start_date.toISOString(),
+        remaining_seats: Math.max(0, schedule.quota - schedule.booked_count),
         duration: `${tour.duration_days} ngày ${tour.duration_nights} đêm`,
       };
     }

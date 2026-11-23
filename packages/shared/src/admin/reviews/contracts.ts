@@ -39,6 +39,15 @@ export type AdminReviewItem = {
     created_at: string;
     tour_name: string;
     tour_code: string;
+    tour?: {
+        summary?: string | null;
+        tour_type?: string | null;
+        duration_days?: number;
+        duration_nights?: number;
+        base_price?: number;
+        status?: number;
+        image_url?: string | null;
+    };
     user: {
         user_id: number;
         full_name?: string | null;

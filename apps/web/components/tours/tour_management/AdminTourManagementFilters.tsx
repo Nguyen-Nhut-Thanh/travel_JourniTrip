@@ -38,7 +38,7 @@ export function TourManagementFilters({
           <AdminSearchInput
             value={value.search}
             onChange={(next) => update("search", next)}
-            placeholder="Tìm theo tên tour, mã tour hoặc từ khóa..."
+            placeholder="Tìm tên tour, mã tour hoặc mã lịch trình..."
           />
         </div>
         <div className="min-w-[150px] w-auto">

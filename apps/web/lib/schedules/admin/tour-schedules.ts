@@ -1,10 +1,9 @@
 import { formatDate } from "@/lib/utils/dateTime";
-import type { AdminSchedule } from "shared";
+import { normalizeSearchText, matchesSearchText, type AdminSchedule } from "shared";
 import { matchesScheduleStatusFilter } from "./status";
 
 export function normalizeScheduleSearch(value: string) {
-  return value.toLocaleLowerCase("vi-VN").normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").trim();
+  return normalizeSearchText(value);
 }
 
 export function formatScheduleDate(value: string) {
@@ -84,8 +83,7 @@ export function filterTourSchedules(schedules: AdminSchedule[], filters: {
 
   return schedules.filter(schedule => {
     const names = [schedule.departure_location?.name ?? "", ...(schedule.pickup_points ?? []).map(point => point.name)];
-    const searchable = [String(schedule.tour_schedule_id), formatScheduleDate(schedule.start_date), formatScheduleDate(schedule.end_date), ...names].join(" ");
-    if (search && !normalizeScheduleSearch(searchable).includes(search)) return false;
+    if (!matchesSearchText(search, schedule.code, `#${schedule.tour_schedule_id}`, formatScheduleDate(schedule.start_date), formatScheduleDate(schedule.end_date), ...names)) return false;
     if (filters.pickup !== "all" && !names.some(name => normalizeScheduleSearch(name) === filters.pickup)) return false;
 
     const start = new Date(schedule.start_date).getTime();

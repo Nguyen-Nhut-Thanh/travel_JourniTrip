@@ -1,5 +1,7 @@
 "use client";
 
+import { normalizeSearchText } from "shared";
+
 import { useEffect, useMemo, useState } from "react";
 import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
 import { AdminPagination } from "@/components/common/admin_shared/tables/AdminPagination";
@@ -42,10 +44,10 @@ export function HotelsTableTab({
   const filteredHotels = useMemo(() => {
     return hotels.filter((h) => {
       if (search.trim()) {
-        const q = search.toLowerCase();
-        const matchName = h.name.toLowerCase().includes(q);
-        const matchAddr = h.address.toLowerCase().includes(q);
-        const matchLoc = h.locations?.name.toLowerCase().includes(q);
+        const q = normalizeSearchText(search);
+        const matchName = normalizeSearchText(h.name).includes(q);
+        const matchAddr = normalizeSearchText(h.address).includes(q);
+        const matchLoc = normalizeSearchText(h.locations?.name).includes(q);
         if (!matchName && !matchAddr && !matchLoc) return false;
       }
       if (locationFilter && String(h.location_id) !== locationFilter) return false;

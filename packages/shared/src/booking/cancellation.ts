@@ -24,8 +24,8 @@ export const DEFAULT_CANCELLATION_TIERS: CancellationPolicyTier[] = [
     maxDaysBefore: 14,
     penaltyPercent: 20,
     refundPercent: 80,
-    title: "Từ 7 đến 14 ngày trước ngày đi",
-    description: "Khấu trừ 20% chi phí đặt cọc/dịch vụ, hoàn lại 80%",
+    title: "Từ đủ 7 ngày đến dưới 15 ngày trước giờ đi",
+    description: "Khấu trừ 20% giá trị phần dịch vụ hủy, hoàn lại 80%",
   },
   {
     id: "medium_penalty",
@@ -33,7 +33,7 @@ export const DEFAULT_CANCELLATION_TIERS: CancellationPolicyTier[] = [
     maxDaysBefore: 6,
     penaltyPercent: 50,
     refundPercent: 50,
-    title: "Từ 4 đến 6 ngày trước ngày đi",
+    title: "Từ đủ 4 ngày đến dưới 7 ngày trước giờ đi",
     description: "Khấu trừ 50% chi phí chuyến đi, hoàn lại 50%",
   },
   {
@@ -42,7 +42,7 @@ export const DEFAULT_CANCELLATION_TIERS: CancellationPolicyTier[] = [
     maxDaysBefore: 3,
     penaltyPercent: 80,
     refundPercent: 20,
-    title: "Từ 1 đến 3 ngày trước ngày đi",
+    title: "Từ đủ 24 giờ đến dưới 4 ngày trước giờ đi",
     description: "Khấu trừ 80% do dịch vụ đã chốt, hoàn lại 20%",
   },
   {
@@ -51,7 +51,7 @@ export const DEFAULT_CANCELLATION_TIERS: CancellationPolicyTier[] = [
     maxDaysBefore: 0,
     penaltyPercent: 100,
     refundPercent: 0,
-    title: "Trong vòng 24 giờ hoặc đã khởi hành",
+    title: "Dưới 24 giờ hoặc đã khởi hành",
     description: "Không áp dụng hoàn tiền do đã sát giờ hoặc sau giờ khởi hành",
   },
 ];
@@ -73,30 +73,22 @@ export function calculateCancellationEstimate(params: {
   totalAmount: number | string | any;
   isPaid: boolean;
   now?: Date;
+  tiers?: CancellationPolicyTier[];
 }): CancellationEstimate {
   const now = params.now || new Date();
   const start = new Date(params.startDate);
   const paidAmount = Math.max(0, Math.round(Number(params.totalAmount) || 0));
 
   const diffMs = start.getTime() - now.getTime();
-  const hoursRemaining = Math.round(diffMs / (1000 * 60 * 60));
+  const hoursRemaining = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60)));
   const isDeparted = diffMs <= 0;
   const daysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
 
-  let matchedTier = DEFAULT_CANCELLATION_TIERS[DEFAULT_CANCELLATION_TIERS.length - 1];
-
-  if (!isDeparted) {
-    if (hoursRemaining < 24) {
-      matchedTier = DEFAULT_CANCELLATION_TIERS[4]; // no_refund
-    } else if (daysRemaining >= 15) {
-      matchedTier = DEFAULT_CANCELLATION_TIERS[0]; // free
-    } else if (daysRemaining >= 7) {
-      matchedTier = DEFAULT_CANCELLATION_TIERS[1]; // 20%
-    } else if (daysRemaining >= 4) {
-      matchedTier = DEFAULT_CANCELLATION_TIERS[2]; // 50%
-    } else if (daysRemaining >= 1) {
-      matchedTier = DEFAULT_CANCELLATION_TIERS[3]; // 80%
-    }
+  const tiers = params.tiers?.length ? params.tiers : DEFAULT_CANCELLATION_TIERS;
+  let matchedTier = tiers[tiers.length - 1];
+  if (!isDeparted && diffMs >= 24 * 60 * 60 * 1000) {
+    matchedTier = [...tiers].sort((a, b) => b.minDaysBefore - a.minDaysBefore)
+      .find(t => t.minDaysBefore > 0 && diffMs >= t.minDaysBefore * 86400000) || matchedTier;
   }
 
   const penaltyAmount = Math.round((paidAmount * matchedTier.penaltyPercent) / 100);
@@ -117,6 +109,7 @@ export function calculateCancellationEstimate(params: {
 
 export interface CancelBookingPayload {
   reason: string;
+  travelerIds?: number[];
   bankName?: string;
   bankAccountNumber?: string;
   bankAccountName?: string;

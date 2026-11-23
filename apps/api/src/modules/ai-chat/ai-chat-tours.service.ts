@@ -69,6 +69,7 @@ export class AiChatTours {
             tour_id: true, name: true, code: true, tour_type: true, summary: true, description: true,
             best_for: true, best_time: true, cut_off_hours: true,
             duration_days: true, duration_nights: true,
+            rating_avg: true, rating_count: true,
             transports: { select: { name: true } },
             tour_images: {
               orderBy: [{ is_cover: "desc" }, { sort_order: "asc" }],
@@ -83,6 +84,8 @@ export class AiChatTours {
         },
       },
     });
+
+    const targetBudget = intent.target_budget ?? (intent.budget_type === "around" ? intent.max_per_person : null);
 
     const bestByTour = new Map<number, {
       card: AiChatTour;
@@ -108,15 +111,39 @@ export class AiChatTours {
           (tourName && !contains(name, tourName) && normalize(tour.code) !== tourName)) continue;
 
       const pricing = calculateBookingTourPrice(schedule, party ?? { adults: 1, children: 0, infants: 0 }, now);
-      if (intent.max_per_person != null && pricing.adultPrice > intent.max_per_person) continue;
-      if (intent.max_total != null && (pricing.missingChildPrice || pricing.missingInfantPrice ||
-          pricing.subtotal > intent.max_total)) continue;
+      if (intent.max_per_person != null && intent.budget_type !== "around" && pricing.adultPrice > intent.max_per_person) continue;
+      if (intent.max_total != null && pricing.estimatedSubtotal > intent.max_total) continue;
       if (publicDealsOnly && !pricing.appliedPromoType) continue;
 
       const searchable = [tour.name, tour.summary, tour.best_for, tour.best_time, tour.description]
         .map(normalize).join(" ");
-      const score = themes.filter((theme) => contains(searchable, theme)).length;
-      if (themes.length && !score && !destination && !tourName && !reference) continue;
+      let score = themes.filter((theme) => contains(searchable, theme)).length;
+
+      // Priority 1: Destination match priority
+      if (destination) {
+        if (contains(name, destination)) {
+          score += 30; // Direct title match (e.g. tour Hà Nội)
+        } else if (locations.some((l) => contains(normalize(l.name), destination))) {
+          score += 15;
+        }
+      }
+
+      // Priority 2: Budget match scoring
+      if (targetBudget != null && targetBudget > 0) {
+        const diffRatio = Math.abs(pricing.adultPrice - targetBudget) / targetBudget;
+        // Higher score if price is closer to target budget
+        const budgetCloseness = Math.max(0, Math.round(50 * (1 - diffRatio)));
+        score += budgetCloseness;
+        // Penalty if price is too far (<40% or >160% of budget)
+        if (diffRatio > 0.6) {
+          score -= 25;
+        }
+      } else if (intent.max_per_person != null && intent.max_per_person > 0) {
+        const utilization = Math.min(1, pricing.adultPrice / intent.max_per_person);
+        score += Math.round(20 * utilization);
+      }
+
+      if (themes.length && !score && !destination && !tourName && !reference && !targetBudget) continue;
       const previous = bestByTour.get(tour.tour_id);
       if (previous && (!wantsDeals || previous.pricing.appliedPromoType || !pricing.appliedPromoType)) continue;
       bestByTour.set(tour.tour_id, {
@@ -133,13 +160,16 @@ export class AiChatTours {
           original_price: pricing.baseAdultPrice,
           schedule_id: schedule.tour_schedule_id,
           departure_date: schedule.start_date.toISOString(),
+          remaining_seats: Math.max(0, schedule.quota - schedule.booked_count),
+          rating: Number(tour.rating_avg),
+          rating_count: tour.rating_count,
           duration: `${tour.duration_days} ngày ${tour.duration_nights} đêm`,
           destination: locations.at(-1)?.name,
           summary: plain(tour.summary) || undefined,
           transport: tour.transports.name,
         },
       });
-      if (!themes.length && (!wantsDeals || publicDealsOnly) && bestByTour.size === 5) break;
+      if (!themes.length && !targetBudget && !destination && (!wantsDeals || publicDealsOnly) && bestByTour.size === 5) break;
     }
 
     return [...bestByTour.values()].sort((a, b) => {

@@ -1,5 +1,8 @@
 "use client";
 
+import { AdminSearchHighlight } from "@/components/common/admin_shared/tables/AdminSearchHighlight";
+import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
+
 import { AdminPagination } from "@/components/common/admin_shared/tables/AdminPagination";
 import CustomDropdown from "@/components/common/form_controls/CustomDropdown";
 import { ConfirmDialog } from "@/components/common/dialogs_and_feedback/dialogs/ConfirmDialog";
@@ -8,7 +11,7 @@ import { getScheduleBookedCount, getScheduleStatusMeta } from "@/lib/schedules/a
 import { filterTourSchedules, formatScheduleDate, getSchedulePickupOptions } from "@/lib/schedules/admin/tour-schedules";
 import { useToast } from "@/lib/notifications/useToast";
 import { formatVND } from "@/lib/utils/currency";
-import { AlertTriangle, ArrowRight, Banknote, CalendarDays, Loader2, MapPin, Palmtree, Pencil, Plane, Plus, RefreshCw, Search, Tag, Trash2, UsersRound } from "lucide-react";
+import { AlertTriangle, ArrowRight, Banknote, CalendarDays, Loader2, MapPin, Palmtree, Pencil, Plane, Plus, RefreshCw, Tag, Trash2, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { AdminSchedule, CustomDropdownProps } from "shared";
@@ -105,8 +108,7 @@ export function ScheduleManagement({ tourId }: { tourId?: number }) {
     <fieldset disabled={loading || !tourId} className="mb-4 grid min-w-0 gap-3 disabled:opacity-60 sm:grid-cols-2 @min-[900px]/tour-schedules:grid-cols-[minmax(180px,1.55fr)_minmax(145px,1fr)_minmax(145px,1fr)_minmax(145px,1fr)_auto]">
       <legend className="sr-only">Tìm kiếm và lọc lịch khởi hành</legend>
       <div className="relative min-w-0 sm:col-span-2 @min-[900px]/tour-schedules:col-span-1">
-        <Search size={18} className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[#7b91b3]" />
-        <input type="search" aria-label="Tìm kiếm lịch khởi hành" placeholder="Tìm kiếm lịch khởi hành..." value={search} onChange={event => setSearch(event.target.value)} className="min-h-11 w-full rounded-[14px] border border-[#dce7f7] bg-white/80 py-2.5 pr-3 pl-10 text-[13px] text-[#243d65] shadow-[0_2px_5px_#21477808] outline-none placeholder:text-[#8c9cb6] focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+        <AdminSearchInput  aria-label="Tìm kiếm lịch khởi hành" placeholder="Tìm kiếm lịch khởi hành..." value={search} onChange={value => setSearch(value)} inputClassName="min-h-11 w-full rounded-[14px] border border-[#dce7f7] bg-white/80 py-2.5 pr-3 pl-10 text-[13px] text-[#243d65] shadow-[0_2px_5px_#21477808] outline-none placeholder:text-[#8c9cb6] focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
       </div>
       <ScheduleFilter ariaLabel="Lọc theo điểm đón hoặc nơi xuất phát" selectedValue={pickup} options={pickupOptions} onSelect={setPickup} icon={MapPin} />
       <ScheduleFilter ariaLabel="Lọc theo thời gian khởi hành" selectedValue={time} options={[
@@ -146,7 +148,7 @@ export function ScheduleManagement({ tourId }: { tourId?: number }) {
             return <tr key={schedule.tour_schedule_id} className="group bg-white/95 text-[13px] shadow-[0_3px_8px_#477fb009] transition-colors hover:bg-[#fafdff] [&>td]:border-y [&>td]:border-[#e3edfa] [&>td]:px-4 [&>td]:py-[18px] [&>td:first-child]:rounded-l-[17px] [&>td:first-child]:border-l [&>td:last-child]:rounded-r-[17px] [&>td:last-child]:border-r">
               <td><div className="flex items-center gap-3">
                 <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[linear-gradient(#f1f8ff,#e4f1ff)] text-[#3695ff]"><CalendarDays size={20} /></span>
-                <div><div className="flex items-center gap-2 text-[14px] font-extrabold whitespace-nowrap text-[#10254e]">{formatScheduleDate(schedule.start_date)} <ArrowRight size={15} className="text-[#3a94ff]" /> {formatScheduleDate(schedule.end_date)}</div><p className="mt-1 text-[12px] text-[#7287a6]">{schedule.departure_location?.name || "Chưa có nơi xuất phát"} · {schedule.pickup_points?.length ?? 0} điểm đón</p></div>
+                <div><span className="mb-1 block font-mono text-xs text-blue-700"><AdminSearchHighlight text={schedule.code || `#${schedule.tour_schedule_id}`} query={search} /></span><div className="flex items-center gap-2 text-[14px] font-extrabold whitespace-nowrap text-[#10254e]">{formatScheduleDate(schedule.start_date)} <ArrowRight size={15} className="text-[#3a94ff]" /> {formatScheduleDate(schedule.end_date)}</div><p className="mt-1 text-[12px] text-[#7287a6]">{schedule.departure_location?.name || "Chưa có nơi xuất phát"} · {schedule.pickup_points?.length ?? 0} điểm đón</p></div>
               </div></td>
               <td><div className="flex items-center gap-2.5 whitespace-nowrap"><span className="grid size-8 shrink-0 place-items-center rounded-xl bg-[#eaf4ff] text-[#147cff]"><Banknote size={18} /></span><strong className="text-[16px] font-extrabold text-[#0560ff] tabular-nums">{formatVND(schedule.price)}</strong></div></td>
               <td><div className="flex items-center gap-2 text-[16px] whitespace-nowrap text-[#142b50] tabular-nums"><UsersRound size={20} className="text-[#8a9dbb]" /><span><strong className="font-bold text-[#078b59]">{booked}</strong> / {schedule.quota}</span></div></td>

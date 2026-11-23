@@ -32,6 +32,7 @@ export type ScheduleSidebarProps = {
     onFormChange: (updater: (prev: ScheduleFormState) => ScheduleFormState) => void;
 };
 export type ScheduleTablePanelProps = {
+    searchTerm?: string;
     selectedTourId: number;
     selectedTour?: ScheduleTablePanelTour;
     schedules: AdminSchedule[];

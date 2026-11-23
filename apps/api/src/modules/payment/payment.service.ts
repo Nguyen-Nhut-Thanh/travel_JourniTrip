@@ -136,7 +136,7 @@ export class PaymentService {
                 },
             });
             const booking = current.bookings;
-            if (fields.vnp_Amount !== minorUnits(current.amount) || fields.vnp_Amount !== minorUnits(booking.total_amount)) return { result: response('04', 'Invalid Amount') };
+            if (fields.vnp_Amount !== minorUnits(current.amount)) return { result: response('04', 'Invalid Amount') };
             if (['completed', 'review'].includes(current.status)) return { result: response('02', 'Order already confirmed') };
             const successful = fields.vnp_ResponseCode === '00' && fields.vnp_TransactionStatus === '00';
             if (!successful && current.status === 'failed') return { result: response('02', 'Order already confirmed') };
@@ -150,9 +150,12 @@ export class PaymentService {
             }
             if (successful) {
                 // Keep late/double payments in the ledger for reconciliation without reopening a cancelled booking.
-                const payable = booking.status === 'pending';
+                const paidAt = fields.vnp_PayDate ? parseVnpayDate(fields.vnp_PayDate) : new Date();
+                const withinHold = current.amount.equals(booking.total_amount) && paidAt !== null && paidAt.getTime() <= new Date(booking.created_at).getTime() + 15 * 60000 &&
+                    (!current.expires_at || paidAt <= current.expires_at) && paidAt < booking.tour_schedules.start_date && booking.tour_schedules.status === 1;
+                const payable = booking.status === 'pending' && withinHold;
                 await tx.payments.update({ where: { payment_id: current.payment_id }, data: {
-                    status: payable || booking.status === 'cancel_requested' ? 'completed' : 'review', transaction_code: transactionCode,
+                    status: payable || (booking.status === 'cancel_requested' && withinHold) ? 'completed' : 'review', transaction_code: transactionCode,
                     response_code: fields.vnp_ResponseCode, provider_status: fields.vnp_TransactionStatus,
                     paid_at: fields.vnp_PayDate ? parseVnpayDate(fields.vnp_PayDate) : new Date(),
                 } });

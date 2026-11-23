@@ -1,6 +1,8 @@
 "use client";
 
-import { Info, Search, X } from 'lucide-react';
+import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
+
+import { Info } from 'lucide-react';
 import { useState } from 'react';
 import { slugify, type AdminLocationItem } from 'shared';
 import { ImageWithFallback } from '@/components/common/dialogs_and_feedback/media/ImageWithFallback';
@@ -17,9 +19,9 @@ export function FeaturedLocationsLeftPanel({ allChildren, featured, onToggleSele
     <section className="flex min-h-0 flex-col rounded-[14px] border border-[#e1edfc] bg-white p-3.5 shadow-2xs lg:flex-none">
       <h2 className="mb-2.5 text-sm font-bold text-slate-900">Chọn địa điểm</h2>
       <div className="relative shrink-0">
-        <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input aria-label="Tìm địa điểm" value={search} onChange={event => setSearch(event.target.value)} placeholder="Tìm tỉnh / thành phố..." className="min-h-9 w-full rounded-lg border border-[#e1edfc] bg-white py-1.5 pl-8.5 pr-8 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-50" />
-        {search && <button type="button" aria-label="Xóa tìm kiếm địa điểm" onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:bg-slate-100 cursor-pointer"><X size={13} /></button>}
+
+        <AdminSearchInput aria-label="Tìm địa điểm" value={search} onChange={value => setSearch(value)} placeholder="Tìm tỉnh / thành phố..." inputClassName="min-h-9 w-full rounded-lg border border-[#e1edfc] bg-white py-1.5 pl-8.5 pr-8 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-50" />
+
       </div>
       <div role="group" aria-label="Lọc địa điểm" className="my-2.5 grid shrink-0 grid-cols-2 rounded-lg bg-slate-100/70 p-0.5">
         {[{ value: false, label: `Tất cả (${allChildren.length})` }, { value: true, label: `Đã chọn (${featured.length})` }].map(tab => <button key={String(tab.value)} type="button" aria-pressed={selectedOnly === tab.value} onClick={() => setSelectedOnly(tab.value)} className={`min-h-7 rounded-md px-2 py-1 text-xs font-semibold transition-colors cursor-pointer ${selectedOnly === tab.value ? 'border border-[#e1edfc] bg-white text-blue-600 shadow-2xs' : 'border-transparent text-slate-600 hover:text-blue-600'}`}>{tab.label}</button>)}

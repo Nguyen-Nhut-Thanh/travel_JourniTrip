@@ -48,6 +48,9 @@ export function buildBookingListWhere(
         "pending",
         "paid",
         "cancel_requested",
+        "cancel_proposed",
+        "refund_pending",
+        "no_show",
         "cancelled",
         "completed",
       ].includes(filters.status)

@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import type { TourAdminPayload, TourListParams, TourScheduleTemplate } from 'shared';
+import { matchesAdminTourSearch } from 'shared';
 import { requireFields } from "../../common/validation/payload";
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { Prisma } from '@prisma/client';
@@ -101,12 +102,6 @@ export class ToursAdminService {
     }
     async list(params: TourListParams) {
         const where: Record<string, unknown> = {};
-        if (params.search) {
-            where.OR = [
-                { code: { contains: params.search, mode: 'insensitive' } },
-                { name: { contains: params.search, mode: 'insensitive' } },
-            ];
-        }
         if (params.status === '0' || params.status === '1') {
             where.status = Number(params.status);
         }
@@ -129,7 +124,7 @@ export class ToursAdminService {
                     select: { locations: { select: tourCountrySelect } },
                 },
                 tour_schedules: {
-                    select: { _count: { select: { bookings: { where: { status: { not: 'cancelled' } } } } } },
+                    select: { tour_schedule_id: true, code: true, _count: { select: { bookings: { where: { status: { not: 'cancelled' } } } } } },
                 },
                 tour_images: {
                     orderBy: { sort_order: 'asc' },
@@ -144,8 +139,9 @@ export class ToursAdminService {
             items: items.map(({ tour_destinations, tour_schedules, ...tour }) => ({
                 ...tour,
                 countries: getTourCountries(tour_destinations),
+                schedule_summaries: tour_schedules.map(({ tour_schedule_id, code }) => ({ tour_schedule_id, code })),
                 booked_count: tour_schedules.reduce((count, schedule) => count + schedule._count.bookings, 0),
-            })),
+            })).filter(tour => matchesAdminTourSearch(tour, params.search ?? "")),
         };
     }
     async create(body: TourAdminPayload) {

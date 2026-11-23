@@ -1,5 +1,7 @@
 "use client";
 
+import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
+
 import { TourEditorCard } from "@/components/tours/tour_editor/AdminTourEditorCard";
 import { ImageWithFallback } from "@/components/common/dialogs_and_feedback/media/ImageWithFallback";
 import {
@@ -7,15 +9,13 @@ import {
   getProvinceAttractions,
   toggleScheduleAttraction,
 } from "@/lib/schedules/admin/itinerary";
-import { normalizeScheduleSearch } from "@/lib/schedules/admin/tour-schedules";
+import { matchesSearchText } from "shared";
 import {
   Check,
   ImageIcon,
   Info,
   MapPin,
   MapPinned,
-  Search,
-  X,
 } from "lucide-react";
 import { useId, useMemo, useState } from "react";
 import type { LocationOption, ScheduleFormState, TourInfo } from "shared";
@@ -42,11 +42,8 @@ export function ScheduleAttractionsCard({
     locations,
     tourInfo?.tour_destinations || [],
   );
-  const visibleProvinces = provinces.filter((item) =>
-    normalizeScheduleSearch(item.name).includes(
-      normalizeScheduleSearch(search),
-    ),
-  );
+  const visibleProvinces = provinces.filter(item => matchesSearchText(search, item.name)
+    || locations.some(child => child.parent_id === item.location_id && matchesSearchText(search, item.name, child.name, child.note)));
   const province =
     visibleProvinces.find((item) => item.location_id === chosenProvince) ||
     visibleProvinces[0];
@@ -63,7 +60,7 @@ export function ScheduleAttractionsCard({
   const attractions = getProvinceAttractions(
     attractionsByProvince.get(province?.location_id ?? 0) || [],
     province?.location_id,
-  );
+  ).filter(attraction => matchesSearchText(search, province?.name, attraction.name, attraction.note));
   const selected = new Set(form.attraction_ids);
   const selectedHere = attractions.filter((item) =>
     selected.has(item.location_id),
@@ -87,30 +84,16 @@ export function ScheduleAttractionsCard({
             <aside className="min-w-0 @min-[500px]:border-r @min-[500px]:border-[#edf1f8] @min-[500px]:pr-3.5">
               <div className="relative mb-3">
                 <label htmlFor={`${id}-province-search`} className="sr-only">
-                  Tìm tỉnh/thành trong tour
+                  Tìm tỉnh/thành hoặc điểm tham quan trong tour
                 </label>
-                <Search
-                  size={15}
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8292ac]"
-                />
-                <input
+                <AdminSearchInput
                   id={`${id}-province-search`}
-                  type="search"
                   value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Tìm tỉnh/thành..."
-                  className="min-h-9 w-full rounded-[8px] border border-[#dfe6f1] bg-white py-2 pl-9 pr-8 text-[12px] text-[#263b5c] outline-none placeholder:text-[#94a0b4] focus:border-blue-400 focus:ring-2 focus:ring-blue-50 [&::-webkit-search-cancel-button]:hidden"
+                  onChange={(value) => setSearch(value)}
+                  placeholder="Tìm tỉnh/thành, điểm tham quan..."
+                  inputClassName="min-h-9 w-full rounded-[8px] border border-[#dfe6f1] bg-white py-2 pl-9 pr-8 text-[12px] text-[#263b5c] outline-none placeholder:text-[#94a0b4] focus:border-blue-400 focus:ring-2 focus:ring-blue-50 [&::-webkit-search-cancel-button]:hidden"
                 />
-                {search && (
-                  <button
-                    type="button"
-                    aria-label="Xóa tìm kiếm tỉnh/thành"
-                    onClick={() => setSearch("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-[#8292ac] hover:bg-blue-50 hover:text-blue-600"
-                  >
-                    <X size={13} />
-                  </button>
-                )}
+
               </div>
               <p className="mb-2 text-[12px] font-semibold text-[#26324e]">
                 Tỉnh/thành

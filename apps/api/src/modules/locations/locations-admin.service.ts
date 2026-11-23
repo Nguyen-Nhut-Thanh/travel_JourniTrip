@@ -265,6 +265,7 @@ export class LocationsAdminService {
                         parent_id: parentId,
                         country_code: body.country_code || null,
                         note: body.note || null,
+                        is_featured: body.is_featured ?? false,
                     },
                 });
                 if (body.image_url) {

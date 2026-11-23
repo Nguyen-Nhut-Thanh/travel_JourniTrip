@@ -1,4 +1,5 @@
 "use client";
+import { withdrawBookingCancellation } from "@/lib/booking/client/api";
 
 import { BookingCrewCard } from "@/components/booking/view_booking/UserBookingCrewCard";
 import { BookingPaymentButton } from "@/components/booking/create_booking/UserBookingPaymentButton";
@@ -7,6 +8,7 @@ import { BookingCancelModal } from "@/components/booking/cancel_request/UserBook
 import { BookingCancelledBanner } from "@/components/booking/view_booking/UserBookingCancelledBanner";
 import { BookingReceiptModal } from "@/components/booking/view_booking/UserBookingReceiptModal";
 import { UserBookingResolutionProposalCard } from "@/components/booking/view_booking/UserBookingResolutionProposalCard";
+import { BookingSettlementPanel } from "@/components/booking/BookingSettlementPanel";
 import { PaymentCountdownCard } from "@/components/booking/create_booking/UserPaymentCountdownCard";
 import { formatVND } from "@/lib/utils/currency";
 import {
@@ -38,22 +40,18 @@ function date(value?: string | null, withTime = false) {
 export function bookingStatus(
   value: string,
   schedule?: { start_date?: string | null; end_date?: string | null } | null,
+  meta?: any,
 ) {
   const status = value.toLowerCase();
+  if (status === "no_show") return { label: "Không tham gia", tone: "warning" };
   if (["cancelled", "canceled", "đã hủy"].includes(status)) return { label: "Đã hủy", tone: "cancelled" };
-  if (status === "cancel_requested") {
-    const now = new Date();
-    const start = schedule?.start_date ? new Date(schedule.start_date) : null;
-    const end = schedule?.end_date ? new Date(schedule.end_date) : null;
-    if (start && now.getTime() >= start.getTime()) {
-      if (end && now.getTime() > end.getTime()) {
-        return { label: "Đã hoàn thành", tone: "warning" };
-      }
-      return { label: "Đang diễn ra", tone: "warning" };
+  if (status === "cancel_requested") return { label: "Đang yêu cầu hủy", tone: "pending" };
+  if (status === "cancel_proposed") {
+    if (meta?.resolutionProposal?.status === "contact_support") {
+      return { label: "Yêu cầu đổi phương án", tone: "warning" };
     }
-    return { label: "Đang yêu cầu hủy", tone: "pending" };
+    return { label: "Đề xuất hủy/đổi lịch", tone: "warning" };
   }
-  if (status === "cancel_proposed") return { label: "Đề xuất hủy/đổi lịch", tone: "warning" };
   if (status === "refund_pending") return { label: "Chờ chuyển tiền hoàn", tone: "warning" };
   if (["completed", "đã hoàn thành"].includes(status)) return { label: "Đã hoàn thành", tone: "success" };
   if (status === "paid") return { label: "Đã thanh toán", tone: "success" };
@@ -63,11 +61,13 @@ export function bookingStatus(
 function Status({
   value,
   schedule,
+  meta,
 }: {
   value: string;
   schedule?: { start_date?: string | null; end_date?: string | null } | null;
+  meta?: any;
 }) {
-  const status = bookingStatus(value, schedule);
+  const status = bookingStatus(value, schedule, meta);
   return (
     <span
       className={`inline-flex items-center justify-center rounded-[30px] text-[12px] font-[750] whitespace-nowrap px-[13px] py-[7px] gap-[7px] [[data-booking-payment-details]_&]:text-[10px] [[data-booking-payment-details]_&]:px-2 [[data-booking-payment-details]_&]:py-1 [[data-booking-payment-details]_&]:gap-1 [[data-booking-payment-details]_&_svg]:w-3 [[data-booking-payment-details]_&_svg]:h-3 max-[800px]:text-[11px] ${
@@ -94,6 +94,8 @@ function Field({ label, children, wide = false }: { label: string; children: Rea
 
 export function BookingDetailView({ booking: b }: { booking: BookingDetail }) {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [withdrawBusy, setWithdrawBusy] = useState(false);
+  const [withdrawError, setWithdrawError] = useState("");
   const [receiptModalOpen, setReceiptModalOpen] = useState(false);
   const parsedNote = parseBookingNote(b.note, b);
   const isPast = b.tour_schedules?.start_date
@@ -157,7 +159,7 @@ export function BookingDetailView({ booking: b }: { booking: BookingDetail }) {
             <p className="uppercase text-[11px] tracking-wider text-[#4e709b] font-bold mb-1 max-[480px]:text-[10px]">Chi tiết booking</p>
             <div className="flex items-center mb-1 gap-3.5 flex-wrap [&_h1]:text-[clamp(21px,_2vw,_28px)] [&_h1]:leading-[1.25] [&_h1]:tracking-[-.025em]! [&_h1]:font-extrabold max-[800px]:gap-2 max-[480px]:[&_h1]:text-[19px]">
               <h1>{name}</h1>
-              <Status value={b.status} schedule={b.tour_schedules} />
+              <Status value={b.status} schedule={b.tour_schedules} meta={b.cancellation_meta} />
               {["paid", "completed"].includes(b.status) && (
                 <button
                   type="button"
@@ -208,71 +210,18 @@ export function BookingDetailView({ booking: b }: { booking: BookingDetail }) {
       </div>
     </header>
 
-    {b.status === "cancel_requested" && (
-      isPast ? (
-        <div className="w-[min(1430px,_93%)] mx-auto mt-4 mb-2 rounded-2xl border border-amber-200 bg-amber-50/95 p-4 shadow-sm text-amber-950">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-xs">
-              <Clock size={20} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-sm font-bold text-amber-950">
-                  Yêu cầu hủy không được duyệt
-                </h3>
-                <span className="inline-flex items-center rounded-full bg-amber-200/90 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-900">
-                  Đã quá giờ khởi hành
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-amber-800 leading-relaxed">
-                Yêu cầu hủy tour của bạn không được phê duyệt trước thời điểm khởi hành. Do chuyến đi đã bắt đầu theo lịch trình, vé tour vẫn có hiệu lực hoặc tính vắng mặt (no-show) theo quy định chính sách lữ hành.
-              </p>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="w-[min(1430px,_93%)] mx-auto mt-4 mb-2 rounded-2xl border border-amber-200 bg-amber-50/95 p-4 shadow-sm text-amber-900">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-xs">
-              <Clock size={20} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-sm font-bold text-amber-950">
-                  Đơn đặt tour đang chờ ban quản trị duyệt yêu cầu hủy
-                </h3>
-                <span className="inline-flex items-center rounded-full bg-amber-200/80 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-800">
-                  Đang xử lý
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-amber-800 leading-relaxed">
-                Yêu cầu hủy tour của bạn đã được tiếp nhận và chuyển đến bộ phận quản lý. Tiền hoàn (nếu có) sẽ được đối soát theo chính sách hủy tour và hoàn trả về tài khoản ngân hàng của bạn trong vòng 1-3 ngày làm việc.
-              </p>
-            </div>
-          </div>
-        </div>
-      )
-    )}
+    {b.status === "cancel_requested" && <div className="mx-auto my-4 w-[93%] space-y-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+      <h3 className="font-semibold">Yêu cầu hủy đang chờ xử lý</h3>
+      <p>Phí hủy được chốt theo thời điểm bạn gửi yêu cầu. Việc chuyến đã khởi hành không tự động biến yêu cầu đang chờ thành bị từ chối.</p>
+      <button disabled={withdrawBusy} className="rounded-lg border border-amber-300 bg-white px-3 py-2 font-semibold disabled:opacity-50" onClick={async () => {
+        setWithdrawBusy(true); setWithdrawError("");
+        try { await withdrawBookingCancellation(b.booking_id); window.location.reload(); }
+        catch (error) { setWithdrawError(error instanceof Error ? error.message : "Không rút được yêu cầu."); setWithdrawBusy(false); }
+      }}>Rút yêu cầu hủy, tiếp tục booking</button>
+      {withdrawError && <p role="alert" className="text-red-700">{withdrawError}</p>}
+    </div>}
 
-    {b.status !== "cancelled" && parsedNote.adminRejection && (
-      <div className="w-[min(1430px,_93%)] mx-auto mt-4 mb-2 rounded-2xl border border-blue-200 bg-blue-50/90 p-4 shadow-sm text-blue-900">
-        <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
-            <AlertCircle size={20} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-bold text-blue-950">
-              Phản hồi yêu cầu hủy tour từ Ban quản lý
-            </h3>
-            <p className="mt-1 text-xs text-blue-800 leading-relaxed">
-              Yêu cầu hủy của bạn chưa được chấp thuận:{" "}
-              <strong>{parsedNote.adminRejection.note || "Vui lòng liên hệ hotline để được hướng dẫn thêm."}</strong>
-            </p>
-          </div>
-        </div>
-      </div>
-    )}
-
+    {b.status !== "cancel_requested" && !(b.cancellation_meta as any)?.cancelRequest?.withdrawn && parsedNote.adminRejection && <div className="mx-auto my-3 w-[93%] rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">Yêu cầu hủy chưa được chấp thuận: {parsedNote.adminRejection.note || "Vui lòng liên hệ tư vấn viên để được giải thích."}</div>}
     {/* Hộp thoại đề xuất giải quyết sự cố / hủy tour từ Ban quản trị */}
     {(b.cancellation_meta as any)?.resolutionProposal ? (
       <UserBookingResolutionProposalCard booking={b} />
@@ -283,6 +232,7 @@ export function BookingDetailView({ booking: b }: { booking: BookingDetail }) {
         onViewRefundSlip={() => setReceiptModalOpen(true)}
       />
     ) : null}
+    <div className="mx-auto w-[93%]"><BookingSettlementPanel booking={b} /></div>
 
     <div className={`w-[min(1430px,_93%)] grid grid-cols-[minmax(0,_1.42fr)_minmax(0,_1fr)] relative z-[2] ${b.status === "cancelled" ? "mt-4" : b.status === "cancel_requested" ? "mt-2" : "-mt-2"} mx-auto gap-4 max-[1150px]:grid-cols-[minmax(0,_1.2fr)_minmax(0,_1fr)] max-[1150px]:gap-3.5 max-[800px]:w-[92%] max-[800px]:grid-cols-[1fr]`}>
       <div className="flex flex-col min-w-0 gap-4 max-[480px]:gap-3">
@@ -317,7 +267,7 @@ export function BookingDetailView({ booking: b }: { booking: BookingDetail }) {
       <div className="flex flex-col min-w-0 gap-5 max-[480px]:gap-[15px]">
         <section className="bg-[#ffffffed] rounded-[19px] shadow-[0_3px_18px_#c9e9fa08] min-w-0 border border-[#dcecff] border-solid p-5 min-[1450px]:p-[21px] max-[1150px]:p-4 max-[800px]:p-4.5 max-[480px]:rounded-[17px] max-[480px]:p-[15px]" aria-label="Danh sách hành khách"><SectionTitle icon={<UsersRound size={25} />} title="Danh sách hành khách" description="Thông tin hành khách đi cùng trong booking này." /><div className="rounded-[15px] overflow-auto border border-[#e0edff] border-solid"><table className="w-full border-collapse text-left whitespace-nowrap text-[11px] [&_thead]:bg-[#f3f8fe] [&_th]:text-[9px] [&_th]:font-medium [&_th]:tracking-[.07em]! [&_th]:text-[#6687b0] [&_th]:uppercase [&_th]:px-[15px] [&_th]:py-3 [&_td]:border-b [&_td]:[border-bottom-style:solid] [&_td]:border-b-[#edf4fc] [&_td]:align-middle [&_td]:px-[15px] [&_td]:py-3 [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_td]:[border-bottom-style:none] [&_tbody_tr:last-child_td]:border-b-[currentColor] [&_strong]:font-[650] [&_small]:block [&_small]:text-[#8295ad] [&_small]:text-[10px] [&_small]:mt-[3px] min-[1450px]:text-[12px] min-[1450px]:[&_th]:text-[10px] max-[1150px]:[&_th]:px-2.5 max-[1150px]:[&_td]:px-2.5 max-[800px]:text-[12px] max-[800px]:[&_th]:text-[10px] max-[480px]:text-[11px] max-[480px]:[&_th]:text-[9px]"><thead><tr><th>Họ tên</th><th>Ngày sinh</th><th>Giới tính</th><th>Giấy tờ</th></tr></thead><tbody>{b.booking_travelers?.length ? b.booking_travelers.map(traveler => <tr key={traveler.traveler_id}><td><strong>{traveler.full_name}</strong><small>{{ adult: "Người lớn", child: "Trẻ em", infant: "Em bé" }[traveler.traveler_type.toLowerCase()] || traveler.traveler_type}</small></td><td>{date(traveler.dob)}</td><td>{{ male: "Nam", female: "Nữ", other: "Khác" }[traveler.gender.toLowerCase()] || traveler.gender || "—"}</td><td>{traveler.id_number || "Chưa cập nhật"}</td></tr>) : <tr><td colSpan={4} className="text-center! text-[#8295ad] p-5.5!">Chưa có thông tin hành khách.</td></tr>}</tbody></table></div></section>
         <section className="bg-[#ffffffed] rounded-[19px] shadow-[0_3px_18px_#c9e9fa08] min-w-0 border border-[#dcecff] border-solid p-5 min-[1450px]:p-[21px] max-[1150px]:p-4 max-[800px]:p-4.5 max-[480px]:rounded-[17px] max-[480px]:p-[15px]" aria-label="Chi tiết hóa đơn"><SectionTitle icon={<ReceiptText size={25} />} title="Chi tiết hóa đơn" description="Các khoản chi phí trong booking (vé, phụ thu, dịch vụ kèm theo)." /><div className="rounded-[15px] overflow-auto border border-[#e0edff] border-solid"><table className="w-full border-collapse text-left whitespace-nowrap text-[11px] [&_thead]:bg-[#f3f8fe] [&_th]:text-[9px] [&_th]:font-medium [&_th]:tracking-[.07em]! [&_th]:text-[#6687b0] [&_th]:uppercase [&_th]:px-[13px] [&_th]:py-[11px] [&_td]:border-b [&_td]:[border-bottom-style:solid] [&_td]:border-b-[#edf4fc] [&_td]:align-middle [&_td]:px-[13px] [&_td]:py-2.5 [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_td]:[border-bottom-style:none] [&_tbody_tr:last-child_td]:border-b-[currentColor] [&_strong]:font-[650] [&_small]:block [&_small]:text-[#8295ad] [&_small]:text-[10px] [&_small]:mt-[3px] [&_td:last-child]:text-right [&_td:last-child]:font-[650] [&_th:last-child]:text-right min-[1450px]:text-[12px] min-[1450px]:[&_th]:text-[10px] max-[1150px]:[&_th]:px-2.5 max-[1150px]:[&_td]:px-2.5 max-[800px]:text-[12px] max-[800px]:[&_th]:text-[10px] max-[480px]:text-[11px] max-[480px]:[&_th]:text-[9px]"><thead><tr><th>Hạng mục</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>{rows.map(row => <tr key={row.label}><td>{row.label}</td><td>{row.quantity}</td><td>{row.origPrice && <span className="block text-[10px] text-slate-400 line-through font-normal">{money(row.origPrice)}</span>}<span>{money(row.price)}</span></td><td>{money(row.quantity * row.price)}</td></tr>)}{extras.map((item, index) => <tr key={`${item.id}-${index}`}><td>{item.name}</td><td>{item.quantity}</td><td>{money(item.unit_price)}</td><td>{money(item.amount)}</td></tr>)}{services > 0 && !extras.length && <tr><td>Dịch vụ bổ sung</td><td>1</td><td>{money(services)}</td><td>{money(services)}</td></tr>}{surcharge > 0 && <tr><td>Phụ thu phòng / khác</td><td>1</td><td>{money(surcharge)}</td><td>{money(surcharge)}</td></tr>}</tbody></table></div>
-          <div className="grid grid-cols-[1fr_1.02fr] mt-[13px] gap-[15px] max-[1150px]:grid-cols-[1fr] max-[800px]:grid-cols-[1fr_1fr] max-[480px]:grid-cols-[1fr]"><div className="[&_dt]:text-[10px] [&_dt]:uppercase [&_dt]:tracking-[.075em]! [&_dt]:text-[#6283af] [&_dt]:mb-1.5 relative isolate overflow-hidden rounded-[15px] [background:linear-gradient(145deg,_#f0f8fe,_#f6fbff)] pt-[23px] pb-37.5 min-h-[275px] px-4.5 [&_dd]:text-[12px] [&_dd]:mb-5.5 [&_dd]:leading-[1.6] max-[1150px]:min-h-40 max-[1150px]:pt-4.5 max-[1150px]:pb-[15px] max-[1150px]:flex max-[1150px]:items-start max-[1150px]:px-4.5 max-[1150px]:[&_dl]:relative max-[1150px]:[&_dl]:z-[1] max-[1150px]:[&_dl]:max-w-[60%] max-[1150px]:[&_dd]:mb-[15px] max-[800px]:block max-[800px]:pt-5.5 max-[800px]:pb-[145px] max-[800px]:min-h-[295px] max-[800px]:px-4.5 max-[800px]:[&_dl]:max-w-full max-[480px]:min-h-[165px] max-[480px]:pt-5 max-[480px]:pb-[15px] max-[480px]:px-4.5 max-[480px]:[&_dl]:max-w-[60%]"><dl><dt>Giá gốc / giảm giá</dt><dd>{totalDiscount > 0 ? (<div className="space-y-1.5"><div className="font-extrabold text-emerald-600">Tiết kiệm {money(totalDiscount)}</div><div className="space-y-1 text-[11px] text-[#466286]">{promoDiscount > 0 && (<div className="flex items-center gap-1.5 flex-wrap"><span className="inline-block rounded-xs bg-rose-100 text-rose-700 px-1.5 py-0.2 text-[9.5px] font-bold">{promoTitle || "Ưu đãi"}</span><span className="font-semibold text-rose-600">−{money(promoDiscount)}</span></div>)}{memberDiscount > 0 && (<div className="flex items-center gap-1.5 flex-wrap"><span className="inline-block rounded-xs bg-amber-100 text-amber-800 px-1.5 py-0.2 text-[9.5px] font-bold">Hạng {b.membership_snapshot?.name || "thành viên"}</span><span className="font-semibold text-amber-700">−{money(memberDiscount)}</span></div>)}{voucherDiscount > 0 && (<div className="flex items-center gap-1.5 flex-wrap"><span className="inline-block rounded-xs bg-blue-100 text-blue-700 px-1.5 py-0.2 text-[9.5px] font-bold">Voucher</span><span className="font-semibold text-blue-600">−{money(voucherDiscount)}</span></div>)}{promoGift && (<div className="text-[10.5px] text-amber-800 font-semibold bg-amber-50/90 rounded px-1.5 py-0.5 inline-block border border-amber-200/60 mt-0.5">🎁 Quà tặng: {promoGift}</div>)}</div></div>) : ("Không áp dụng giảm giá")}</dd><dt>Voucher</dt><dd>{b.vouchers?.code ? `Mã: ${b.vouchers.code}` : "Không sử dụng"}</dd></dl><span className="[font-family:'Caveat',_cursive] text-[25px] leading-[1.05] text-[#4f8edb] absolute bottom-[99px] right-4 [transform:rotate(-13deg)] text-center max-[1150px]:right-2.5 max-[1150px]:bottom-5 max-[1150px]:text-[23px] max-[800px]:bottom-25 max-[800px]:right-5 max-[480px]:right-2 max-[480px]:bottom-[25px] max-[480px]:text-[22px]">Good Trips<br />Better People ♥</span><div className="absolute top-auto right-0 bottom-0 left-0 h-29 [background:linear-gradient(#f4faff05,_#d7f3ff44),_url('/images/about/our-story-ha-long-bay.png')_center_60%/cover] [clip-path:polygon(0_23%,_13%_8%,_23%_30%,_35%_4%,_45%_25%,_60%_0,_75%_25%,_88%_12%,_100%_32%,_100%_100%,_0_100%)] opacity-[.78] z-[-1] max-[1150px]:left-[55%] max-[1150px]:h-full max-[1150px]:opacity-[.5] max-[800px]:left-0 max-[800px]:h-30 max-[800px]:opacity-[.78] max-[480px]:left-[50%] max-[480px]:h-full max-[480px]:opacity-[.5]" /></div><div className="rounded-[16px] border border-[#dfebfc] border-solid px-4 py-[17px] [&_dl>div]:flex [&_dl>div]:items-start [&_dl>div]:justify-between [&_dl>div]:text-[11px] [&_dl>div]:leading-[1.7] [&_dl>div]:mb-[7px] [&_dl>div]:gap-3 [&_dd]:text-right [&_dd]:wrap-anywhere [&_dd]:min-w-0 min-[1450px]:[&_dl>div]:text-[12px] max-[1150px]:[&_dl>div]:text-[12px] max-[480px]:p-[17px] max-[480px]:[&_dl>div]:text-[12px]"><dl><div><dt>Tạm tính (giá gốc)</dt><dd>{money(subtotalOriginal)}</dd></div>{promoDiscount > 0 && (<div><dt className="text-rose-600 font-medium">{promoTitle || "Ưu đãi / Flash Deal"}</dt><dd className="text-rose-600 font-semibold">− {money(promoDiscount)}</dd></div>)}{memberDiscount > 0 && (<div><dt className="text-amber-800 font-medium">Ưu đãi hạng {b.membership_snapshot?.name || "thành viên"}</dt><dd className="text-amber-700 font-semibold">− {money(memberDiscount)}</dd></div>)}{voucherDiscount > 0 && (<div><dt className="text-blue-700 font-medium">Voucher ({b.vouchers?.code || "giảm giá"})</dt><dd className="text-blue-700 font-semibold">− {money(voucherDiscount)}</dd></div>)}{totalDiscount > 0 && !promoDiscount && !memberDiscount && !voucherDiscount && (<div><dt>Giảm giá</dt><dd className="text-[#607ca3]">− {money(totalDiscount)}</dd></div>)}</dl><div className="border-t [border-top-style:solid] border-t-[#edf3fc] border-b [border-bottom-style:solid] border-b-[#edf3fc] mt-2.5 mb-3 px-0 py-3 mx-0 [&>span]:block [&>span]:text-[#3d85ff] [&>span]:uppercase [&>span]:tracking-[.06em]! [&>span]:text-[10px] [&>span]:mb-1 [&_strong]:text-[#0064ff] [&_strong]:text-[clamp(21px,_1.9vw,_28px)] [&_strong]:leading-[1.3] [&_strong]:font-extrabold [&_strong]:whitespace-nowrap [&_strong]:tracking-[-.035em]! max-[1150px]:[&_strong]:text-[28px] max-[800px]:[&_strong]:text-[28px]"><span>Giá lúc thanh toán</span><strong>{money(b.total_amount)}</strong></div><dl className="text-[#5c7aa2]" data-booking-payment-details=""><div><dt>Trạng thái</dt><dd><Status value={b.status} schedule={b.tour_schedules} /></dd></div><div><dt>Ngày đặt đơn</dt><dd>{date(b.created_at, true)}</dd></div><div><dt>Giao dịch</dt><dd>{payment?.transaction_code || "Chưa có"}</dd></div><div><dt>Phương thức</dt><dd>{method}</dd></div><div><dt>Thanh toán</dt><dd>{paymentStatus}</dd></div></dl></div></div>
+          <div className="grid grid-cols-[1fr_1.02fr] mt-[13px] gap-[15px] max-[1150px]:grid-cols-[1fr] max-[800px]:grid-cols-[1fr_1fr] max-[480px]:grid-cols-[1fr]"><div className="[&_dt]:text-[10px] [&_dt]:uppercase [&_dt]:tracking-[.075em]! [&_dt]:text-[#6283af] [&_dt]:mb-1.5 relative isolate overflow-hidden rounded-[15px] [background:linear-gradient(145deg,_#f0f8fe,_#f6fbff)] pt-[23px] pb-37.5 min-h-[275px] px-4.5 [&_dd]:text-[12px] [&_dd]:mb-5.5 [&_dd]:leading-[1.6] max-[1150px]:min-h-40 max-[1150px]:pt-4.5 max-[1150px]:pb-[15px] max-[1150px]:flex max-[1150px]:items-start max-[1150px]:px-4.5 max-[1150px]:[&_dl]:relative max-[1150px]:[&_dl]:z-[1] max-[1150px]:[&_dl]:max-w-[60%] max-[1150px]:[&_dd]:mb-[15px] max-[800px]:block max-[800px]:pt-5.5 max-[800px]:pb-[145px] max-[800px]:min-h-[295px] max-[800px]:px-4.5 max-[800px]:[&_dl]:max-w-full max-[480px]:min-h-[165px] max-[480px]:pt-5 max-[480px]:pb-[15px] max-[480px]:px-4.5 max-[480px]:[&_dl]:max-w-[60%]"><dl><dt>Giá gốc / giảm giá</dt><dd>{totalDiscount > 0 ? (<div className="space-y-1.5"><div className="font-extrabold text-emerald-600">Tiết kiệm {money(totalDiscount)}</div><div className="space-y-1 text-[11px] text-[#466286]">{promoDiscount > 0 && (<div className="flex items-center gap-1.5 flex-wrap"><span className="inline-block rounded-xs bg-rose-100 text-rose-700 px-1.5 py-0.2 text-[9.5px] font-bold">{promoTitle || "Ưu đãi"}</span><span className="font-semibold text-rose-600">−{money(promoDiscount)}</span></div>)}{memberDiscount > 0 && (<div className="flex items-center gap-1.5 flex-wrap"><span className="inline-block rounded-xs bg-amber-100 text-amber-800 px-1.5 py-0.2 text-[9.5px] font-bold">Hạng {b.membership_snapshot?.name || "thành viên"}</span><span className="font-semibold text-amber-700">−{money(memberDiscount)}</span></div>)}{voucherDiscount > 0 && (<div className="flex items-center gap-1.5 flex-wrap"><span className="inline-block rounded-xs bg-blue-100 text-blue-700 px-1.5 py-0.2 text-[9.5px] font-bold">Voucher</span><span className="font-semibold text-blue-600">−{money(voucherDiscount)}</span></div>)}{promoGift && (<div className="text-[10.5px] text-amber-800 font-semibold bg-amber-50/90 rounded px-1.5 py-0.5 inline-block border border-amber-200/60 mt-0.5">🎁 Quà tặng: {promoGift}</div>)}</div></div>) : ("Không áp dụng giảm giá")}</dd><dt>Voucher</dt><dd>{b.vouchers?.code ? `Mã: ${b.vouchers.code}` : "Không sử dụng"}</dd></dl><span className="[font-family:'Caveat',_cursive] text-[25px] leading-[1.05] text-[#4f8edb] absolute bottom-[99px] right-4 [transform:rotate(-13deg)] text-center max-[1150px]:right-2.5 max-[1150px]:bottom-5 max-[1150px]:text-[23px] max-[800px]:bottom-25 max-[800px]:right-5 max-[480px]:right-2 max-[480px]:bottom-[25px] max-[480px]:text-[22px]">Good Trips<br />Better People ♥</span><div className="absolute top-auto right-0 bottom-0 left-0 h-29 [background:linear-gradient(#f4faff05,_#d7f3ff44),_url('/images/about/our-story-ha-long-bay.png')_center_60%/cover] [clip-path:polygon(0_23%,_13%_8%,_23%_30%,_35%_4%,_45%_25%,_60%_0,_75%_25%,_88%_12%,_100%_32%,_100%_100%,_0_100%)] opacity-[.78] z-[-1] max-[1150px]:left-[55%] max-[1150px]:h-full max-[1150px]:opacity-[.5] max-[800px]:left-0 max-[800px]:h-30 max-[800px]:opacity-[.78] max-[480px]:left-[50%] max-[480px]:h-full max-[480px]:opacity-[.5]" /></div><div className="rounded-[16px] border border-[#dfebfc] border-solid px-4 py-[17px] [&_dl>div]:flex [&_dl>div]:items-start [&_dl>div]:justify-between [&_dl>div]:text-[11px] [&_dl>div]:leading-[1.7] [&_dl>div]:mb-[7px] [&_dl>div]:gap-3 [&_dd]:text-right [&_dd]:wrap-anywhere [&_dd]:min-w-0 min-[1450px]:[&_dl>div]:text-[12px] max-[1150px]:[&_dl>div]:text-[12px] max-[480px]:p-[17px] max-[480px]:[&_dl>div]:text-[12px]"><dl><div><dt>Tạm tính (giá gốc)</dt><dd>{money(subtotalOriginal)}</dd></div>{promoDiscount > 0 && (<div><dt className="text-rose-600 font-medium">{promoTitle || "Ưu đãi / Flash Deal"}</dt><dd className="text-rose-600 font-semibold">− {money(promoDiscount)}</dd></div>)}{memberDiscount > 0 && (<div><dt className="text-amber-800 font-medium">Ưu đãi hạng {b.membership_snapshot?.name || "thành viên"}</dt><dd className="text-amber-700 font-semibold">− {money(memberDiscount)}</dd></div>)}{voucherDiscount > 0 && (<div><dt className="text-blue-700 font-medium">Voucher ({b.vouchers?.code || "giảm giá"})</dt><dd className="text-blue-700 font-semibold">− {money(voucherDiscount)}</dd></div>)}{totalDiscount > 0 && !promoDiscount && !memberDiscount && !voucherDiscount && (<div><dt>Giảm giá</dt><dd className="text-[#607ca3]">− {money(totalDiscount)}</dd></div>)}</dl><div className="border-t [border-top-style:solid] border-t-[#edf3fc] border-b [border-bottom-style:solid] border-b-[#edf3fc] mt-2.5 mb-3 px-0 py-3 mx-0 [&>span]:block [&>span]:text-[#3d85ff] [&>span]:uppercase [&>span]:tracking-[.06em]! [&>span]:text-[10px] [&>span]:mb-1 [&_strong]:text-[#0064ff] [&_strong]:text-[clamp(21px,_1.9vw,_28px)] [&_strong]:leading-[1.3] [&_strong]:font-extrabold [&_strong]:whitespace-nowrap [&_strong]:tracking-[-.035em]! max-[1150px]:[&_strong]:text-[28px] max-[800px]:[&_strong]:text-[28px]"><span>Giá lúc thanh toán</span><strong>{money(b.total_amount)}</strong></div><dl className="text-[#5c7aa2]" data-booking-payment-details=""><div><dt>Trạng thái</dt><dd><Status value={b.status} schedule={b.tour_schedules} meta={b.cancellation_meta} /></dd></div><div><dt>Ngày đặt đơn</dt><dd>{date(b.created_at, true)}</dd></div><div><dt>Giao dịch</dt><dd>{payment?.transaction_code || "Chưa có"}</dd></div><div><dt>Phương thức</dt><dd>{method}</dd></div><div><dt>Thanh toán</dt><dd>{paymentStatus}</dd></div></dl></div></div>
         </section>
       </div>
     </div>

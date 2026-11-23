@@ -3,7 +3,8 @@ import type { ChatContextCard } from "./models";
 
 export type AiChatTour = Pick<ChatContextCard,
   "id" | "title" | "url" | "image_url" | "price" | "duration" |
-  "schedule_id" | "departure_date" | "original_price" | "summary" | "destination" | "transport"
+  "schedule_id" | "departure_date" | "original_price" | "summary" | "destination" | "transport" |
+  "remaining_seats" | "rating" | "rating_count"
 >;
 
 export type AiChatTourReference = { tourId: number; scheduleId?: number };
@@ -39,6 +40,9 @@ export const tourIntentSchema = z.object({
   duration_days: z.number().int().positive().max(180).nullable(),
   max_per_person: money,
   max_total: money,
+  target_budget: money.optional().nullable().default(null),
+  budget_type: z.enum(["around", "under", "exact"]).optional().nullable().default(null),
+  off_topic_subject: brief.optional().nullable().default(null),
   adults: count,
   children: count,
   infants: count,

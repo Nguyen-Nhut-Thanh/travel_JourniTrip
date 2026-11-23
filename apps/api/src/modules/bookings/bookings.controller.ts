@@ -65,6 +65,7 @@ export class BookingsController {
       bankAccountNumber?: string;
       bankAccountName?: string;
       estimatedRefundAmount?: number;
+      travelerIds?: number[];
     },
     @Req()
     req: any,
@@ -77,7 +78,8 @@ export class BookingsController {
     id: number,
     @Body()
     dto: {
-      decision: "full_refund" | "reschedule" | "contact_support";
+      decision: "full_refund" | "reschedule";
+      proposalId: string;
       bankName?: string;
       bankAccountNumber?: string;
       bankAccountName?: string;
@@ -87,6 +89,15 @@ export class BookingsController {
     req: any,
   ) {
     return this.service.resolveProposalForAccount(id, req.user.accountId, dto);
+  }
+
+  @Post(":id/refund-bank")
+  updateRefundBank(@Param("id", ParseIntPipe) id: number, @Body() dto: any, @Req() req: any) {
+    return this.service.updateRefundBankForAccount(id, req.user.accountId, dto);
+  }
+  @Post(":id/withdraw-cancel")
+  withdrawCancel(@Param("id", ParseIntPipe) id: number, @Req() req: any) {
+    return this.service.withdrawCancelForAccount(id, req.user.accountId);
   }
 
   @Get(":id")

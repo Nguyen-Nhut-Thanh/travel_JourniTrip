@@ -1,5 +1,7 @@
 "use client";
 
+import { normalizeSearchText } from "shared";
+
 import { useEffect, useMemo, useState } from "react";
 import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
 import { AdminPagination } from "@/components/common/admin_shared/tables/AdminPagination";
@@ -65,10 +67,10 @@ export function TransportsTableTab({
   const filteredTransports = useMemo(() => {
     return transports.filter((t) => {
       if (search.trim()) {
-        const q = search.toLowerCase();
-        const matchName = t.name.toLowerCase().includes(q);
-        const matchDesc = t.description?.toLowerCase().includes(q);
-        const matchProv = t.providers?.name.toLowerCase().includes(q);
+        const q = normalizeSearchText(search);
+        const matchName = normalizeSearchText(t.name).includes(q);
+        const matchDesc = normalizeSearchText(t.description).includes(q);
+        const matchProv = normalizeSearchText(t.providers?.name).includes(q);
         if (!matchName && !matchDesc && !matchProv) return false;
       }
       if (transportTypeFilter && t.transport_type !== transportTypeFilter) return false;

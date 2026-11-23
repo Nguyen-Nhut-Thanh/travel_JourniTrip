@@ -59,6 +59,13 @@ const ADMIN_REVIEW_INCLUDE = {
             tour_id: true,
             code: true,
             name: true,
+            summary: true,
+            tour_type: true,
+            duration_days: true,
+            duration_nights: true,
+            base_price: true,
+            status: true,
+            tour_images: { select: { image_url: true }, orderBy: { is_cover: 'desc' }, take: 1 },
         },
     },
     review_replies: {
@@ -73,6 +80,22 @@ const ADMIN_REVIEW_INCLUDE = {
         },
     },
 } as const;
+
+function mapAdminReviewResponse(review: any) {
+    const tour = review.tours;
+    return {
+        ...mapReviewResponse(review),
+        tour: tour ? {
+            summary: tour.summary,
+            tour_type: tour.tour_type,
+            duration_days: tour.duration_days,
+            duration_nights: tour.duration_nights,
+            base_price: Number(tour.base_price),
+            status: tour.status,
+            image_url: tour.tour_images?.[0]?.image_url ?? null,
+        } : undefined,
+    };
+}
 
 @Injectable()
 export class ReviewsService {
@@ -436,13 +459,13 @@ export class ReviewsService {
                 where,
                 take,
                 skip,
-                orderBy: { created_at: "desc" },
+                orderBy: [{ created_at: "desc" }, { review_id: "desc" }],
                 include: ADMIN_REVIEW_INCLUDE,
             }),
             this.prisma.reviews.count({ where }),
         ]);
         return {
-            items: items.map((r: any) => mapReviewResponse(r)),
+            items: items.map((r: any) => mapAdminReviewResponse(r)),
             total,
             take,
             skip,
@@ -459,7 +482,7 @@ export class ReviewsService {
         if (!r) {
             throw new NotFoundException("Đánh giá không tồn tại.");
         }
-        return mapReviewResponse(r);
+        return mapAdminReviewResponse(r);
     }
     /**
      * Admin duyệt (status = 1) hoặc từ chối / ẩn (status = 2) đánh giá

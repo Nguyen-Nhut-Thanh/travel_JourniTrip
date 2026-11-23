@@ -15,7 +15,7 @@ import type { AdminReviewItem } from "shared";
 import { AdminRowActions } from "@/components/common/admin_shared/tables/AdminRowActions";
 import { AdminPagination } from "@/components/common/admin_shared/tables/AdminPagination";
 
-interface ReviewTableProps {
+export interface ReviewTableProps {
   items: AdminReviewItem[];
   loading: boolean;
   currentPage?: number;

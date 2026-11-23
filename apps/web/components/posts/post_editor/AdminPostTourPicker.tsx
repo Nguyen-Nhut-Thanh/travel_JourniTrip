@@ -1,4 +1,6 @@
 "use client";
+
+import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
 import { useEffect, useState } from "react";
 import { requestAdminJson } from "@/lib/http/requestAdminJson";
 
@@ -47,12 +49,13 @@ export function PostTourPicker({
       <label className="block text-xs font-semibold text-slate-600">
         Tìm tour đang công khai
       </label>
-      <input
+      <AdminSearchInput
+        loading={loading}
         aria-label="Tìm tour cho nút hành động"
         value={search}
-        onChange={(event) => setSearch(event.target.value)}
+        onChange={(value) => setSearch(value)}
         placeholder="Nhập tên tour..."
-        className="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-sm"
+        inputClassName="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-sm"
       />
       {value && (
         <p className="text-xs text-blue-700">

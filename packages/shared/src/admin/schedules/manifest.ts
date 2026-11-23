@@ -42,6 +42,13 @@ export interface BookingRescheduleDetails {
 }
 
 export interface BookingResolutionProposal {
+  id?: string;
+  version?: number;
+  expiresAt?: string;
+  paymentDeadline?: string;
+  newTotal?: number;
+  companyBankInfo?: import("../../booking/settlement").BookingBankAccount;
+  transferContent?: string;
   proposedAt: string;
   reason: string;
   adminNote?: string;
@@ -50,9 +57,12 @@ export interface BookingResolutionProposal {
   suggestedScheduleStartDate?: string;
   suggestedScheduleEndDate?: string;
   suggestedScheduleTitle?: string;
+  newScheduleId?: number;
+  newScheduleStart?: string;
+  newScheduleEnd?: string;
   priceDifference?: number; // >0: khách cần trả thêm; <0: hoàn lại tiền thừa cho khách; 0: bằng giá
   waiveDifference?: boolean; // Admin hỗ trợ miễn phí chênh lệch
-  status: "pending_customer" | "accepted_refund" | "accepted_reschedule" | "contact_support";
+  status: "pending_customer" | "accepted_refund" | "accepted_reschedule" | "contact_support" | "awaiting_payment" | "expired";
   customerDecision?: {
     selectedOption: "full_refund" | "reschedule" | "contact_support";
     decidedAt: string;
@@ -63,6 +73,13 @@ export interface BookingResolutionProposal {
     };
     supportNote?: string;
   };
+  customerBankInfo?: {
+    bankName: string;
+    bankAccountNumber: string;
+    bankAccountName: string;
+  };
+  supportNote?: string;
+  refundAmount?: number;
   refundTransfer?: {
     transferredAt: string;
     transactionCode?: string;

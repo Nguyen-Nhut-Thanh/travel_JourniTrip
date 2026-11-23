@@ -1,3 +1,4 @@
+import { normalizeSearchText } from "shared";
 import type { PostCategoryDraft, PostEditorForm, PostItem } from 'shared';
 import { createDestinationTemplate } from 'shared';
 export function createDefaultPostEditorForm(): PostEditorForm {
@@ -27,7 +28,7 @@ export function buildPostEditorForm(post: PostItem): PostEditorForm {
 }
 
 export function matchesPostSearch(post: PostItem, search: string) {
-  return post.title.toLowerCase().includes(search.trim().toLowerCase());
+  return normalizeSearchText(post.title).includes(normalizeSearchText(search.trim()));
 }
 
 export function createDefaultPostCategoryDraft(): PostCategoryDraft {

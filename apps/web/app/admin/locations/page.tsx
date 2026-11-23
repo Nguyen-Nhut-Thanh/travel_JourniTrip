@@ -10,12 +10,15 @@ import {
   deleteAdminLocation,
   getAdminLocationLevels,
   getAdminLocations,
+  saveAdminLocation,
+  updateAdminLocation,
 } from "@/lib/locations/admin/api";
 import {
   DEFAULT_LOCATION_FILTERS,
   filterManagedLocations,
 } from "@/lib/locations/admin/management";
 import { useToast } from "@/lib/notifications/useToast";
+import type { LocationQuickPayload } from "@/lib/locations/admin/explorer";
 import { Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LocationItem, LocationLevel } from "shared";
@@ -30,6 +33,8 @@ export default function AdminLocationsPage() {
   const [pendingDelete, setPendingDelete] = useState<LocationItem | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const deleting = useRef(false);
+  const [featuringIds, setFeaturingIds] = useState<number[]>([]);
+  const featuring = useRef(new Set<number>());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -50,6 +55,37 @@ export default function AdminLocationsPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const toggleFeatured = async (item: LocationItem) => {
+    if (featuring.current.has(item.location_id)) return;
+    featuring.current.add(item.location_id);
+    setFeaturingIds([...featuring.current]);
+    try {
+      const saved = await updateAdminLocation<LocationItem>(item.location_id, { is_featured: !item.is_featured });
+      setItems(current => current.map(location => location.location_id === item.location_id ? { ...location, ...saved } : location));
+      success(saved.is_featured ? "Đã gắn nổi bật" : "Đã bỏ gắn nổi bật");
+    } catch (error) {
+      showError(error instanceof Error ? error.message : "Không thể cập nhật trạng thái nổi bật.");
+    } finally {
+      featuring.current.delete(item.location_id);
+      setFeaturingIds([...featuring.current]);
+    }
+  };
+
+  const saveQuick = async (id: number | null, payload: LocationQuickPayload): Promise<LocationItem | null> => {
+    try {
+      const saved = await saveAdminLocation<LocationItem>(id, payload);
+      const existing = id == null ? undefined : items.find(location => location.location_id === id);
+      const parent = items.find(location => location.location_id === saved.parent_id);
+      const location: LocationItem = { ...existing, ...saved, locations: parent ? { name: parent.name } : existing?.locations };
+      setItems(current => id == null ? [...current, location] : current.map(item => item.location_id === id ? { ...item, ...location } : item));
+      success(id == null ? "Đã thêm địa điểm" : "Đã cập nhật địa điểm");
+      return location;
+    } catch (error) {
+      showError(error instanceof Error ? error.message : "Không thể lưu địa điểm.");
+      return null;
+    }
+  };
 
   const confirmDelete = async () => {
     if (!pendingDelete || deleting.current) return;
@@ -86,15 +122,17 @@ export default function AdminLocationsPage() {
   );
 
   return (
-    <div className="ui-location-management-page space-y-3 min-w-0 text-[#15284d]">
+    <div className="ui-location-management-page min-w-0 space-y-3 text-[#15284d]">
+      <div className="shrink-0 space-y-3">
       <LocationManagementHeader />
       <LocationManagementStats items={items} loading={loading} />
-      <LocationManagementFilters
-        value={filters}
-        onChange={setFilters}
-        levels={levels}
-        regions={regions}
-      />
+      <details className="group">
+        <summary className="w-fit cursor-pointer text-xs font-semibold text-[#6481ae] hover:text-[#075bff]">Bộ lọc nâng cao{Object.entries(filters).some(([key, value]) => value !== DEFAULT_LOCATION_FILTERS[key as keyof typeof DEFAULT_LOCATION_FILTERS]) ? " · Đang áp dụng" : ""}</summary>
+        <div className="mt-2">
+          <LocationManagementFilters value={filters} onChange={setFilters} levels={levels} regions={regions} />
+        </div>
+      </details>
+      </div>
       {failed ? (
         <div
           role="alert"
@@ -113,9 +151,13 @@ export default function AdminLocationsPage() {
         <LocationManagementTable
           key={JSON.stringify(filters)}
           items={filtered}
+          allItems={items}
           loading={loading}
           deletingId={deletingId}
+          featuringIds={featuringIds}
           onDelete={setPendingDelete}
+          onToggleFeatured={toggleFeatured}
+          onSaveQuick={saveQuick}
         />
       )}
       <ConfirmDialog

@@ -43,6 +43,16 @@ const statusConfig: Record<
     badge: "bg-rose-50 text-rose-700 border-rose-200",
     dot: "bg-rose-500",
   },
+  cancel_proposed: {
+    label: "Chờ khách chọn phương án",
+    badge: "bg-purple-50 text-purple-700 border-purple-200",
+    dot: "bg-purple-500",
+  },
+  refund_pending: {
+    label: "Chờ chuyển tiền hoàn",
+    badge: "bg-amber-50 text-amber-800 border-amber-300",
+    dot: "bg-amber-500",
+  },
 };
 
 export function BookingManagementTable({
@@ -88,14 +98,45 @@ export function BookingManagementTable({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  const getStatusBadge = (status: string, note?: string | null) => {
+  const getStatusBadge = (status: string, note?: string | null, meta?: any) => {
     const normalized = String(status).toLowerCase();
+
+    if (
+      normalized === "cancel_proposed" &&
+      meta?.resolutionProposal?.status === "contact_support"
+    ) {
+      return (
+        <span className="inline-flex items-center gap-1.5 rounded-lg border px-2 py-0.5 text-[11px] font-[650] bg-orange-50 text-orange-800 border-orange-300 shadow-2xs">
+          <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse" />
+          Khách yêu cầu đổi phương án
+        </span>
+      );
+    }
+
+    if (normalized === "cancelled") {
+      const hasRefund = Boolean(
+        meta?.resolutionProposal?.refundTransfer ||
+        meta?.adminApproval?.refundTransfer ||
+        meta?.refundTransfer ||
+        meta?.resolutionProposal?.status === "refund_transferred" ||
+        meta?.title === "Đã hoàn tiền thành công"
+      );
+      if (hasRefund) {
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-lg border px-2 py-0.5 text-[11px] font-[650] bg-emerald-50 text-emerald-800 border-emerald-300 shadow-2xs">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            Đã hoàn tiền
+          </span>
+        );
+      }
+    }
+
     const config = statusConfig[normalized] || {
-      label: getBookingStatusLabel(status, note),
+      label: getBookingStatusLabel(status, note, meta),
       badge: "bg-slate-50 text-slate-700 border-slate-200",
       dot: "bg-slate-400",
     };
-    const label = getBookingStatusLabel(status, note) || config.label;
+    const label = getBookingStatusLabel(status, note, meta) || config.label;
 
     return (
       <span
@@ -142,6 +183,7 @@ export function BookingManagementTable({
         <table className="w-full text-left border-collapse whitespace-nowrap text-[13px]">
           <thead>
             <tr className="border-b border-[#edf2fb] bg-slate-50/75 text-[12px] font-[650] text-[#7387aa]">
+              <th scope="col" className="w-[90px] px-3 py-2.5">Ảnh đợt</th>
               <th className="px-3 py-2.5 w-[36px]">
                 <input
                   ref={checkbox}
@@ -158,7 +200,6 @@ export function BookingManagementTable({
               {[
                 "Mã",
                 "Khách hàng",
-                "Tour",
                 "Ngày đi / Đặt",
                 "Số người",
                 "Tổng tiền",
@@ -189,6 +230,13 @@ export function BookingManagementTable({
                     className="hover:bg-slate-50/60 transition-colors"
                   >
                     <td className="px-3 py-2.5">
+                      <ImageWithFallback
+                        src={item.tour_schedules?.cover_image_url || item.tour_schedules?.tours?.tour_images?.[0]?.image_url}
+                        alt={item.tour_schedules?.code ? `Ảnh đợt ${item.tour_schedules.code}` : "Ảnh đợt khởi hành"}
+                        className="h-12 w-16 shrink-0 rounded-lg border border-[#e1edfc] bg-blue-50 object-cover"
+                      />
+                    </td>
+                    <td className="px-3 py-2.5">
                       <input
                         type="checkbox"
                         aria-label={`Chọn booking ${item.booking_id}`}
@@ -206,12 +254,15 @@ export function BookingManagementTable({
                     <td className="px-3 py-2.5">
                       <button
                         type="button"
-                        className="ui-booking-management-bookingCode font-[650] text-[#075bff] text-[13px] hover:underline cursor-pointer"
+                        className="ui-booking-management-bookingCode block font-[650] text-[#075bff] text-[13px] hover:underline cursor-pointer"
                         disabled={busy}
                         onClick={() => onAction(item, "detail")}
                       >
                         #BK{String(item.booking_id).padStart(5, "0")}
                       </button>
+                      <span title="Mã đợt khởi hành" className="mt-1.5 block max-w-[190px] truncate font-mono text-[11px] text-[#7387aa]">
+                        {item.tour_schedules?.code || (item.tour_schedules?.tour_schedule_id ? `Đợt #${item.tour_schedules.tour_schedule_id}` : "Chưa có mã đợt")}
+                      </span>
                     </td>
                     <td className="px-3 py-2.5">
                       <strong className="ui-booking-management-customer block max-w-[170px] truncate text-[13px] font-bold text-[#0b1747]">
@@ -225,31 +276,6 @@ export function BookingManagementTable({
                       <span className="ui-booking-management-subtext block text-[11px] text-[#7387aa] mt-0.5 max-w-[170px] truncate">
                         {item.contact_phone || item.contact_email || "—"}
                       </span>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <div className="ui-booking-management-tour flex items-center gap-2.5 min-w-[200px] max-w-[260px]">
-                        <ImageWithFallback
-                          src={
-                            item.tour_schedules?.tours?.tour_images?.[0]
-                              ?.image_url
-                          }
-                          alt=""
-                          className="h-10 w-14 rounded-lg object-cover bg-blue-50 shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <strong
-                            className="block truncate text-[13px] font-bold text-[#0b1747]"
-                            title={
-                              item.tour_schedules?.tours?.name ?? undefined
-                            }
-                          >
-                            {item.tour_schedules?.tours?.name || "—"}
-                          </strong>
-                          <span className="block text-[11px] text-[#7387aa] mt-0.5">
-                            {item.tour_schedules?.tours?.code || "—"}
-                          </span>
-                        </div>
-                      </div>
                     </td>
                     <td className="px-3 py-2.5">
                       <div className="text-[12.5px] font-bold text-[#0b1747]">
@@ -269,7 +295,7 @@ export function BookingManagementTable({
                       {formatVND(item.total_amount ?? 0)}
                     </td>
                     <td className="px-3 py-2.5">
-                      {getStatusBadge(item.status, item.note)}
+                      {getStatusBadge(item.status, item.note, item.cancellation_meta)}
                     </td>
                     <td className="px-3 py-2.5">
                       <BookingRowActions

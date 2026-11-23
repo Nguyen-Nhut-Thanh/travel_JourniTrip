@@ -47,6 +47,9 @@ class TourIntent(BaseModel):
     duration_days: int | None = None
     max_per_person: int | None = None
     max_total: int | None = None
+    target_budget: int | None = None
+    budget_type: Literal["around", "under", "exact"] | None = None
+    off_topic_subject: str | None = None
     adults: int | None = None
     children: int | None = None
     infants: int | None = None
@@ -66,6 +69,13 @@ Bạn phân tích câu hỏi của khách cho website đặt tour JourniTrip. Ch
   Nếu yêu cầu tính giá và áp mã cùng lúc, dùng quote và trích xuất voucher_code.
 - Nếu khách nêu tên hoặc mã của tour cụ thể, dùng tour_name. Tên địa danh đơn lẻ là destination.
   Dùng tên tiếng Việt có dấu nếu đã biết, ví dụ Đà Lạt, Phú Quốc, Hồ Chí Minh.
+  ĐẶC BIỆT: Khi khách hỏi "có tour [Địa danh] không" hoặc "tìm tour [Địa danh]", [Địa danh] đó là destination
+  (nơi muốn đến du lịch), KHÔNG ĐƯỢC đặt vào departure trừ khi khách nói rõ "khởi hành từ / xuất phát từ / bay từ".
+- Khi khách hỏi vấn đề KHÔNG liên quan đến du lịch hoặc website JourniTrip (ví dụ: hỏi viết code, lập trình,
+  giải toán, làm thơ, hỏi thời tiết tổng quát, thể thao, chính trị, việc cá nhân...):
+  Đặt intent là "other", topic là "overview", và trích xuất chủ đề câu hỏi vào off_topic_subject
+  (ví dụ: "viết code / lập trình", "giải toán", "làm thơ",...).
+  Nếu khách chỉ chào hỏi xã giao (ví dụ "xin chào", "hello", "hi", "bạn ơi"), đặt intent là "greeting".
 - Chỉ dùng tour_position khi khách nói rõ số thứ tự trong danh sách tour ngay trước đó, bắt đầu từ 1.
   Chỉ dùng use_selected_tour khi khách nói "tour này", "tour đó", hoặc hỏi tiếp về một tour đã chọn.
   Nếu khách chuyển sang tour hoặc điểm đến khác, đặt false. Nếu câu mới chỉ cho biết số khách
@@ -74,8 +84,10 @@ Bạn phân tích câu hỏi của khách cho website đặt tour JourniTrip. Ch
 - Chỉ đặt change_departure là true khi khách chủ động yêu cầu xem ngày khác của tour đã chọn.
 - Ngày là YYYY-MM-DD theo múi giờ Việt Nam. departure_until là ngày cuối được tính. Chỉ điền
   ngày khi khách nêu hoặc có thể suy ra từ ngày hiện tại, ví dụ "tháng sau" là cả tháng sau.
-- Giá tính bằng VND. Phân biệt ngân sách mỗi người và ngân sách cả nhóm. "Dưới 4 triệu"
-  trong yêu cầu tìm tour nghĩa là tối đa 4.000.000 mỗi người nếu không nêu cả nhóm.
+- Giá tính bằng VND. Phân biệt ngân sách mỗi người và ngân sách cả nhóm:
+  + "khoảng 10 triệu", "tầm 10tr", "cỡ 10 triệu": đặt target_budget là 10.000.000, budget_type là "around".
+  + "dưới 4 triệu", "tối đa 4tr": đặt max_per_person là 4.000.000, budget_type là "under".
+  + "dưới 15 triệu cho cả nhóm / 3 người": đặt max_total là 15.000.000.
 - Mỗi số lượng khách chỉ được điền khi nói rõ hoặc suy ra trực tiếp, ví dụ "vợ chồng" là 2 người lớn.
   Không biến số tuổi hoặc số ngày thành số lượng. Để null nếu chưa biết.
 - Chỉ trích xuất mã ưu đãi khi khách cung cấp mã, giữ cả mã dạng chữ thường hoặc có dấu gạch.

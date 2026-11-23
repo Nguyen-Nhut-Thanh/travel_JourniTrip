@@ -17,9 +17,24 @@ export function getBookingTripStatus(
   now = new Date(),
 ): Pick<BookingItemUI, "status" | "statusText" | "statusReason" | "isCancelUnapproved"> {
   const status = booking.status?.trim().toLowerCase() || "";
+  if (status === "no_show") return { status: "unknown", statusText: "Không tham gia", statusReason: "Đã ghi nhận khách không tham gia chuyến đi" };
 
-  // 1. Đơn đã hủy: Giữ chữ "Đã hủy" gọn gàng không vỡ layout, lý do hiển thị qua Tooltip
+  // 1. Đơn đã hủy: Giữ chữ "Đã hủy" hoặc "Đã hoàn tiền" gọn gàng không vỡ layout, lý do hiển thị qua Tooltip
   if (["cancelled", "canceled", "đã hủy", "đã huỷ"].includes(status)) {
+    const hasRefund = Boolean(
+      booking.cancellation_meta?.resolutionProposal?.refundTransfer ||
+      booking.cancellation_meta?.adminApproval?.refundTransfer ||
+      booking.cancellation_meta?.refundTransfer ||
+      booking.cancellation_meta?.resolutionProposal?.status === "refund_transferred" ||
+      booking.cancellation_meta?.title === "Đã hoàn tiền thành công"
+    );
+    if (hasRefund) {
+      return {
+        status: "completed",
+        statusText: "Đã hoàn tiền",
+        statusReason: "Đơn đặt tour đã được hoàn tiền thành công về tài khoản ngân hàng của bạn",
+      };
+    }
     const reason = getCancelledBookingReason(booking);
     return {
       status: "cancelled",
@@ -39,6 +54,13 @@ export function getBookingTripStatus(
 
   // 1.2. Đơn có đề xuất giải quyết hủy/đổi lịch từ Ban quản trị
   if (status === "cancel_proposed") {
+    if (booking.cancellation_meta?.resolutionProposal?.status === "contact_support") {
+      return {
+        status: "unknown",
+        statusText: "Đang yêu cầu đổi phương án",
+        statusReason: "Bạn đã yêu cầu hỗ trợ phương án khác. Nhân viên sẽ liên hệ với bạn trong thời gian sớm nhất.",
+      };
+    }
     return {
       status: "unknown",
       statusText: "Đề xuất hủy/đổi lịch",
@@ -93,28 +115,7 @@ export function getBookingTripStatus(
 
   // 3. Đơn đang yêu cầu hủy
   if (status === "cancel_requested") {
-    const today = getVietnamDateString(now);
-    const start = getVietnamDateString(booking.tour_schedules?.start_date);
-    const end = getVietnamDateString(booking.tour_schedules?.end_date);
-
-    // Nếu đã tới hoặc qua ngày khởi hành mà yêu cầu hủy chưa được duyệt:
-    // Chuyển sang tiến trình thực tế, nhưng gắn cờ isCancelUnapproved (đổi màu vàng) và tooltip lý do
-    if (today && start && today >= start) {
-      const isCompleted = Boolean(end && today > end);
-      return {
-        status: isCompleted ? "completed" : "ongoing",
-        statusText: isCompleted ? "Đã hoàn thành" : "Đang diễn ra",
-        isCancelUnapproved: true,
-        statusReason: "Yêu cầu hủy không được duyệt (chuyến đi đã khởi hành theo lịch trình)",
-      };
-    }
-
-    // Nếu chưa tới ngày khởi hành: vẫn đang chờ admin duyệt hủy
-    return {
-      status: "unknown",
-      statusText: "Đang yêu cầu hủy",
-      statusReason: "Yêu cầu hủy của bạn đang được ban quản trị xem xét giải quyết",
-    };
+    return { status: "unknown", statusText: "Đang yêu cầu hủy", statusReason: "Đang chờ xử lý theo thời điểm đã gửi yêu cầu" };
   }
 
   // 4. Đơn đã hoàn thành
@@ -145,6 +146,10 @@ export function getBookingPaymentStatus(booking: {
   const isRefunded = payments.some((p) =>
     ["refunded", "đã hoàn tiền"].includes(p.status?.toLowerCase() || "")
   );
+
+  if (isRefunded && ["paid", "completed", "cancel_proposed", "cancel_requested"].includes(status)) {
+    return { paymentStatus: "paid", paymentStatusText: "Đã hoàn một phần" };
+  }
 
   if (isRefunded) {
     return { paymentStatus: "refunded", paymentStatusText: "Đã hoàn tiền" };

@@ -14,7 +14,12 @@ export type BookingNotificationType =
     | 'rescheduled'
     | 'cancel_proposed'
     | 'refund_transferred'
-    | 'rescheduled_confirmed';
+    | 'rescheduled_confirmed'
+    | 'customer_cancelled_pending'
+    | 'topup_pending'
+    | 'topup_late'
+    | 'service_adjusted'
+    | 'cancel_withdrawn';
 
 export interface BookingNotificationParams {
     type: BookingNotificationType;
@@ -127,6 +132,16 @@ export function buildBookingNotificationContent(params: BookingNotificationParam
                 eventKey: `booking:rescheduled_confirmed:${bookingId}:${Date.now()}`,
             };
 
+        case 'customer_cancelled_pending':
+            return { title: `Đã hủy đơn giữ chỗ #${bookingId}`, message: `Đơn chưa thanh toán của tour "${tourName}" đã được hủy và nhả chỗ.`, eventKey: `booking:customer_cancelled_pending:${bookingId}` };
+        case 'topup_pending':
+            return { title: `Chờ nộp bổ sung cho booking #${bookingId}`, message: `Vui lòng xem số tiền, tài khoản công ty và hạn chuyển khoản trong chi tiết booking. Lịch mới chỉ được xác nhận sau khi công ty nhận đủ tiền.`, eventKey: `booking:topup_pending:${bookingId}:${Date.now()}` };
+        case 'topup_late':
+            return { title: `Đã ghi nhận tiền về trễ cho booking #${bookingId}`, message: `Khoản nộp thêm được ghi nhận để hoàn lại. Vui lòng bổ sung tài khoản nhận tiền trong chi tiết booking; lịch mới không tự được kích hoạt.`, eventKey: `booking:topup_late:${bookingId}:${Date.now()}` };
+        case 'service_adjusted':
+            return { title: `Cập nhật xử lý chuyến đi #${bookingId}`, message: `Công ty đã ghi nhận tình huống phát sinh cho tour "${tourName}". Vui lòng xem chi tiết booking và khoản hoàn dịch vụ (nếu có).`, eventKey: `booking:service_adjusted:${bookingId}:${Date.now()}` };
+        case 'cancel_withdrawn':
+            return { title: `Đã rút yêu cầu hủy #${bookingId}`, message: `Yêu cầu hủy của bạn đã được rút lại. Vui lòng kiểm tra trạng thái booking và lịch khởi hành.`, eventKey: `booking:cancel_withdrawn:${bookingId}:${Date.now()}` };
         default:
             return {
                 title: `Cập nhật đơn đặt tour #${bookingId}`,

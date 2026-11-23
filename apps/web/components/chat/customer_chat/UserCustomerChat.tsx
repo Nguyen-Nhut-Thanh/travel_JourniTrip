@@ -5,6 +5,7 @@ import { ChatComposer } from "@/components/chat/chat_share/SharedChatComposer";
 import { ChatReviewEditModal } from "@/components/reviews/customer_reviews/UserChatReviewEditModal";
 import { ChatTimeline } from "@/components/chat/chat_share/SharedChatTimeline";
 import { CustomerTourPicker } from "@/components/chat/customer_chat/UserCustomerTourPicker";
+import { ChatActionMenu } from "@/components/chat/customer_chat/UserChatActionMenu";
 import { chatApi } from "@/lib/chat/api";
 import { disconnectSocket } from "@/lib/chat/socket";
 import { chatStatusLabel } from "@/lib/chat/support";
@@ -12,6 +13,7 @@ import { useChatConversation } from "@/lib/chat/useChatConversation";
 import { useChatSession } from "@/lib/chat/useChatSession";
 import { Bot, Check, ChevronDown, Headset, MessageCircle, Minus, Sparkles, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import type { ChatContextInput } from "shared";
 
@@ -104,6 +106,7 @@ export function CustomerChat({ open, onOpenChange }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const router = useRouter();
   const session = useChatSession();
   const [mode, setMode] = useState<ChatMode>(() => {
     if (typeof window !== "undefined") {
@@ -404,31 +407,19 @@ export function CustomerChat({ open, onOpenChange }: {
           </div>
         </section>
       )}
-      <button
-        type="button"
-        aria-label={
-          open
-            ? "Đóng chat"
-            : `Mở chat JourniTrip${unread && mode === "staff" ? `, ${unread} tin chưa đọc` : ""}`
-        }
-        aria-expanded={open}
-        onClick={() => onOpenChange(!open)}
-        className="relative ml-auto flex h-12 items-center gap-2.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-700 px-5 font-semibold text-white shadow-xl transition-all duration-200 hover:from-blue-700 hover:to-indigo-800 hover:shadow-2xl"
-      >
-        {open ? (
-          <X size={22} />
-        ) : mode === "ai" ? (
-          <Bot size={22} />
-        ) : (
-          <MessageCircle size={22} />
-        )}
-        <span className="hidden text-sm sm:inline">{mode === "ai" ? "Trợ lý AI" : "Chat tư vấn"}</span>
-        {unread > 0 && mode === "staff" && (
-          <span className="absolute -right-1 -top-1 rounded-full bg-red-500 px-1.5 text-xs ring-2 ring-white font-bold">
-            {unread > 99 ? "99+" : unread}
-          </span>
-        )}
-      </button>
+      <ChatActionMenu
+        chatOpen={open}
+        unread={unread}
+        onCloseChat={() => onOpenChange(false)}
+        onSelect={(action) => {
+          if (action === "ai" || action === "staff") {
+            setMode(action);
+            onOpenChange(true);
+          } else {
+            router.push(action === "deals" ? "/tours?deal=flash" : "/tours");
+          }
+        }}
+      />
     </div>
   );
 }

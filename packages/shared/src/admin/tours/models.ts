@@ -29,6 +29,7 @@ export type ToursPageTour = {
     tour_type: string | null;
     summary?: string | null;
     booked_count?: number;
+    schedule_summaries?: AdminTourSearchSchedule[];
     countries?: { location_id: number; name: string }[];
     tour_images?: {
         image_url: string;
@@ -46,4 +47,10 @@ export type TourLike = {
     name?: string | null;
     status: number;
     tour_type?: string | null;
+    schedule_summaries?: AdminTourSearchSchedule[];
+};
+
+export type AdminTourSearchSchedule = {
+    tour_schedule_id: number;
+    code: string | null;
 };

@@ -3,7 +3,7 @@
 import { BookingManagementHeader } from "@/components/booking/manage_booking/AdminBookingManagementHeader";
 import { BookingManagementStats } from "@/components/booking/manage_booking/AdminBookingManagementStats";
 import { BookingManagementFilters } from "@/components/booking/manage_booking/AdminBookingManagementFilters";
-import { BookingManagementTable } from "@/components/booking/manage_booking/AdminBookingManagementTable";
+import { BookingTourList } from "@/components/booking/manage_booking/AdminBookingTourList";
 import { BookingDetailModal } from "@/components/booking/manage_booking/AdminBookingDetailModal";
 import { AdminApproveModalContent } from "@/components/booking/cancel_approval/AdminApproveCancelModal";
 import { AdminCancelBookingModal } from "@/components/booking/cancel_approval/AdminCancelBookingModal";
@@ -21,10 +21,11 @@ import {
   adminCancelBooking,
   cancelPendingBooking,
   getAdminBookingDetail,
-  getAdminBookingList,
+  getAdminBookingTours,
   runAdminBookingAction,
 } from "@/lib/booking/admin/api";
 import { useToast } from "@/lib/notifications/useToast";
+import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 import { CircleDollarSign, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseBookingNote } from "shared";
@@ -34,7 +35,7 @@ import type {
   AdminBooking,
   AdminBookingFilters,
   AdminBookingStats,
-  AdminBookingListResponse,
+  AdminBookingTourGroup,
   AdminSchedule,
   ToursPageTour,
 } from "shared";
@@ -152,9 +153,15 @@ function getDisplayBookingNote(note?: string | null, meta?: any) {
 
 export default function AdminBookingsPage() {
   const toast = useToast();
-  const [items, setItems] = useState<AdminBooking[]>([]);
+  const [items, setItems] = useState<AdminBookingTourGroup[]>([]);
+  const [listRevision, setListRevision] = useState(0);
   const [draft, setDraft] = useState({ ...DEFAULT_BOOKING_FILTERS });
   const [filters, setFilters] = useState({ ...DEFAULT_BOOKING_FILTERS });
+  const liveSearch = useDebouncedValue(draft.search);
+  useEffect(() => {
+    setFilters(current => current.search === liveSearch ? current : { ...current, search: liveSearch });
+    setPage(1);
+  }, [liveSearch]);
   const [stats, setStats] = useState<AdminBookingStats | null>(null);
   const [tours, setTours] = useState<ToursPageTour[]>([]);
   const [schedules, setSchedules] = useState<AdminSchedule[]>([]);
@@ -180,7 +187,7 @@ export default function AdminBookingsPage() {
       try {
         setLoading(true);
         setError("");
-        const data = await getAdminBookingList<AdminBookingListResponse>(
+        const data = await getAdminBookingTours(
           currentPage,
           10,
           filters,
@@ -191,6 +198,7 @@ export default function AdminBookingsPage() {
           return;
         }
         setItems(data.items);
+        setListRevision(current => current + 1);
         setTotal(data.total);
         setTotalPages(data.totalPages);
         setStats(parseBookingStats(data.stats));
@@ -402,7 +410,8 @@ export default function AdminBookingsPage() {
         onStatus={(status) => applyFilters({ ...draft, status })}
       />
       <BookingManagementFilters
-        dirty={Object.keys(DEFAULT_BOOKING_FILTERS).some(
+        searching={loading || draft.search !== filters.search}
+        dirty={Object.keys(DEFAULT_BOOKING_FILTERS).filter(key => key !== "search").some(
           (key) =>
             draft[key as keyof typeof draft] !==
             filters[key as keyof typeof filters],
@@ -432,8 +441,11 @@ export default function AdminBookingsPage() {
           </button>
         </div>
       )}
-      <BookingManagementTable
-        items={items}
+      <BookingTourList
+        key={JSON.stringify(filters)}
+        groups={items}
+        filters={filters}
+        refreshKey={listRevision}
         total={total}
         page={page}
         totalPages={totalPages}
@@ -475,6 +487,7 @@ export default function AdminBookingsPage() {
           allowedOptions,
           newScheduleId,
           waiveDifference,
+          companyBankInfo, pickupPointId, bankName, bankAccountNumber, bankAccountName,
         }) => {
           if (!modal) return;
           try {
@@ -495,6 +508,7 @@ export default function AdminBookingsPage() {
                 allowedOptions,
                 newScheduleId,
                 waiveDifference,
+                companyBankInfo, pickupPointId, bankName, bankAccountNumber, bankAccountName,
               });
               if (cancelType === "operator_fault") {
                 toast.success(

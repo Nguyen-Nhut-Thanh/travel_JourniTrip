@@ -7,6 +7,8 @@ import {
   type OnModuleDestroy,
 } from "@nestjs/common";
 import { randomBytes } from "node:crypto";
+import { Prisma } from "@prisma/client";
+import { sqlSearchText } from "../../common/search";
 import {
   MEMBERSHIP_TIERS,
   DEFAULT_MEMBERSHIP_REWARDS,
@@ -422,10 +424,15 @@ export class MembershipService
   }
 
   async adminList(page: number, search = '', tier = 'all', limit = 20): Promise<MembershipAdminList> {
-    const text = { contains: search.trim(), mode: 'insensitive' as const };
+    const matched = search.trim() ? await this.prisma.$queryRaw<{ user_id: number }[]>(Prisma.sql`
+      SELECT u.user_id FROM users u
+      JOIN accounts a ON a.account_id = u.account_id
+      WHERE ${sqlSearchText(Prisma.sql`concat_ws(' ', u.full_name, u.phone, a.email)`, search)}
+        OR u.user_id = ${/^\d+$/.test(search.trim()) && Number(search) <= 2147483647 ? Number(search) : -1}
+    `) : null;
     const where = {
       ...(tier !== 'all' ? { tier } : {}),
-      ...(search.trim() ? { user: { OR: [{ full_name: text }, { phone: text }, { accounts: { email: text } }, ...(/^\d+$/.test(search.trim()) && Number(search) <= 2147483647 ? [{ user_id: Number(search) }] : [])] } } : {}),
+      ...(matched ? { user_id: { in: matched.map(item => item.user_id) } } : {}),
     };
     const [members, total, issued, used, discounts, program, memberTotal] =
       await Promise.all([

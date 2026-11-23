@@ -1,5 +1,7 @@
 "use client";
 
+import { normalizeSearchText } from "shared";
+
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminPageHeader } from "@/components/common/admin_shared/layout/AdminPageHeader";
@@ -11,9 +13,10 @@ import {
 import { ReviewRejectModal } from "@/components/reviews/admin_reviews/AdminReviewRejectModal";
 import { ReviewReplyModal } from "@/components/reviews/admin_reviews/AdminReviewReplyModal";
 import { ReviewStatsCards } from "@/components/reviews/admin_reviews/AdminReviewStatsCards";
-import { ReviewTable } from "@/components/reviews/admin_reviews/AdminReviewTable";
+import { ReviewTourList } from "@/components/reviews/admin_reviews/AdminReviewTourList";
+import { groupReviewsByTour } from "@/lib/reviews/admin/management";
 import {
-  getAdminReviews,
+  getAllAdminReviews,
   replyAdminReview,
   updateAdminReviewStatus,
 } from "@/lib/reviews/admin/api";
@@ -65,7 +68,7 @@ function AdminReviewsContent() {
     else setLoading(true);
 
     try {
-      const res = await getAdminReviews({ take: 100 });
+      const res = await getAllAdminReviews();
       setReviews(res?.items || []);
       setTotalCount(res?.total || res?.items?.length || 0);
       if (isRefresh) {
@@ -206,14 +209,14 @@ function AdminReviewsContent() {
 
     // Search query
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
+      const q = normalizeSearchText(searchQuery).trim();
       result = result.filter(
         (r) =>
-          (r.user?.full_name && r.user.full_name.toLowerCase().includes(q)) ||
-          (r.tour_name && r.tour_name.toLowerCase().includes(q)) ||
-          (r.tour_code && r.tour_code.toLowerCase().includes(q)) ||
-          (r.comment && r.comment.toLowerCase().includes(q)) ||
-          (r.title && r.title.toLowerCase().includes(q)) ||
+          (r.user?.full_name && normalizeSearchText(r.user.full_name).includes(q)) ||
+          (r.tour_name && normalizeSearchText(r.tour_name).includes(q)) ||
+          (r.tour_code && normalizeSearchText(r.tour_code).includes(q)) ||
+          (r.comment && normalizeSearchText(r.comment).includes(q)) ||
+          (r.title && normalizeSearchText(r.title).includes(q)) ||
           (r.booking_id && String(r.booking_id).includes(q)) ||
           String(r.review_id).includes(q)
       );
@@ -243,8 +246,9 @@ function AdminReviewsContent() {
     setCurrentPage(1);
   }, [activeStatus, ratingFilter, searchQuery, sortBy]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
-  const paginatedItems = filteredItems.slice(
+  const tourGroups = useMemo(() => groupReviewsByTour(filteredItems), [filteredItems]);
+  const totalPages = Math.max(1, Math.ceil(tourGroups.length / pageSize));
+  const paginatedGroups = tourGroups.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
   );
@@ -297,12 +301,13 @@ function AdminReviewsContent() {
       />
 
       {/* Review List / Table */}
-      <ReviewTable
-        items={paginatedItems}
+      <ReviewTourList
+        searchTerm={searchQuery}
+        groups={paginatedGroups}
         loading={loading}
         currentPage={currentPage}
         totalPages={totalPages}
-        totalItems={filteredItems.length}
+        totalItems={tourGroups.length}
         pageSize={pageSize}
         onPageChange={setCurrentPage}
         onApprove={handleApprove}

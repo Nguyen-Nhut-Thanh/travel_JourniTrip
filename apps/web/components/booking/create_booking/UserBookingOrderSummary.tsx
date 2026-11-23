@@ -1,3 +1,5 @@
+"use client";
+
 import { ImageWithFallback } from "@/components/common/dialogs_and_feedback/media/ImageWithFallback";
 import { formatVND } from "@/lib/utils/currency";
 import { formatDate } from "@/lib/utils/dateTime";
@@ -14,6 +16,8 @@ import {
   UsersRound,
 } from "lucide-react";
 import type { BookingOrderSummaryProps } from "shared";
+import { calculateCancellationEstimate } from "shared";
+import { useEffect, useState } from "react";
 
 export function BookingOrderSummary({
   tour,
@@ -26,6 +30,9 @@ export function BookingOrderSummary({
   submitting,
   onSubmitBooking,
 }: BookingOrderSummaryProps) {
+  const [policyAccepted, setPolicyAccepted] = useState(false);
+  useEffect(() => setPolicyAccepted(false), [selectedSchedule.tour_schedule_id, pricing.total]);
+  const cancellation = calculateCancellationEstimate({ startDate: selectedSchedule.start_date, totalAmount: pricing.total, isPaid: true });
   return (
     <aside className="relative lg:sticky lg:top-20 lg:self-start">
       <div>
@@ -198,10 +205,14 @@ export function BookingOrderSummary({
               {formatVND(pricing.total)}
             </span>
           </div>
+          <div className="mt-3 space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
+            <p>Nếu thanh toán rồi hủy ngay tại thời điểm này: phí dự kiến <strong>{cancellation.tier.penaltyPercent}% ({formatVND(cancellation.penaltyAmount)})</strong>, hoàn dự kiến {formatVND(cancellation.refundAmount)}. Phí được chốt theo thời điểm gửi yêu cầu hủy.</p>
+            <label className="flex items-start gap-2"><input type="checkbox" checked={policyAccepted} onChange={e => setPolicyAccepted(e.target.checked)} className="mt-0.5" />Tôi đã đọc và đồng ý chính sách hủy này.</label>
+          </div>
           <button
             type="button"
             onClick={onSubmitBooking}
-            disabled={submitting}
+            disabled={submitting || !policyAccepted}
             className="mt-3 flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-70"
           >
             {submitting ? (

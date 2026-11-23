@@ -1,4 +1,4 @@
-import type { LocationItem } from "shared";
+import { matchesSearchText, type LocationItem } from "shared";
 
 export type LocationFilters = { search: string; level: string; region: string; sort: string };
 export const DEFAULT_LOCATION_FILTERS: LocationFilters = { search: "", level: "all", region: "all", sort: "updated" };
@@ -16,8 +16,7 @@ export function getLocationRegionId(item: LocationItem, byId: Map<number, Locati
 
 export function filterManagedLocations(items: LocationItem[], filters: LocationFilters) {
   const byId = new Map(items.map(item => [item.location_id, item]));
-  const search = filters.search.trim().toLocaleLowerCase("vi");
-  const result = items.filter(item => (!search || [item.name, item.slug, item.note].some(value => value?.toLocaleLowerCase("vi").includes(search)))
+  const result = items.filter(item => matchesSearchText(filters.search, item.name, item.slug, item.note)
     && (filters.level === "all" || String(item.level_id) === filters.level)
     && (filters.region === "all" || String(getLocationRegionId(item, byId)) === filters.region));
   return result.sort((a, b) => {

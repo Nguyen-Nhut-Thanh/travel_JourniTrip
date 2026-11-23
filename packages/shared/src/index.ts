@@ -9,7 +9,7 @@ export type { AccountBooking, AccountReviewItem, AccountStats, BookingItemUI, Bo
 export type { AccountBookingsTabProps, AccountFavoritesTabProps, AccountOverviewProps, AccountOverviewTabProps, AccountRightSidebarProps, AccountSidebarProps, AccountUserProps } from "./account/props";
 export type { GuardCache, GuardStatus } from "./admin/auth/models";
 export type { AdminBannerPayload, BannerPayload } from "./admin/banners/contracts";
-export type { AdminBooking, AdminBookingFilters, AdminBookingStats, AdminBookingListResponse } from "./admin/bookings/models";
+export type { AdminBooking, AdminBookingFilters, AdminBookingStats, AdminBookingListResponse, AdminBookingTourGroup, AdminBookingTourListResponse } from "./admin/bookings/models";
 export type { ActionModalState } from "./admin/bookings/props";
 export type { ChatWorkspaceProps, ConversationSidebarProps } from "./admin/chat/props";
 export type { AdminBackPageHeaderProps, AdminDatePickerProps, AdminFormCardProps, AdminIconActionButtonProps, AdminIconActionTone, AdminModalShellProps, AdminPageHeaderProps, AdminPaginationProps, AdminSearchInputProps, AdminStatusBadgeProps, AdminStatusBadgeTone, AdminTableAction, AdminTableColumn, AdminTableProps, ImageUploadProps, PriceInputProps } from "./admin/common/props";
@@ -161,3 +161,7 @@ export { ADMIN_CONTENT_DENIED, canAccessAdminContent, canManageWorkforceRegion }
 
 export type { AiChatRequest, AiChatResponse, AiChatTour, AiChatTourReference, TourIntent } from "./chat/ai-contracts";
 export { tourIntentSchema } from "./chat/ai-contracts";
+export { normalizeSearchText, matchesSearchText, getSearchHighlightRanges } from "./search/text";
+export { getMatchingTourSchedules, matchesAdminTourSearch } from "./admin/tours/search";
+export type { AdminTourSearchSchedule } from "./admin/tours/models";
+export * from './booking/settlement';

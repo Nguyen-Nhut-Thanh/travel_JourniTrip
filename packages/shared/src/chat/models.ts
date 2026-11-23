@@ -44,6 +44,7 @@ export type ChatContextCard = {
     duration?: string;
     schedule_id?: number;
     departure_date?: string;
+    remaining_seats?: number;
     original_price?: number;
     summary?: string;
     destination?: string;

@@ -355,6 +355,7 @@ function BookingContent() {
           note,
           voucher_code: voucherResult?.code,
           payment_method: paymentMethod,
+          policyAccepted: true,
           room_type: pricing.singleRoomCount > 0 ? "single" : "shared",
           single_room_surcharge: pricing.singleRoomSurcharge,
           single_room_count: pricing.singleRoomCount,

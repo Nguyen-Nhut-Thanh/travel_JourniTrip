@@ -1,10 +1,14 @@
 "use client";
 
+import { normalizeSearchText } from "shared";
+
+import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
+
 import { useAdminContentReadOnly } from "@/components/common/admin_shared/guards/AdminContentPermission";
 import CustomDropdown from "@/components/common/form_controls/CustomDropdown";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { LayoutGrid, Loader2, Save, Search, Sparkles } from "lucide-react";
+import { LayoutGrid, Loader2, Save, Sparkles } from "lucide-react";
 import { ImageWithFallback } from "@/components/common/dialogs_and_feedback/media/ImageWithFallback";
 import { getAdminPosts } from "@/lib/posts/admin/api";
 import { requestAdminJson } from "@/lib/http/requestAdminJson";
@@ -104,9 +108,8 @@ export function PostLayoutManager() {
 
   const filtered = published.filter(
     (post) =>
-      post.title
-        .toLocaleLowerCase("vi")
-        .includes(search.trim().toLocaleLowerCase("vi")) &&
+      normalizeSearchText(post.title)
+        .includes(normalizeSearchText(search.trim())) &&
       (!category || post.category_id === Number(category))
   );
 
@@ -313,16 +316,13 @@ export function PostLayoutManager() {
           </div>
 
           <div className="relative">
-            <Search
-              size={16}
-              className="absolute left-3 top-3 text-slate-400"
-            />
-            <input
+
+            <AdminSearchInput
               aria-label="Tìm bài viết"
               placeholder="Tìm tiêu đề bài viết..."
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              className="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              onChange={(value) => setSearch(value)}
+              inputClassName="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
             />
           </div>
 

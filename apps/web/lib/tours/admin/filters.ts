@@ -1,4 +1,4 @@
-import type { TourLike } from 'shared';
+import { matchesAdminTourSearch, type TourLike } from 'shared';
 
 export const TOUR_TYPE_OPTIONS = [
   { id: "all", label: "Tất cả" },
@@ -42,14 +42,7 @@ export function getTourTypeBadgeClass(type: string | null | undefined) {
 }
 
 export function matchesTourSearch(tour: TourLike, searchTerm: string) {
-  const normalizedSearch = searchTerm.trim().toLowerCase();
-  if(!normalizedSearch) return true;
-
-  return (
-    tour.name?.toLowerCase().includes(normalizedSearch) ||
-    tour.code?.toLowerCase().includes(normalizedSearch) ||
-    tour.summary?.toLowerCase().includes(normalizedSearch)
-  );
+  return matchesAdminTourSearch(tour, searchTerm);
 }
 
 export function matchesTourTypeFilter(tour: TourLike, filterType: string) {

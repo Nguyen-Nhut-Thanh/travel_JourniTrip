@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { cancelBookingDeparture } from "@/lib/booking/admin/api";
 import Link from "next/link";
 import { Compass, Eye, EyeOff, Gift, MoreHorizontal, Pencil, Trash2, UsersRound, Zap } from "lucide-react";
 import { Popover } from "@/components/common/dialogs_and_feedback/dialogs/Popover";
@@ -26,6 +28,10 @@ export function ScheduleRowActions({
   onConfigureFlashDeal?: (schedule: AdminSchedule) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelBusy, setCancelBusy] = useState(false);
+  const [cancelError, setCancelError] = useState("");
   const readOnly = useAdminContentReadOnly();
   const bookedCount = getScheduleBookedCount(schedule);
   const hasBookings = bookedCount > 0;
@@ -142,9 +148,23 @@ export function ScheduleRowActions({
               Xóa lịch khởi hành
             </button>
             {readOnly && <p role="note" className="px-2 py-2 text-[11px] leading-5 text-amber-700">{ADMIN_CONTENT_DENIED}</p>}
+            {!readOnly && new Date(schedule.start_date) > new Date() && <button type="button" className="ui-schedule-overview-danger" onClick={() => { setOpen(false); setCancelOpen(true); }}>Ngừng chuyến và xử lý booking</button>}
           </div>
         </Popover>
       )}
+      {cancelOpen && createPortal(<div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/50 p-4" role="dialog" aria-modal="true" aria-label="Ngừng chuyến và xử lý booking">
+        <form className="w-full max-w-lg space-y-3 rounded-2xl bg-white p-5 text-sm text-slate-800" onSubmit={async event => {
+          event.preventDefault(); setCancelBusy(true); setCancelError("");
+          try { await cancelBookingDeparture(schedule.tour_schedule_id, cancelReason); window.location.reload(); }
+          catch (error) { setCancelError(error instanceof Error ? error.message : "Không xử lý được chuyến."); setCancelBusy(false); }
+        }}>
+          <h2 className="text-lg font-bold">Ngừng chuyến #{schedule.tour_schedule_id}</h2>
+          <p>Chuyến ngừng nhận đặt mới. Đơn chưa thanh toán được hủy và nhả chỗ; khách đã thanh toán nhận đề xuất hoàn tiền. Bạn có thể thỏa thuận lịch mới cùng tour với từng booking sau đó.</p>
+          <label className="block">Lý do<textarea required minLength={3} maxLength={2000} value={cancelReason} onChange={e => setCancelReason(e.target.value)} className="mt-1 w-full rounded-lg border p-2" /></label>
+          {cancelError && <p role="alert" className="text-red-700">{cancelError}</p>}
+          <div className="flex justify-end gap-2"><button type="button" disabled={cancelBusy} onClick={() => setCancelOpen(false)} className="rounded-lg border px-3 py-2">Quay lại</button><button disabled={cancelBusy} className="rounded-lg bg-red-700 px-3 py-2 text-white disabled:opacity-50">{cancelBusy ? "Đang xử lý…" : "Xác nhận ngừng chuyến"}</button></div>
+        </form>
+      </div>, document.body)}
     </div>
   );
 }

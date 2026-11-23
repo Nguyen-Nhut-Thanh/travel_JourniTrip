@@ -1,4 +1,5 @@
 export type BookingPayload = BookingBasePayload & {
+    policyAccepted?: boolean;
     single_room_count?: number;
     additional_service_ids?: string[];
 };

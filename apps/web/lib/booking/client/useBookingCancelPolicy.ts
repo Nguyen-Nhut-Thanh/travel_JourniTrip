@@ -69,7 +69,7 @@ export function useBookingCancelPolicy(
   // Tổng số tiền
   const totalAmount = useMemo(() => {
     if (!booking) return 0;
-    return Number(booking.total_amount ?? booking.price ?? 0);
+    return Number(booking.status === "cancel_requested" && booking.cancellation_meta?.cancelRequest?.portionAmount !== undefined ? booking.cancellation_meta.cancelRequest.portionAmount : booking.total_amount ?? booking.price ?? 0);
   }, [booking]);
 
   // Xác định mốc thời gian căn cứ tính chính sách
@@ -77,7 +77,8 @@ export function useBookingCancelPolicy(
   const effectiveRefDate = useMemo(() => {
     if (options?.referenceDate) return options.referenceDate;
     if (options?.cancelDetails?.requestedAt) {
-      return parseViDateTime(options.cancelDetails.requestedAt);
+      const iso = new Date(options.cancelDetails.requestedAt);
+      return Number.isNaN(+iso) ? parseViDateTime(options.cancelDetails.requestedAt) : iso;
     }
     return null;
   }, [options?.referenceDate, options?.cancelDetails?.requestedAt]);
@@ -88,6 +89,7 @@ export function useBookingCancelPolicy(
       startDate,
       totalAmount,
       isPaid,
+      tiers: booking?.cancellation_meta?.policyTiers,
       now: effectiveRefDate || undefined,
     });
 

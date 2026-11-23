@@ -1,5 +1,9 @@
 "use client";
 
+import { normalizeSearchText } from "shared";
+
+import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
+
 import { AdminStatGrid } from "@/components/common/admin_shared/cards/AdminStatGrid";
 
 import { useEffect, useState } from "react";
@@ -16,7 +20,6 @@ import {
   Loader2,
   Plus,
   Save,
-  Search,
   Sparkles,
   Ticket,
   Trash2,
@@ -111,8 +114,8 @@ export function HomeVoucherCampaignManager() {
   const availableVouchers = vouchers.filter(
     (v) =>
       v.status === 1 &&
-      (v.code.toLowerCase().includes(search.toLowerCase()) ||
-        (v.name && v.name.toLowerCase().includes(search.toLowerCase())))
+      (normalizeSearchText(v.code).includes(normalizeSearchText(search)) ||
+        (v.name && normalizeSearchText(v.name).includes(normalizeSearchText(search))))
   );
 
   if (loading) {
@@ -241,13 +244,11 @@ export function HomeVoucherCampaignManager() {
                 </div>
 
                 <div className="relative w-full sm:w-52">
-                  <Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" />
-                  <input
-                    type="text"
+                  <AdminSearchInput
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(value) => setSearch(value)}
                     placeholder="Tìm mã hoặc tên..."
-                    className="w-full rounded-lg border border-slate-200 py-1.5 pl-8 pr-3 text-xs focus:border-blue-400 focus:outline-none"
+                    inputClassName="w-full rounded-lg border border-slate-200 py-1.5 pl-8 pr-3 text-xs focus:border-blue-400 focus:outline-none"
                   />
                 </div>
               </div>

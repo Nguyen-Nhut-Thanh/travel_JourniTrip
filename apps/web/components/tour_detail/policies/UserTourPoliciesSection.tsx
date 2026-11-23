@@ -1,9 +1,11 @@
 import { ChevronDown, ScrollText } from 'lucide-react';
 import { TOUR_POLICY_DEFINITIONS, type TourPolicy } from 'shared';
 import { TourPolicyContent } from "@/components/tour_detail/policies/UserTourPolicyContent";
+import { BookingCancellationRules } from "@/components/booking/BookingCancellationRules";
 
 export function TourPoliciesSection({ policies = [] }: { policies?: TourPolicy[] }) {
   const entries = TOUR_POLICY_DEFINITIONS.flatMap(definition => {
+    if (["cancel", "weekday", "holiday"].includes(definition.key)) return [];
     const item = policies.find(policy => policy.policy_type === definition.key && policy.content?.trim());
     return item ? [{ ...definition, content: item.content }] : [];
   });
@@ -14,5 +16,6 @@ export function TourPoliciesSection({ policies = [] }: { policies?: TourPolicy[]
     </div>
     {entries.length ? <div className="space-y-2">{entries.map(policy => <details key={policy.key} className="group overflow-hidden rounded-xl border border-slate-200 bg-white"><summary className="flex cursor-pointer list-none items-center justify-between gap-3 bg-slate-50/60 px-4 py-3.5 text-sm font-semibold text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-500 [&::-webkit-details-marker]:hidden">{policy.title}<ChevronDown aria-hidden="true" size={17} className="shrink-0 text-slate-400 transition-transform group-open:rotate-180" /></summary><div className="border-t border-slate-100 p-4"><TourPolicyContent content={policy.content} included={policy.key === 'included'} /></div></details>)}</div>
       : <div className="space-y-1 rounded-xl border border-sky-100 bg-sky-50/50 p-4 text-sm leading-6"><p className="font-medium text-slate-700">Nội dung lưu ý của tour đang được cập nhật.</p><p className="text-slate-500">Vui lòng liên hệ đơn vị tổ chức tour để được tư vấn chi tiết trước khi đặt.</p></div>}
+    <details className="rounded-xl border border-slate-200 p-4"><summary className="cursor-pointer font-semibold text-slate-800">Chính sách hủy và đổi lịch áp dụng khi đặt tour</summary><div className="mt-3"><BookingCancellationRules /></div></details>
   </section>;
 }

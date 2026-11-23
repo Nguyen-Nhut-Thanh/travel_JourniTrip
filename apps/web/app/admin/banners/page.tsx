@@ -1,5 +1,7 @@
 "use client";
 
+import { normalizeSearchText } from "shared";
+
 import { AdminStatGrid } from "@/components/common/admin_shared/cards/AdminStatGrid";
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -199,9 +201,8 @@ function AdminBannersContent() {
       items.filter(
         (item) =>
           (status === "ALL" || String(item.status) === status) &&
-          `${item.header} ${item.location_name} ${item.description}`
-            .toLocaleLowerCase("vi")
-            .includes(search.trim().toLocaleLowerCase("vi"))
+          normalizeSearchText(`${item.header} ${item.location_name} ${item.description}`)
+            .includes(normalizeSearchText(search.trim()))
       ),
     [items, status, search]
   );

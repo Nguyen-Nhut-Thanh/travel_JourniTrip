@@ -93,7 +93,8 @@ export function requestBookingCancellation(
 export function resolveBookingProposal(
   id: number,
   payload: {
-    decision: "full_refund" | "reschedule" | "contact_support";
+    decision: "full_refund" | "reschedule";
+    proposalId: string;
     bankName?: string;
     bankAccountNumber?: string;
     bankAccountName?: string;
@@ -107,4 +108,12 @@ export function resolveBookingProposal(
     },
     body: JSON.stringify(payload),
   });
+}
+
+export function updateBookingRefundBank(id: number, payload: import("shared").BookingBankAccount & { refundId: string }) {
+  return requestWithToken(`/bookings/${id}/refund-bank`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+}
+
+export function withdrawBookingCancellation(id: number) {
+  return requestWithToken(`/bookings/${id}/withdraw-cancel`, { method: "POST" });
 }

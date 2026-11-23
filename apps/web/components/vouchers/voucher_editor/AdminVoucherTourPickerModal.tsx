@@ -1,5 +1,7 @@
 "use client";
 
+import { AdminSearchInput } from "@/components/common/admin_shared/tables/AdminSearchInput";
+
 import { useEffect, useId, useMemo, useState, type RefObject } from "react";
 import { getPublicTours } from "@/lib/tours/client/api";
 import { formatVND } from "@/lib/utils/currency";
@@ -158,16 +160,12 @@ export function VoucherTourPickerModal({
         {/* Search & Type filter bar */}
         <div className="border-b border-slate-100 bg-[#f9fbff] p-2.5 space-y-2">
           <div className="relative">
-            <Search
-              size={16}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-            />
-            <input
-              type="text"
+            <AdminSearchInput
+              loading={loading}
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(value) => setSearch(value)}
               placeholder="Tìm theo tên tour hoặc mã tour..."
-              className="w-full h-[32px] pl-9 pr-3 rounded-lg border border-slate-200 bg-white text-[10px] font-medium text-slate-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50"
+              inputClassName="w-full h-[32px] pl-9 pr-3 rounded-lg border border-slate-200 bg-white text-[10px] font-medium text-slate-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50"
             />
           </div>
 

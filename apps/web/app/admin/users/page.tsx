@@ -1,5 +1,7 @@
 "use client";
 
+import { normalizeSearchText } from "shared";
+
 import { AdminScenicHeaderBackground } from "@/components/common/admin_shared/layout/AdminScenicHeaderBackground";
 import { AdminStatGrid } from "@/components/common/admin_shared/cards/AdminStatGrid";
 import { AdminUsersFilters } from "@/components/users/admin_users/AdminUsersFilters";
@@ -86,10 +88,10 @@ export default function AdminUsersPage() {
   const filteredUsers = users.filter((user) => {
     // 1. Tìm kiếm theo tên, email, sđt hoặc id
     if (search.trim()) {
-      const term = search.trim().toLowerCase();
-      const matchName = user.full_name?.toLowerCase().includes(term);
-      const matchEmail = (user.accounts?.email || "").toLowerCase().includes(term);
-      const matchPhone = (user.phone || "").toLowerCase().includes(term);
+      const term = normalizeSearchText(search.trim());
+      const matchName = normalizeSearchText(user.full_name).includes(term);
+      const matchEmail = normalizeSearchText((user.accounts?.email || "")).includes(term);
+      const matchPhone = normalizeSearchText((user.phone || "")).includes(term);
       const matchId = String(user.user_id).includes(term);
       if (!matchName && !matchEmail && !matchPhone && !matchId) return false;
     }

@@ -46,10 +46,7 @@ export function BookingRowActions({
         label: "Duyệt yêu cầu hủy",
         icon: <CheckCircle2 size={16} />,
         danger: true,
-        disabled: isDeparted,
-        title: isDeparted
-          ? "Tour đã hoặc đang trong thời gian khởi hành, không thể duyệt hủy"
-          : undefined,
+        title: "Xử lý theo thời điểm khách đã gửi yêu cầu",
         onClick: () => onAction(booking, "approve"),
       },
       {
@@ -65,9 +62,9 @@ export function BookingRowActions({
       danger: true,
       onClick: () => onAction(booking, "cancel-pending"),
     });
-  } else if (booking.status === "paid") {
+  } else if (["paid", "cancel_proposed"].includes(booking.status)) {
     actions.push({
-      label: "Hủy đơn tour (Admin)",
+      label: booking.status === "cancel_proposed" ? "Cập nhật đề xuất lịch mới" : "Hủy đơn tour (Admin)",
       icon: <AlertTriangle size={16} />,
       danger: true,
       disabled: isDeparted,

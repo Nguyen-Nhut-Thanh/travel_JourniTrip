@@ -1,5 +1,7 @@
 "use client";
 
+import { normalizeSearchText } from "shared";
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChatWorkspace } from "@/components/chat/admin_chat/AdminChatWorkspace";
@@ -68,9 +70,8 @@ function AdminChatsContent() {
     () =>
       session.conversations.filter((item) => {
         return (
-          `${item.users?.full_name ?? ""} ${item.last_message ?? ""} ${item.user_id}`
-            .toLocaleLowerCase("vi")
-            .includes(search.toLocaleLowerCase("vi"))
+          normalizeSearchText(`${item.users?.full_name ?? ""} ${item.last_message ?? ""} ${item.user_id}`)
+            .includes(normalizeSearchText(search))
         );
       }),
     [session.conversations, search],

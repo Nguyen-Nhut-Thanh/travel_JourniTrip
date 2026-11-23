@@ -17,6 +17,8 @@ import {
   TicketsPlane,
 } from "lucide-react";
 import type { TourListPanelProps } from "shared";
+import { AdminSearchHighlight } from "@/components/common/admin_shared/tables/AdminSearchHighlight";
+import { AdminTourSearchMatches } from "@/components/common/admin_shared/tables/AdminTourSearchMatches";
 
 export function TourListPanel({
   loading,
@@ -59,7 +61,7 @@ export function TourListPanel({
         <AdminSearchInput
           value={searchTerm}
           onChange={onSearchChange}
-          placeholder="Tìm tên tour hoặc mã tour..."
+          placeholder="Tìm tên tour, mã tour hoặc mã lịch trình..."
         />
       </div>
 
@@ -120,7 +122,7 @@ export function TourListPanel({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 mb-1">
                     <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap px-1.5 py-0.5 rounded-md bg-blue-50 text-[#075bff] border border-blue-100 text-[10px] font-bold leading-normal">
-                      {tour.code}
+                      <AdminSearchHighlight text={tour.code} query={searchTerm} />
                     </span>
                     {tour.status === 0 && (
                       <span
@@ -133,8 +135,9 @@ export function TourListPanel({
                     )}
                   </div>
                   <strong className="line-clamp-2 text-[#0b1747] text-[13px] leading-[1.4] font-bold">
-                    {tour.name}
+                    <AdminSearchHighlight text={tour.name} query={searchTerm} />
                   </strong>
+                  <AdminTourSearchMatches tour={tour} query={searchTerm} />
                   <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1.5 text-[11.5px] text-[#7387aa]">
                     <span className="inline-flex items-center gap-1">
                       <Clock3 size={13} className="text-slate-400" />

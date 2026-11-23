@@ -16,6 +16,7 @@ export const CreateBookingSchema = z.object({
   contact_email: z.string({ message: 'Vui lòng nhập email liên hệ.' }).email('Email không hợp lệ.'),
   contact_id_card: z.string().optional(),
   confirmed_schedule_conflict: z.boolean().optional(),
+  policyAccepted: z.boolean().optional(),
   adult_count: z.number().int().min(1, 'Phải có ít nhất 1 người lớn.'),
   child_count: z.number().int().min(0).default(0),
   infant_count: z.number().int().min(0).default(0),

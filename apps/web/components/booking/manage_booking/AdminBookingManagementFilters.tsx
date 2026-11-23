@@ -22,6 +22,7 @@ export function BookingManagementFilters({
   onRetrySchedules,
   onReset,
   dirty = false,
+  searching = false,
 }: {
   value: Required<AdminBookingFilters>;
   onChange: (value: Required<AdminBookingFilters>) => void;
@@ -33,6 +34,7 @@ export function BookingManagementFilters({
   onRetrySchedules: () => void;
   onReset: () => void;
   dirty?: boolean;
+  searching?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const update = (key: keyof AdminBookingFilters, next: string) =>
@@ -51,6 +53,7 @@ export function BookingManagementFilters({
     >
       <div className="ui-booking-management-filterRow grid grid-cols-[minmax(220px,_1fr)_minmax(180px,_230px)_auto_auto_auto] gap-2.5 items-center [&>*]:min-w-0 [&_input]:text-[12px] admin-max-1250:grid-cols-[minmax(180px,_1fr)_minmax(155px,_210px)_auto_auto_auto] admin-max-1250:[&>:first-child]:col-span-full admin-max-750:flex admin-max-750:flex-wrap">
         <AdminSearchInput
+          loading={searching}
           value={value.search}
           onChange={(next) => update("search", next)}
           placeholder="Tìm theo tên khách, SĐT, mã tour, mã booking..."

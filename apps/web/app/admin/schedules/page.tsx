@@ -41,6 +41,7 @@ import type {
   FlashDealSchedule,
   ScheduleOverviewTour as Tour,
 } from "shared";
+import { getMatchingTourSchedules } from "shared";
 
 export default function AdminSchedulesPage() {
   const pageSize = 10;
@@ -319,8 +320,10 @@ export default function AdminSchedulesPage() {
       matchesTourSearch(tour, searchTerm) &&
       matchesTourTypeFilter(tour, tourTypeFilter),
   );
+  const matchedScheduleIds = new Set(selectedTour ? getMatchingTourSchedules(selectedTour, searchTerm).map(schedule => schedule.tour_schedule_id) : []);
   const filteredSchedules = schedules.filter((schedule) =>
-    matchesScheduleStatusFilter(schedule, scheduleStatusFilter),
+    matchesScheduleStatusFilter(schedule, scheduleStatusFilter)
+      && (!matchedScheduleIds.size || matchedScheduleIds.has(schedule.tour_schedule_id)),
   );
 
   const tourTotalPages = Math.max(
@@ -381,9 +384,14 @@ export default function AdminSchedulesPage() {
             totalPages={tourTotalPages}
             totalItems={filteredTours.length}
             pageSize={pageSize}
-            onSearchChange={(value) => { setSearchTerm(value); setTourPage(1); }}
+            onSearchChange={(value) => { setSearchTerm(value); setTourPage(1); setSchedulePage(1); }}
             onFilterChange={(value) => { setTourTypeFilter(value); setTourPage(1); }}
             onSelectTour={(id) => {
+              const tour = tours.find(item => item.tour_id === id);
+              if (tour && getMatchingTourSchedules(tour, searchTerm).length) {
+                setScheduleStatusFilter("all");
+                setSchedulePage(1);
+              }
               if (id !== selectedTourId) {
                 setSchedules([]);
                 setScheduleError(false);
@@ -417,6 +425,7 @@ export default function AdminSchedulesPage() {
             <ScheduleTablePanel
               selectedTourId={selectedTourId}
               selectedTour={selectedTour}
+              searchTerm={searchTerm}
               schedules={paginatedSchedules}
               loading={loadingSchedules || loadedSchedulesTourId !== selectedTourId}
               scheduleStatusFilter={scheduleStatusFilter}

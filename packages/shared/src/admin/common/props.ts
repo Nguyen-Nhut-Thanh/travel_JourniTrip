@@ -1,4 +1,4 @@
-import type { ComponentType, ReactNode } from 'react';
+import type { ComponentType, InputHTMLAttributes, ReactNode, Ref } from 'react';
 export type LucideIcon = ComponentType<{ size?: number | string; className?: string; [key: string]: any }>;
 export type AdminBackPageHeaderProps = {
     title: string;
@@ -65,12 +65,15 @@ export type AdminPaginationProps = {
     onPageChange: (page: number) => void;
     className?: string;
 };
-export type AdminSearchInputProps = {
+export type AdminSearchInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "className" | "type"> & {
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
     roundedClassName?: string;
     className?: string;
+    inputClassName?: string;
+    inputRef?: Ref<HTMLInputElement>;
+    loading?: boolean;
 };
 export type AdminStatusBadgeTone = "success" | "warning" | "muted";
 export type AdminStatusBadgeProps = {

@@ -30,6 +30,7 @@ export type AdminBooking = {
         } | null;
     } | null;
     tour_schedules?: {
+        cover_image_url?: string | null;
         departure_location?: { name: string } | null;
         tour_schedule_id?: number;
         tour_id?: number;
@@ -85,3 +86,17 @@ export type AdminBookingFilters = {
 };
 export type AdminBookingStats = { total: number; paid: number; pending: number; cancelled: number; cancelRequested: number };
 export type AdminBookingListResponse = { items: AdminBooking[]; total: number; totalPages: number; page: number; limit: number; stats?: AdminBookingStats | null };
+
+export type AdminBookingTourGroup = {
+    tour: import("../tours/models").ToursPageTour;
+    booking_count: number;
+    cancel_requested_count: number;
+};
+export type AdminBookingTourListResponse = {
+    items: AdminBookingTourGroup[];
+    total: number;
+    totalPages: number;
+    page: number;
+    limit: number;
+    stats?: AdminBookingStats | null;
+};

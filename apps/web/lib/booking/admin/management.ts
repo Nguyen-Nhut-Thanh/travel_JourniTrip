@@ -9,7 +9,12 @@ export const BOOKING_STATUSES = [
   { value: "all", label: "Tất cả trạng thái" },
   { value: "pending", label: "Chờ thanh toán" },
   { value: "paid", label: "Đã thanh toán" },
+  { value: "cancel_proposed", label: "Đề xuất sự cố / Đổi phương án" },
+  { value: "refund_pending", label: "Chờ chuyển tiền hoàn" },
   { value: "cancel_requested", label: "Yêu cầu hủy" },
+  { value: "cancel_proposed", label: "Chờ khách chọn phương án" },
+  { value: "refund_pending", label: "Chờ hoàn tiền" },
+  { value: "no_show", label: "Khách không tham gia" },
   { value: "cancelled", label: "Đã hủy" },
   { value: "completed", label: "Hoàn thành" },
 ];
@@ -29,6 +34,11 @@ export const EMPTY_BOOKING_STATS: AdminBookingStats = {
   cancelled: 0,
   cancelRequested: 0,
 };
+export function getTourBookingFilters(filters: AdminBookingFilters, tourId: number, cancellationsOnly = false): AdminBookingFilters {
+  return cancellationsOnly
+    ? { tourId: String(tourId), status: "cancel_requested" }
+    : { ...filters, tourId: String(tourId) };
+}
 export function parseBookingStats(value: unknown): AdminBookingStats | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
@@ -50,7 +60,30 @@ export function getBookingStatusLabel(
     | { note?: string | null; cancellation_meta?: any },
   meta?: any,
 ) {
+  const actualMeta =
+    meta ||
+    (typeof noteOrBooking === "object" && noteOrBooking
+      ? (noteOrBooking as any).cancellation_meta
+      : null);
+
+  if (status === "cancel_proposed") {
+    if (actualMeta?.resolutionProposal?.status === "contact_support") {
+      return "Khách yêu cầu đổi phương án";
+    }
+    return "Chờ khách chọn phương án";
+  }
+  if (status === "refund_pending") {
+    return "Chờ chuyển tiền hoàn";
+  }
   if (status === "cancelled") {
+    const hasRefund = Boolean(
+      actualMeta?.resolutionProposal?.refundTransfer ||
+      actualMeta?.adminApproval?.refundTransfer ||
+      actualMeta?.refundTransfer ||
+      actualMeta?.resolutionProposal?.status === "refund_transferred" ||
+      actualMeta?.title === "Đã hoàn tiền thành công"
+    );
+    if (hasRefund) return "Đã hoàn tiền";
     return getCancelledBookingLabel(noteOrBooking, meta);
   }
   return (

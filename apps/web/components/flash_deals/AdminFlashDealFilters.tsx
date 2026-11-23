@@ -40,7 +40,7 @@ export function FlashDealFilters({
         <AdminSearchInput
           value={value.search}
           onChange={(search) => onChange({ ...value, search })}
-          placeholder="Tìm tên tour hoặc mã tour..."
+          placeholder="Tìm tên tour, mã tour hoặc mã lịch trình..."
         />
         <CustomDropdown
           variant="compact"
@@ -52,7 +52,8 @@ export function FlashDealFilters({
           options={[
             { value: "all", label: "Tất cả trạng thái" },
             { value: "active", label: "Đang giảm giá" },
-            { value: "scheduled", label: "Sắp mở bán" },
+            { value: "scheduled", label: "Đã có deal" },
+            { value: "promotion", label: "Có ưu đãi đợt" },
             { value: "paused", label: "Tạm ẩn" },
             { value: "soldout", label: "Đã hết chỗ" },
             { value: "expired", label: "Đã kết thúc" },
