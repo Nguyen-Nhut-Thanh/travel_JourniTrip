@@ -1,4 +1,4 @@
-import { MEMBERSHIP_TIERS, type MembershipTier } from "shared";
+import { MEMBERSHIP_TIERS, membershipEarnedPoints, type MembershipTier } from "shared";
 
 export interface MembershipCredit {
   bookingId: number;
@@ -105,6 +105,7 @@ export function creditForBooking(
       created_at: Date;
     }[];
     membership_snapshot?: unknown;
+    cancellation_meta?: unknown;
   },
   now: Date,
 ): MembershipCredit | null {
@@ -122,33 +123,33 @@ export function creditForBooking(
   const refunded = booking.payments
     .filter((payment) => payment.status === "refunded")
     .reduce((sum, payment) => sum + Number(payment.amount), 0);
-  const amount = Math.max(
-    0,
-    Math.min(
-      Number(booking.total_amount),
-      payments.reduce((sum, payment) => sum + Number(payment.amount), 0) -
-        refunded,
-    ),
-  );
-  if (!Number.isFinite(amount) || amount <= 0 || !payments.length) return null;
-  const paidAt = Math.max(
-    ...payments.map((payment) =>
-      (payment.paid_at ?? payment.created_at).getTime(),
-    ),
-  );
+  const meta = (booking.cancellation_meta ?? {}) as { retainedCancellationFees?: number; refunds?: { amount: number; status: string }[] };
+  const pendingRefunds = (meta.refunds ?? []).filter(r => r.status !== 'completed').reduce((sum, r) => sum + Number(r.amount), 0);
+  const netPaid = payments.reduce((sum, payment) => sum + Number(payment.amount), 0) - refunded - Number(meta.retainedCancellationFees || 0) - pendingRefunds;
+  const amount = Number(booking.total_amount);
+  if (!Number.isFinite(amount) || amount <= 0 || netPaid <= 0 || payments.reduce((sum, payment) => sum + Number(payment.amount), 0) < amount || !payments.length) return null;
+  // Use the first time sufficient cash was received, not a later duplicate payment.
+  let received = 0;
+  let paidAt = 0;
+  for (const payment of [...payments].sort((a, b) => +(a.paid_at ?? a.created_at) - +(b.paid_at ?? b.created_at))) {
+    received += Number(payment.amount);
+    paidAt = +(payment.paid_at ?? payment.created_at);
+    if (received >= amount) break;
+  }
+  const earnedAmount = Math.max(0, Math.min(amount, netPaid));
   return {
     bookingId: booking.booking_id,
     tourName: booking.tour_schedules.tours.name,
     completedAt: new Date(Math.max(completionAt.getTime(), paidAt)),
-    amount,
-    points: bookingPoints(amount, booking.membership_snapshot),
+    amount: earnedAmount,
+    points: bookingPoints(earnedAmount, booking.membership_snapshot),
   };
 }
 
 export function bookingPoints(amount: number, snapshot: unknown): number {
   const value = snapshot && typeof snapshot === 'object' && 'pointMultiplier' in snapshot ? snapshot.pointMultiplier : 1;
   const multiplier = typeof value === 'number' && Number.isFinite(value) && value >= 1 && value <= 10 ? value : 1;
-  return Math.floor(amount * Math.round(multiplier * 10) / 1_000_000);
+  return membershipEarnedPoints(amount, multiplier);
 }
 
 // Birthday vouchers are valid for the calendar month in Vietnam.

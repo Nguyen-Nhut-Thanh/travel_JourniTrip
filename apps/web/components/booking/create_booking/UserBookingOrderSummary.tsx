@@ -16,8 +16,6 @@ import {
   UsersRound,
 } from "lucide-react";
 import type { BookingOrderSummaryProps } from "shared";
-import { calculateCancellationEstimate } from "shared";
-import { useEffect, useState } from "react";
 
 export function BookingOrderSummary({
   tour,
@@ -30,9 +28,6 @@ export function BookingOrderSummary({
   submitting,
   onSubmitBooking,
 }: BookingOrderSummaryProps) {
-  const [policyAccepted, setPolicyAccepted] = useState(false);
-  useEffect(() => setPolicyAccepted(false), [selectedSchedule.tour_schedule_id, pricing.total]);
-  const cancellation = calculateCancellationEstimate({ startDate: selectedSchedule.start_date, totalAmount: pricing.total, isPaid: true });
   return (
     <aside className="relative lg:sticky lg:top-20 lg:self-start">
       <div>
@@ -76,7 +71,7 @@ export function BookingOrderSummary({
                   <span
                     className={
                       pricing.adultUnitPrice * adultCount > 0
-                        ? "font-bold text-blue-700"
+                        ? "font-bold text-[#ff0000]"
                         : "font-semibold text-slate-800"
                     }
                   >
@@ -89,7 +84,7 @@ export function BookingOrderSummary({
                   <span
                     className={
                       pricing.childUnitPrice * childCount > 0
-                        ? "font-bold text-blue-700"
+                        ? "font-bold text-[#ff0000]"
                         : "font-semibold text-slate-800"
                     }
                   >
@@ -102,7 +97,7 @@ export function BookingOrderSummary({
                   <span
                     className={
                       pricing.infantUnitPrice * infantCount > 0
-                        ? "font-bold text-blue-700"
+                        ? "font-bold text-[#ff0000]"
                         : "font-semibold text-slate-800"
                     }
                   >
@@ -117,7 +112,7 @@ export function BookingOrderSummary({
                   <span
                     className={
                       pricing.singleRoomSurcharge > 0
-                        ? "font-bold text-blue-700"
+                        ? "font-bold text-[#ff0000]"
                         : "font-semibold text-slate-800"
                     }
                   >
@@ -134,7 +129,7 @@ export function BookingOrderSummary({
                   <Coins className="h-4 w-4 shrink-0 text-blue-600" />
                   <span>Tạm tính</span>
                 </div>
-                <span className="font-bold text-blue-700">
+                <span className="font-bold text-[#ff0000]">
                   {formatVND(pricing.subtotal)}
                 </span>
               </div>
@@ -147,7 +142,7 @@ export function BookingOrderSummary({
                 <span
                   className={
                     pricing.servicesTotal > 0
-                      ? "font-bold text-blue-700"
+                      ? "font-bold text-[#ff0000]"
                       : "font-semibold text-slate-800"
                   }
                 >
@@ -156,9 +151,9 @@ export function BookingOrderSummary({
               </div>
 
               {!!(pricing.voucherDiscount ?? pricing.discount) && (
-                <div className="flex items-center justify-between text-emerald-600">
+                <div className="flex items-center justify-between text-blue-600">
                   <div className="flex items-center gap-2 font-medium">
-                    <Ticket className="h-4 w-4 shrink-0 fill-emerald-600 text-emerald-600" />
+                    <Ticket className="h-4 w-4 shrink-0 fill-blue-600 text-blue-600" />
                     <span>Voucher</span>
                   </div>
                   <span className="font-bold">
@@ -168,9 +163,9 @@ export function BookingOrderSummary({
               )}
 
               {!!pricing.tourDiscount && (
-                <div className="flex items-center justify-between text-emerald-600">
+                <div className="flex items-center justify-between text-blue-600">
                   <div className="flex items-center gap-2 font-medium">
-                    <Gift className="h-4 w-4 shrink-0 text-emerald-600" />
+                    <Gift className="h-4 w-4 shrink-0 text-blue-600" />
                     <span>Ưu đãi hạng {pricing.membershipName || "thành viên"}</span>
                   </div>
                   <span className="font-bold">
@@ -180,9 +175,9 @@ export function BookingOrderSummary({
               )}
 
               {!!pricing.serviceDiscount && (
-                <div className="flex items-center justify-between text-emerald-600">
+                <div className="flex items-center justify-between text-blue-600">
                   <div className="flex items-center gap-2 font-medium">
-                    <Sparkles className="h-4 w-4 shrink-0 text-emerald-600" />
+                    <Sparkles className="h-4 w-4 shrink-0 text-blue-600" />
                     <span>Ưu đãi dịch vụ</span>
                   </div>
                   <span className="font-bold">
@@ -190,6 +185,8 @@ export function BookingOrderSummary({
                   </span>
                 </div>
               )}
+
+              {!!pricing.pointsDiscount && <div className="flex items-center justify-between text-blue-600"><span>Điểm thành viên ({pricing.pointsUsed})</span><strong>– {formatVND(pricing.pointsDiscount)}</strong></div>}
 
               {!!pricing.tourDiscount && (
                 <p className="text-[10px] leading-4 text-slate-400 pl-6">
@@ -201,18 +198,14 @@ export function BookingOrderSummary({
 
           <div className="mt-3 flex shrink-0 items-center justify-between gap-2 rounded-xl bg-blue-50 p-2.5 text-sm font-bold text-blue-900">
             <span>Tổng thanh toán</span>
-            <span className="text-lg text-blue-700">
+            <span className="text-lg text-[#ff0000]">
               {formatVND(pricing.total)}
             </span>
-          </div>
-          <div className="mt-3 space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
-            <p>Nếu thanh toán rồi hủy ngay tại thời điểm này: phí dự kiến <strong>{cancellation.tier.penaltyPercent}% ({formatVND(cancellation.penaltyAmount)})</strong>, hoàn dự kiến {formatVND(cancellation.refundAmount)}. Phí được chốt theo thời điểm gửi yêu cầu hủy.</p>
-            <label className="flex items-start gap-2"><input type="checkbox" checked={policyAccepted} onChange={e => setPolicyAccepted(e.target.checked)} className="mt-0.5" />Tôi đã đọc và đồng ý chính sách hủy này.</label>
           </div>
           <button
             type="button"
             onClick={onSubmitBooking}
-            disabled={submitting || !policyAccepted}
+            disabled={submitting}
             className="mt-3 flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-70"
           >
             {submitting ? (

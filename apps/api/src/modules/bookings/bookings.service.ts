@@ -12,6 +12,8 @@ import {
   sendBookingNotification,
 } from "./helpers";
 import { MembershipService } from "../membership/membership.service";
+import { maxBookingPoints, MEMBERSHIP_POINTS_POLICY } from 'shared';
+import { holdBookingPoints, settleBookingPoints, lockWallet, reconcileWallet } from '../membership/helpers/membership.wallet';
 import { getAccountUserId } from "../../common/auth/account-user";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { MailService } from "../../infrastructure/mail/mail.service";
@@ -110,6 +112,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
                         });
 
                         if (updated.count !== 1) return;
+                        await settleBookingPoints(tx, b, false);
 
                         // Giảm booked_count trên schedule để nhả chỗ cho khách khác
                         if (totalGuests > 0 && b.tour_schedule_id) {
@@ -180,7 +183,6 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
         return this.createBooking({ ...dto, user_id: userId });
     }
     async createForAccount(accountId: number, dto: BookingPayload) {
-        if (dto.policyAccepted !== true) throw new BadRequestException("Vui lòng xác nhận đã đọc chính sách hủy trước khi đặt tour.");
         return this.createBooking({ ...dto, user_id: await getAccountUserId(this.prisma, accountId, "Không tìm thấy người dùng.") });
     }
     async listForAccount(accountId: number) { return this.getMyBookings(await getAccountUserId(this.prisma, accountId, "Không tìm thấy người dùng.")); }
@@ -384,6 +386,8 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
     }
 
     async createBooking(dto: any) {
+        const requestedPoints = dto.points_to_use ?? 0;
+        if (!Number.isSafeInteger(requestedPoints) || requestedPoints < 0 || requestedPoints > 2_147_483_647) throw new BadRequestException('Số điểm sử dụng không hợp lệ.');
         if (!Number.isInteger(dto.tour_schedule_id) || dto.tour_schedule_id < 1 ||
             !Number.isInteger(dto.adult_count) || dto.adult_count < 1 ||
             !Number.isInteger(dto.child_count) || dto.child_count < 0 ||
@@ -443,6 +447,12 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
         const member = await this.membership.syncUser(dto.user_id);
         const booking = await this.prisma.$transaction(async (tx: any) => {
             await tx.$queryRaw`SELECT tour_schedule_id FROM tour_schedules WHERE tour_schedule_id = ${dto.tour_schedule_id} FOR UPDATE`;
+            // Acquire the wallet lock before checking availability; all reservations share it.
+            let availablePoints = 0;
+            if (requestedPoints) {
+                await lockWallet(tx, dto.user_id);
+                availablePoints = (await reconcileWallet(tx, dto.user_id)).balance;
+            }
             const schedule = await tx.tour_schedules.findUnique({
                 where: { tour_schedule_id: dto.tour_schedule_id },
                 include: {
@@ -568,7 +578,11 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
             const voucherDiscount = discountAmount;
             const { tourDiscount, serviceDiscount } = membershipPrice(member.tier, subtotal, extras.total, voucherDiscount);
             discountAmount += tourDiscount + serviceDiscount;
-            const totalAmount = Math.max(subtotal + singleRoomSurcharge + extras.total - discountAmount, 0);
+            const beforePoints = Math.max(subtotal + singleRoomSurcharge + extras.total - discountAmount, 0);
+            if (requestedPoints > maxBookingPoints(beforePoints, availablePoints)) throw new BadRequestException('Số điểm vượt số dư khả dụng hoặc giới hạn 30% giá trị đơn sau ưu đãi.');
+            const pointsDiscount = requestedPoints * MEMBERSHIP_POINTS_POLICY.valueVnd;
+            discountAmount += pointsDiscount;
+            const totalAmount = beforePoints - pointsDiscount;
             const roomSelection = {
                 type: dto.room_type === 'single' ? 'single' : 'shared',
                 surcharge: singleRoomSurcharge,
@@ -597,13 +611,15 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
                     discount_amount: discountAmount,
                     total_amount: totalAmount,
                     status: 'pending',
-                    cancellation_meta: { policyVersion: 2, policyAcceptedAt: dto.policyAccepted ? new Date().toISOString() : null, policySource: dto.policyAccepted ? "customer" : "staff_assisted", policyTiers: DEFAULT_CANCELLATION_TIERS },
+                    cancellation_meta: { policyVersion: 2, policyTiers: DEFAULT_CANCELLATION_TIERS },
                     note: mergedNote,
                     room_selection: roomSelection,
                     contact_id_card: dto.contact_id_card?.trim() || null,
                     voucher_id: voucherId,
                     additional_services: extras.items,
                     membership_snapshot: {
+                        programVersion: member.programVersion,
+                        pointsUsed: requestedPoints, pointsDiscount,
                         tier: member.tier.id, name: member.tier.name,
                         pointMultiplier: member.tier.pointMultiplier,
                         priorityReservation: member.tier.priorityReservation,
@@ -620,6 +636,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
                     services_total: extras.total,
                 },
             });
+            await holdBookingPoints(tx, createdBooking);
             if (dto.travelers?.length) {
                 await tx.booking_travelers.createMany({
                     data: dto.travelers.map((t: any, idx: number) => ({

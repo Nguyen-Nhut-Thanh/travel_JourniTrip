@@ -1,4 +1,6 @@
 "use client";
+import { membershipReschedulePrice } from "shared";
+
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -53,7 +55,6 @@ export interface AdminCancelBookingModalProps {
     allowedOptions?: AdminCancelResolution[];
     newScheduleId?: number;
     waiveDifference?: boolean;
-    companyBankInfo?: import("shared").BookingBankAccount;
     pickupPointId?: number;
     bankName?: string;
     bankAccountNumber?: string;
@@ -90,7 +91,6 @@ export function AdminCancelBookingModal({
   const [allowedOptions, setAllowedOptions] =
     useState<AdminCancelResolution[]>(["full_refund", "reschedule"]);
   const [newScheduleId, setNewScheduleId] = useState<number | undefined>();
-  const [companyBank, setCompanyBank] = useState(emptyBookingBank);
   const [customerBank, setCustomerBank] = useState(emptyBookingBank);
   const [pickupPoints, setPickupPoints] = useState<any[]>([]);
   const [pickupPointId, setPickupPointId] = useState<number | undefined>();
@@ -98,7 +98,6 @@ export function AdminCancelBookingModal({
   useEffect(() => {
     if (!open || !booking) return;
     if (booking.status === "cancel_proposed") setCancelType("operator_fault");
-    setCompanyBank(booking.cancellation_meta?.resolutionProposal?.companyBankInfo || emptyBookingBank);
     const request = booking.cancellation_meta?.cancelRequest;
     setCustomerBank(request?.bankAccountNumber ? { bankName: request.bankName, bankAccountNumber: request.bankAccountNumber, bankAccountName: request.bankAccountName } : emptyBookingBank);
   }, [open, booking?.booking_id]);
@@ -212,7 +211,9 @@ export function AdminCancelBookingModal({
       adultCount * adultPrice +
       childCount * childPrice +
       infantCount * infantPrice;
-    return newTotal - currentAmount;
+    const singleCount = (booking.room_selection as any)?.single_room_count ?? ((booking.room_selection as any)?.type === "single" ? adultCount + childCount : 0);
+    const gross = newTotal + Number(selectedSchedule.single_room_surcharge || 0) * singleCount + Number(booking.services_total || 0);
+    return membershipReschedulePrice(gross, Number(booking.discount_amount || 0), Number(booking.membership_snapshot?.pointsUsed || 0)).cash - currentAmount;
   }, [selectedSchedule, booking]);
 
   // Cập nhật giá trị mặc định khi mở modal hoặc khi chủ động đổi loại hủy, tránh đè lựa chọn khi đang thao tác
@@ -304,7 +305,6 @@ export function AdminCancelBookingModal({
         : undefined;
 
     await onConfirm({
-      companyBankInfo: cancelType === "operator_fault" && priceDifference !== null && priceDifference > 0 && !waiveDifference ? companyBank : undefined,
       pickupPointId,
       ...(cancelType === "customer_request" && !isPendingHold ? customerBank : {}),
       reason: finalReason,
@@ -593,10 +593,7 @@ export function AdminCancelBookingModal({
                       {pickupPoints.map(point => <option key={point.pickup_point_id} value={point.pickup_point_id}>{point.name} — {point.address}</option>)}
                     </select>
                   </label>}
-                  {priceDifference !== null && priceDifference > 0 && !waiveDifference && <>
-                    <BookingBankFields label="Tài khoản công ty nhận tiền khách nộp thêm" value={companyBank} onChange={setCompanyBank} disabled={loading} />
-                    <p className="text-xs text-slate-500">Khách chuyển khoản bổ sung vào tài khoản công ty này sau khi đồng ý đổi lịch.</p>
-                  </>}
+                  {priceDifference !== null && priceDifference > 0 && !waiveDifference && <p className="text-xs text-blue-700">Khách thanh toán phần chênh lệch qua VNPay sau khi đồng ý đổi lịch. Không cần gửi tài khoản công ty.</p>}
                   {priceDifference !== null && (
                     <div className="space-y-2">
                       {priceDifference > 0 ? (

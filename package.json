@@ -17,6 +17,7 @@
     "typecheck": "turbo run typecheck",
     "db:generate": "npm run prisma:generate --workspace=database",
     "db:push": "npm run prisma:push --workspace=database",
+    "db:sync:membership": "tsx --tsconfig apps/api/tsconfig.json scripts/sync-membership-wallet.ts",
     "db:import:provinces": "tsx scripts/import-data/import-provinces.ts",
     "db:import:seasonal": "tsx scripts/import-data/import-seasonal-showcase.ts",
     "db:backfill:booking-metadata": "tsx scripts/backfill-booking-metadata.ts",

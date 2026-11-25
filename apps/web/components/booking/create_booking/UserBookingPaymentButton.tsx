@@ -2,9 +2,9 @@
 
 import { CreditCard, Loader2 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { createPaymentUrl } from '@/lib/booking/client/api';
+import { createPaymentUrl, createReschedulePaymentUrl } from '@/lib/booking/client/api';
 
-export function BookingPaymentButton({ bookingId, label = 'Thanh toán VNPay' }: { bookingId: number; label?: string }) {
+export function BookingPaymentButton({ bookingId, label = 'Thanh toán VNPay', rescheduleProposalId }: { bookingId: number; label?: string; rescheduleProposalId?: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const inFlight = useRef(false);
@@ -13,7 +13,7 @@ export function BookingPaymentButton({ bookingId, label = 'Thanh toán VNPay' }:
     inFlight.current = true;
     setLoading(true); setError('');
     try {
-      const result = await createPaymentUrl(bookingId);
+      const result = rescheduleProposalId ? await createReschedulePaymentUrl(bookingId, rescheduleProposalId) : await createPaymentUrl(bookingId);
       if (!result.paymentUrl) throw new Error('Chưa nhận được đường dẫn thanh toán. Vui lòng thử lại.');
       window.location.assign(result.paymentUrl);
     } catch (requestError) {

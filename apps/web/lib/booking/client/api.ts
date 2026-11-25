@@ -64,6 +64,10 @@ export function createPaymentUrl(bookingId: number) {
   });
 }
 
+export function createReschedulePaymentUrl(bookingId: number, proposalId: string) {
+  return requestWithToken<PaymentUrlResponse>("/payment/create-reschedule-url", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ bookingId, proposalId }) });
+}
+
 export function getPaymentStatus(reference: string, signal?: AbortSignal) {
   return requestWithToken<PaymentStatusResponse>(`/payment/status?${new URLSearchParams({ reference })}`, { signal, cache: 'no-store' });
 }
@@ -101,7 +105,7 @@ export function resolveBookingProposal(
     supportNote?: string;
   },
 ) {
-  return requestWithToken<{ success?: boolean }>(`/bookings/${id}/resolve-proposal`, {
+  return requestWithToken<{ cancellation_meta?: Record<string, any> }>(`/bookings/${id}/resolve-proposal`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

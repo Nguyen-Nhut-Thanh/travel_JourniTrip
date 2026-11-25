@@ -36,6 +36,8 @@ export type BookingExtraService = {
     pricing_unit: "guest" | "group" | "booking";
 };
 export interface PricingSummary {
+    pointsUsed?: number;
+    pointsDiscount?: number;
     adultUnitPrice: number;
     childUnitPrice: number;
     infantUnitPrice: number;

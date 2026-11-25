@@ -46,6 +46,8 @@ export interface BookingResolutionProposal {
   version?: number;
   expiresAt?: string;
   paymentDeadline?: string;
+  paymentMethod?: "vnpay" | "bank";
+  topupPaymentRefs?: string[];
   newTotal?: number;
   companyBankInfo?: import("../../booking/settlement").BookingBankAccount;
   transferContent?: string;

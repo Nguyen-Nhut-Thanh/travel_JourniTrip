@@ -1,8 +1,7 @@
 "use client";
-import { withdrawBookingCancellation } from "@/lib/booking/client/api";
 
+import { withdrawBookingCancellation } from "@/lib/booking/client/api";
 import { BookingCrewCard } from "@/components/booking/view_booking/UserBookingCrewCard";
-import { BookingPaymentButton } from "@/components/booking/create_booking/UserBookingPaymentButton";
 import { ImageWithFallback } from "@/components/common/dialogs_and_feedback/media/ImageWithFallback";
 import { BookingCancelModal } from "@/components/booking/cancel_request/UserBookingCancelModal";
 import { BookingCancelledBanner } from "@/components/booking/view_booking/UserBookingCancelledBanner";
@@ -12,11 +11,9 @@ import { BookingSettlementPanel } from "@/components/booking/BookingSettlementPa
 import { PaymentCountdownCard } from "@/components/booking/create_booking/UserPaymentCountdownCard";
 import { formatVND } from "@/lib/utils/currency";
 import {
-  AlertCircle,
   ArrowLeft,
   CalendarDays,
   ChevronRight,
-  Clock,
   Clock3,
   FileText,
   Home,
@@ -33,10 +30,18 @@ import { useState, type ReactNode } from "react";
 import { parseBookingNote, type BookingDetail } from "shared";
 
 const money = (value: number | string | null | undefined) => formatVND(Number(value) || 0);
+
 function date(value?: string | null, withTime = false) {
   if (!value || Number.isNaN(new Date(value).getTime())) return "Chưa cập nhật";
-  return new Date(value).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit", year: "numeric", ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}) });
+  return new Date(value).toLocaleString("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
+  });
 }
+
 export function bookingStatus(
   value: string,
   schedule?: { start_date?: string | null; end_date?: string | null } | null,
@@ -58,6 +63,7 @@ export function bookingStatus(
   if (status === "pending") return { label: "Chờ thanh toán", tone: "pending" };
   return { label: value || "Chưa cập nhật", tone: "pending" };
 }
+
 function Status({
   value,
   schedule,
@@ -70,26 +76,81 @@ function Status({
   const status = bookingStatus(value, schedule, meta);
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-[30px] text-[12px] font-[750] whitespace-nowrap px-[13px] py-[7px] gap-[7px] [[data-booking-payment-details]_&]:text-[10px] [[data-booking-payment-details]_&]:px-2 [[data-booking-payment-details]_&]:py-1 [[data-booking-payment-details]_&]:gap-1 [[data-booking-payment-details]_&_svg]:w-3 [[data-booking-payment-details]_&_svg]:h-3 max-[800px]:text-[11px] ${
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-[650] border whitespace-nowrap ${
         status.tone === "cancelled"
-          ? "bg-[#ffe6ec] text-[#f32750]"
+          ? "border-rose-200 bg-rose-50 text-rose-700"
           : status.tone === "warning"
-            ? "bg-[#fff1cf] text-[#97600b] border border-amber-300"
+            ? "border-amber-200 bg-amber-50 text-amber-700"
             : status.tone === "success"
-              ? "bg-[#def8ec] text-[#087e57]"
-              : "bg-[#fff1cf] text-[#97600b]"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+              : "border-blue-200 bg-blue-50 text-blue-700"
       }`}
     >
-      <CalendarDays size={14} />
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${
+          status.tone === "cancelled"
+            ? "bg-rose-500"
+            : status.tone === "warning"
+              ? "bg-amber-500"
+              : status.tone === "success"
+                ? "bg-emerald-500"
+                : "bg-blue-500"
+        }`}
+      />
       {status.label}
     </span>
   );
 }
-function SectionTitle({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
-  return <div className="flex items-center mb-4 gap-[15px] [&_h2]:text-[16px] [&_h2]:font-extrabold [&_h2]:tracking-[-.03em]! [&_h2]:leading-[1.4] [&_p]:text-[11px] [&_p]:leading-[1.65] [&_p]:text-[#627fa3] [&_p]:mt-0.5 [[data-booking-tour-copy]_&]:mb-5 min-[1450px]:[&_h2]:text-[16px] max-[800px]:[[data-booking-tour-copy]_&]:mb-2.5 max-[800px]:[&_p]:text-[12px] max-[480px]:gap-[11px] max-[480px]:[&_h2]:text-[15px] max-[480px]:[&_p]:text-[10px] max-[480px]:[[data-booking-tour-copy]_&]:items-start max-[480px]:[[data-booking-tour-copy]_&]:gap-2 max-[480px]:[[data-booking-tour-copy]_&_h2]:text-[14px] max-[480px]:[[data-booking-tour-copy]_&_p]:text-[10px]"><span className="grid place-items-center [background:linear-gradient(135deg,_#eaf5ff,_#e2f0ff)] text-[#0064ff] rounded-full w-12.5 h-12.5 shrink-0 max-[480px]:w-10.5 max-[480px]:h-10.5 max-[480px]:[[data-booking-tour-copy]_&]:w-[31px] max-[480px]:[[data-booking-tour-copy]_&]:h-[31px] max-[480px]:[[data-booking-tour-copy]_&_svg]:w-[19px]">{icon}</span><div><h2>{title}</h2><p>{description}</p></div></div>;
+
+function SectionTitle({
+  icon,
+  title,
+  description,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 pb-3 border-b border-[#edf2fb]">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#075bff]">
+        {icon}
+      </div>
+      <div>
+        <h2 className="text-[16px] font-[750] leading-[1.5] text-[#0b1747]">
+          {title}
+        </h2>
+        <p className="text-[12px] leading-[1.5] text-[#7387aa]">
+          {description}
+        </p>
+      </div>
+    </div>
+  );
 }
-function Field({ label, children, wide = false }: { label: string; children: ReactNode; wide?: boolean }) {
-  return <div className={`[background:linear-gradient(125deg,_#f3f8fd,_#f6faff)] rounded-[14px] min-w-0 px-4.5 py-[15px] [&_dt]:text-[10px] [&_dt]:uppercase [&_dt]:tracking-[.075em]! [&_dt]:text-[#6283af] [&_dt]:mb-[7px] [&_dd]:text-[13px] [&_dd]:leading-[1.7] [&_dd]:font-[650] [&_dd]:wrap-anywhere [&_a:hover]:text-[#0064ff] [[data-booking-tour-copy]_&]:pt-[9px] [[data-booking-tour-copy]_&]:pb-3 [[data-booking-tour-copy]_&]:[background:linear-gradient(110deg,_#fff,_#f5f9fd)] [[data-booking-tour-copy]_&]:px-[7px] min-[1450px]:[&_dd]:text-[14px] max-[480px]:[&_dd]:text-[12px] max-[480px]:[[data-booking-tour-copy]_&]:px-0 max-[480px]:[[data-booking-tour-copy]_&]:py-2 max-[480px]:[[data-booking-contact-grid]_&]:p-[13px] max-[480px]:[&_dt]:text-[9px] ${(wide) ? ("col-span-full") : ("")}`}><dt>{label}</dt><dd>{children || "Chưa cập nhật"}</dd></div>;
+
+function Field({
+  label,
+  children,
+  wide = false,
+}: {
+  label: string;
+  children: ReactNode;
+  wide?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-xl border border-[#edf2fb] bg-slate-50/70 p-3 min-w-0 ${
+        wide ? "col-span-full" : ""
+      }`}
+    >
+      <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 mb-1">
+        {label}
+      </dt>
+      <dd className="text-[13px] font-bold leading-[1.5] text-[#0b1747] break-words">
+        {children || "Chưa cập nhật"}
+      </dd>
+    </div>
+  );
 }
 
 export function BookingDetailView({ booking: b }: { booking: BookingDetail }) {
@@ -108,7 +169,7 @@ export function BookingDetailView({ booking: b }: { booking: BookingDetail }) {
 
   const tour = b.tour_schedules?.tours;
   const name = tour?.name || `Đơn đặt tour #${b.booking_id}`;
-  const tourSummary = tour?.summary?.trim() || (tour?.description ? tour.description.replace(/<[^>]*>/g, '').trim() : "");
+  const tourSummary = tour?.summary?.trim() || (tour?.description ? tour.description.replace(/<[^>]*>/g, "").trim() : "");
   const origAdultPrice = Number(b.membership_snapshot?.originalAdultPrice) || Number(b.adult_unit_price) || 0;
   const origChildPrice = Number(b.membership_snapshot?.originalChildPrice) || Number(b.child_unit_price) || 0;
   const promoDiscount = Number(b.membership_snapshot?.promoDiscount) || 0;
@@ -116,6 +177,7 @@ export function BookingDetailView({ booking: b }: { booking: BookingDetail }) {
   const promoGift = b.membership_snapshot?.promoGift || null;
   const memberDiscount = (Number(b.membership_snapshot?.tourDiscount) || 0) + (Number(b.membership_snapshot?.serviceDiscount) || 0);
   const voucherDiscount = Number(b.membership_snapshot?.voucherDiscount) || 0;
+  const pointsDiscount = Number(b.membership_snapshot?.pointsDiscount) || 0;
 
   const rows = [
     {
@@ -148,25 +210,70 @@ export function BookingDetailView({ booking: b }: { booking: BookingDetail }) {
   const payment = payments.find(item => ["success", "paid", "completed"].includes(item.status.toLowerCase())) || payments[0];
   const paymentStatus = payment ? ({ success: "Đã thanh toán", paid: "Đã thanh toán", completed: "Đã thanh toán", pending: "Chờ thanh toán", failed: "Thất bại", refunded: "Đã hoàn tiền", review: "Cần đối soát" }[payment.status.toLowerCase()] || payment.status) : "Chưa có giao dịch";
   const method = payment ? ({ vnpay: "VNPay", momo: "MoMo", bank: "Chuyển khoản", bank_transfer: "Chuyển khoản" }[payment.method.toLowerCase()] || payment.method) : "Chưa cập nhật";
-  return <div className="text-[#092448] [background:radial-gradient(ellipse_at_25%_40%,_#f6fdff,_transparent_65%),_#eefaff] min-h-[80vh] pb-9 text-[13px] [&_a:focus-visible]:[outline:3px_solid_#24aaff] [&_a:focus-visible]:[outline-offset:4px] [&_a:focus-visible]:rounded-[7px]">
-    <header className="relative isolate pt-5 pb-8 overflow-hidden px-0 after:content-[''] after:absolute after:-bottom-5 after:-left-[2%] after:h-9.5 after:w-[104%] after:bg-[#eefaff] after:rounded-[50%_45%_0_0] after:[transform:rotate(-1deg)] max-[800px]:pt-4 max-[800px]:pb-6 max-[480px]:pt-3.5 max-[480px]:pb-5">
-      <div className="absolute top-0 right-0 bottom-0 left-0 z-[-2] [background:url('/images/about/travel-dreams-banner.png')_center_53%/cover]" aria-hidden="true" /><div className="absolute top-0 right-0 bottom-0 left-0 z-[-1] [background:linear-gradient(90deg,_#e5f4fff7_0%,_#e4f4fff0_35%,_#e1f3ff99_61%,_#e8f9ff12_100%)] max-[800px]:[background:linear-gradient(90deg,_#e5f4fff5,_#e4f4ffd9_65%,_#e1f3ff90)]" />
-      <div className="w-[min(1430px,_93%)] mx-auto max-[800px]:w-[92%]">
-        <nav aria-label="Đường dẫn" className="flex items-center text-[#466286] text-[13px] mb-3 flex-wrap gap-2 [&_a:hover]:text-[#0064ff] max-[800px]:text-[11px] max-[800px]:mb-2 max-[480px]:text-[10px] max-[480px]:gap-1.5"><Link href="/" aria-label="Trang chủ"><Home size={17} /></Link><ChevronRight size={14} /><Link href="/account/bookings">Lịch sử đặt tour</Link><ChevronRight size={14} /><span>Chi tiết booking</span></nav>
-        <div className="flex items-start relative gap-5 max-[800px]:gap-3 max-[480px]:gap-2.5">
-          <Link href="/account/bookings" className="bg-[#ffffffeb] text-[#0064ff] grid place-items-center w-10.5 h-10.5 shrink-0 rounded-full [transition:background_.2s] border border-[white] border-solid hover:bg-[#d9efff] max-[800px]:w-9 max-[800px]:h-9 max-[480px]:w-8 max-[480px]:h-8 max-[480px]:[&_svg]:w-4" aria-label="Quay lại lịch sử đặt tour"><ArrowLeft size={20} /></Link>
-          <div className="min-w-0 flex-1">
-            <p className="uppercase text-[11px] tracking-wider text-[#4e709b] font-bold mb-1 max-[480px]:text-[10px]">Chi tiết booking</p>
-            <div className="flex items-center mb-1 gap-3.5 flex-wrap [&_h1]:text-[clamp(21px,_2vw,_28px)] [&_h1]:leading-[1.25] [&_h1]:tracking-[-.025em]! [&_h1]:font-extrabold max-[800px]:gap-2 max-[480px]:[&_h1]:text-[19px]">
-              <h1>{name}</h1>
-              <Status value={b.status} schedule={b.tour_schedules} meta={b.cancellation_meta} />
+
+  return (
+    <div className="bg-blue-50 min-h-screen text-[#07123e]">
+      {/* Page Header */}
+      <header className="border-b border-[#e1edfc] bg-white pt-4 pb-5 shadow-xs">
+        <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8">
+          {/* Breadcrumb Navigation */}
+          <nav aria-label="Đường dẫn" className="flex items-center gap-1.5 text-[12px] text-[#7387aa] mb-3 flex-wrap">
+            <Link href="/" className="hover:text-[#075bff] flex items-center gap-1">
+              <Home size={14} />
+              <span>Trang chủ</span>
+            </Link>
+            <ChevronRight size={13} className="text-slate-400" />
+            <Link href="/account/bookings" className="hover:text-[#075bff]">
+              Lịch sử đặt tour
+            </Link>
+            <ChevronRight size={13} className="text-slate-400" />
+            <span className="font-semibold text-[#0b1747]">Chi tiết booking</span>
+          </nav>
+
+          {/* Title and Controls */}
+          <div className="flex items-start justify-between gap-4 flex-wrap sm:flex-nowrap">
+            <div className="flex items-start gap-3 min-w-0">
+              <Link
+                href="/account/bookings"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[#d6e7fb] bg-white text-[#075bff] hover:bg-blue-50 transition-colors shadow-xs"
+                aria-label="Quay lại lịch sử đặt tour"
+              >
+                <ArrowLeft size={18} />
+              </Link>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 mb-0.5">
+                  <span>Chi tiết booking</span>
+                  <span>•</span>
+                  <span className="text-[#075bff] font-bold">#BK{String(b.booking_id).padStart(6, "0")}</span>
+                </div>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="text-[20px] sm:text-[24px] font-extrabold leading-[1.25] tracking-[-0.6px] text-[#07123e]">
+                    {name}
+                  </h1>
+                  <Status value={b.status} schedule={b.tour_schedules} meta={b.cancellation_meta} />
+                  {isPast && b.status === "paid" && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+                      Đã qua ngày khởi hành
+                    </span>
+                  )}
+                </div>
+                {tourSummary && (
+                  <p className="mt-1 text-[12px] leading-[1.5] text-[#7387aa] max-w-3xl line-clamp-2">
+                    {tourSummary}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="flex items-center gap-2 self-start shrink-0 flex-wrap">
               {["paid", "completed"].includes(b.status) && (
                 <button
                   type="button"
                   onClick={() => setReceiptModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold text-blue-700 bg-white/95 border border-blue-200 hover:bg-blue-50 transition shadow-2xs cursor-pointer ml-auto sm:ml-2"
+                  className="inline-flex items-center gap-1.5 rounded-[12px] border border-[#075bff] bg-[#075bff] px-3.5 py-2 text-[12px] font-[650] text-white hover:bg-[#064ddd] shadow-xs transition-colors cursor-pointer"
                 >
-                  <FileText size={14} className="text-blue-600" />
+                  <FileText size={15} />
                   <span>Xem biên lai thanh toán</span>
                 </button>
               )}
@@ -174,9 +281,9 @@ export function BookingDetailView({ booking: b }: { booking: BookingDetail }) {
                 <button
                   type="button"
                   onClick={() => setReceiptModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold text-rose-700 bg-white/95 border border-rose-200 hover:bg-rose-50 transition shadow-2xs cursor-pointer ml-auto sm:ml-2"
+                  className="inline-flex items-center gap-1.5 rounded-[12px] border border-rose-200 bg-white px-3.5 py-2 text-[12px] font-[650] text-rose-700 hover:bg-rose-50 shadow-xs transition-colors cursor-pointer"
                 >
-                  <FileText size={14} className="text-rose-600" />
+                  <FileText size={15} />
                   <span>Xem biên nhận hoàn tiền</span>
                 </button>
               )}
@@ -184,110 +291,438 @@ export function BookingDetailView({ booking: b }: { booking: BookingDetail }) {
                 <button
                   type="button"
                   onClick={() => setCancelModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold text-rose-600 bg-white/95 border border-rose-200 hover:bg-rose-50 transition shadow-2xs cursor-pointer ml-auto sm:ml-2"
+                  className="inline-flex items-center gap-1.5 rounded-[12px] border border-rose-200 bg-white px-3.5 py-2 text-[12px] font-[650] text-rose-600 hover:bg-rose-50 shadow-xs transition-colors cursor-pointer"
                 >
-                  <XCircle size={14} />
+                  <XCircle size={15} />
                   <span>Yêu cầu hủy tour</span>
                 </button>
               )}
-              {isPast && b.status === "paid" && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 bg-slate-100/90 px-3 py-1 rounded-full border border-slate-200 ml-auto sm:ml-2">
-                  Đã qua ngày khởi hành
-                </span>
-              )}
-            </div>
-            {tourSummary && (
-              <p className="text-[12.5px] leading-relaxed text-[#4e709b] max-w-2xl line-clamp-2 mb-1.5 font-normal">
-                {tourSummary}
-              </p>
-            )}
-            <div className="text-[12px] text-[#5c7da6]">
-              Mã booking: <strong className="font-bold text-[#092448]">#BK{String(b.booking_id).padStart(6, "0")}</strong>
             </div>
           </div>
         </div>
-        <Plane aria-hidden="true" className="absolute right-[10%] top-[45px] text-[white] [transform:rotate(-13deg)] max-[1150px]:hidden" size={40} strokeWidth={1.4} />
-      </div>
-    </header>
+      </header>
 
-    {b.status === "cancel_requested" && <div className="mx-auto my-4 w-[93%] space-y-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-      <h3 className="font-semibold">Yêu cầu hủy đang chờ xử lý</h3>
-      <p>Phí hủy được chốt theo thời điểm bạn gửi yêu cầu. Việc chuyến đã khởi hành không tự động biến yêu cầu đang chờ thành bị từ chối.</p>
-      <button disabled={withdrawBusy} className="rounded-lg border border-amber-300 bg-white px-3 py-2 font-semibold disabled:opacity-50" onClick={async () => {
-        setWithdrawBusy(true); setWithdrawError("");
-        try { await withdrawBookingCancellation(b.booking_id); window.location.reload(); }
-        catch (error) { setWithdrawError(error instanceof Error ? error.message : "Không rút được yêu cầu."); setWithdrawBusy(false); }
-      }}>Rút yêu cầu hủy, tiếp tục booking</button>
-      {withdrawError && <p role="alert" className="text-red-700">{withdrawError}</p>}
-    </div>}
-
-    {b.status !== "cancel_requested" && !(b.cancellation_meta as any)?.cancelRequest?.withdrawn && parsedNote.adminRejection && <div className="mx-auto my-3 w-[93%] rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">Yêu cầu hủy chưa được chấp thuận: {parsedNote.adminRejection.note || "Vui lòng liên hệ tư vấn viên để được giải thích."}</div>}
-    {/* Hộp thoại đề xuất giải quyết sự cố / hủy tour từ Ban quản trị */}
-    {(b.cancellation_meta as any)?.resolutionProposal ? (
-      <UserBookingResolutionProposalCard booking={b} />
-    ) : b.status === "cancelled" ? (
-      <BookingCancelledBanner
-        parsedNote={parsedNote}
-        tourId={tour?.tour_id}
-        onViewRefundSlip={() => setReceiptModalOpen(true)}
-      />
-    ) : null}
-    <div className="mx-auto w-[93%]"><BookingSettlementPanel booking={b} /></div>
-
-    <div className={`w-[min(1430px,_93%)] grid grid-cols-[minmax(0,_1.42fr)_minmax(0,_1fr)] relative z-[2] ${b.status === "cancelled" ? "mt-4" : b.status === "cancel_requested" ? "mt-2" : "-mt-2"} mx-auto gap-4 max-[1150px]:grid-cols-[minmax(0,_1.2fr)_minmax(0,_1fr)] max-[1150px]:gap-3.5 max-[800px]:w-[92%] max-[800px]:grid-cols-[1fr]`}>
-      <div className="flex flex-col min-w-0 gap-4 max-[480px]:gap-3">
-        <section className="bg-[#ffffffed] rounded-[19px] shadow-[0_3px_18px_#c9e9fa08] min-w-0 border border-[#dcecff] border-solid p-4.5 max-[1150px]:p-4 max-[480px]:rounded-[17px] max-[480px]:p-3.5" aria-label="Thông tin tour">
-          <div className="flex mb-3.5 gap-4 max-[800px]:gap-3 max-[480px]:gap-2.5">
-            <ImageWithFallback src={tour?.tour_images?.[0]?.image_url || ""} alt={name} className="w-36 h-[140px] object-cover rounded-[12px] shrink-0 max-[1150px]:w-[110px] max-[1150px]:h-[130px] max-[800px]:w-[120px] max-[800px]:h-[130px] max-[480px]:w-20 max-[480px]:h-28" />
-            <div className="flex-1 min-w-0 [&_dl]:m-0" data-booking-tour-copy="">
-              <SectionTitle icon={<Ticket size={22} />} title="Thông tin tour" description="Các thông tin cơ bản của tour bạn đã đặt." />
-              <dl><Field label="Tên tour">{tour ? <Link href={`/tours/${tour.tour_id}`}>{name}</Link> : name}</Field></dl>
-            </div>
+      {/* Main Content Layout */}
+      <main className="mx-auto w-full max-w-[1440px] px-4 py-3 sm:px-6 lg:px-8 md:pb-8 space-y-3">
+        {/* Cancel Requested Alert */}
+        {b.status === "cancel_requested" && (
+          <div className="rounded-[14px] border border-amber-200 bg-amber-50 p-4 space-y-2.5 text-sm text-amber-950 shadow-sm">
+            <h3 className="font-bold text-amber-900">Yêu cầu hủy đang chờ xử lý</h3>
+            <p className="text-[13px] text-amber-900 leading-[1.5]">
+              Phí hủy được chốt theo thời điểm bạn gửi yêu cầu. Việc chuyến đã khởi hành không tự động biến yêu cầu đang chờ thành bị từ chối.
+            </p>
+            <button
+              disabled={withdrawBusy}
+              className="rounded-[12px] border border-amber-300 bg-white px-3.5 py-2 text-xs font-[650] text-amber-900 hover:bg-amber-100 disabled:opacity-50 transition-colors shadow-2xs"
+              onClick={async () => {
+                setWithdrawBusy(true);
+                setWithdrawError("");
+                try {
+                  await withdrawBookingCancellation(b.booking_id);
+                  window.location.reload();
+                } catch (error) {
+                  setWithdrawError(error instanceof Error ? error.message : "Không rút được yêu cầu.");
+                  setWithdrawBusy(false);
+                }
+              }}
+            >
+              {withdrawBusy ? "Đang xử lý..." : "Rút yêu cầu hủy, tiếp tục booking"}
+            </button>
+            {withdrawError && <p role="alert" className="text-red-700 text-xs">{withdrawError}</p>}
           </div>
-          {/* Hàng trên: 4 cột thông tin tour */}
-          <dl className="grid grid-cols-4 gap-2.5 max-[1150px]:grid-cols-[1fr_1fr] max-[800px]:grid-cols-4 max-[480px]:grid-cols-[1fr_1fr]">{[
-            { icon: Plane, label: "Mã tour", value: tour?.code || "Chưa cập nhật" },
-            { icon: CalendarDays, label: "Ngày khởi hành", value: date(b.tour_schedules?.start_date) },
-            { icon: Clock3, label: "Thời gian", value: tour ? `${tour.duration_days} ngày ${tour.duration_nights} đêm` : "Chưa cập nhật" },
-            { icon: MapPin, label: "Điểm khởi hành", value: b.departure_name || b.tour_schedules?.departure_location?.name || "Chưa cập nhật" },
-          ].map(({ icon: Icon, label, value }) => <div key={label} className="[&_dt]:text-[9px] [&_dt]:uppercase [&_dt]:tracking-[.06em]! [&_dt]:text-[#6283af] [&_dt]:mb-0.5 flex items-center min-w-0 rounded-[12px] [background:linear-gradient(125deg,_#f3f8fd,_#f6faff)] px-2.5 py-2.5 gap-2 [&_dd]:text-[12px] [&_dd]:font-[750] [&_dd]:leading-[1.5] [&_dd]:wrap-anywhere min-[1450px]:[&_dd]:text-[12.5px] max-[1150px]:p-2.5 max-[800px]:flex-col max-[800px]:items-start max-[800px]:p-2.5 max-[800px]:gap-1.5 max-[480px]:flex-row max-[480px]:items-center max-[480px]:p-2 max-[480px]:gap-2 max-[480px]:[&_dd]:text-[11px] max-[480px]:[&_dt]:text-[8px]"><span className="grid place-items-center [background:linear-gradient(135deg,_#eaf5ff,_#e2f0ff)] text-[#0064ff] rounded-full w-10 h-10 shrink-0 max-[480px]:w-8 max-[480px]:h-8 max-[480px]:[&_svg]:w-[18px]"><Icon size={21} /></span><div><dt>{label}</dt><dd>{value}</dd></div></div>)}</dl>
+        )}
 
-          {/* Hàng dưới: 2 cột (Địa điểm đón + Thời gian đón) */}
-          {b.pickup_snapshot && (
-            <dl className="grid grid-cols-2 gap-2.5 mt-2.5 max-[480px]:grid-cols-1">{[
-              { icon: MapPin, label: "Địa điểm đón", value: b.pickup_snapshot.address ? `${b.pickup_snapshot.name} — ${b.pickup_snapshot.address}` : b.pickup_snapshot.name },
-              { icon: Clock3, label: "Thời gian đón", value: date(b.pickup_snapshot.pickup_at, true) },
-            ].map(({ icon: Icon, label, value }) => <div key={label} className="[&_dt]:text-[9px] [&_dt]:uppercase [&_dt]:tracking-[.06em]! [&_dt]:text-[#6283af] [&_dt]:mb-0.5 flex items-center min-w-0 rounded-[12px] [background:linear-gradient(125deg,_#f3f8fd,_#f6faff)] px-3 py-2.5 gap-2.5 [&_dd]:text-[12px] [&_dd]:font-[750] [&_dd]:leading-[1.5] [&_dd]:wrap-anywhere min-[1450px]:[&_dd]:text-[12.5px] max-[1150px]:p-2.5 max-[480px]:p-2 max-[480px]:gap-2 max-[480px]:[&_dd]:text-[11px] max-[480px]:[&_dt]:text-[8px]"><span className="grid place-items-center [background:linear-gradient(135deg,_#eaf5ff,_#e2f0ff)] text-[#0064ff] rounded-full w-10 h-10 shrink-0 max-[480px]:w-8 max-[480px]:h-8 max-[480px]:[&_svg]:w-[18px]"><Icon size={21} /></span><div><dt>{label}</dt><dd>{value}</dd></div></div>)}</dl>
-          )}
-        </section>
-        <BookingCrewCard booking={b} />
-        {b.status === 'pending' && <PaymentCountdownCard booking={b} payments={payments} />}
-        <section className="bg-[#ffffffed] rounded-[19px] pt-5 pb-7.5 shadow-[0_3px_18px_#c9e9fa08] min-w-0 flex-1 border border-[#dcecff] border-solid px-5 min-[1450px]:p-[21px] max-[1150px]:p-4 max-[800px]:pt-4.5 max-[800px]:pb-5 max-[800px]:px-4.5 max-[480px]:rounded-[17px] max-[480px]:p-[15px]" aria-label="Thông tin người đặt tour"><SectionTitle icon={<UserRound size={26} />} title="Thông tin người đặt tour" description="Người đại diện đặt tour, các thông tin liên hệ sẽ được sử dụng để xác nhận và gửi thông báo." /><dl className="grid grid-cols-[1fr_1fr] gap-[13px] max-[480px]:gap-2.5" data-booking-contact-grid=""><Field label="Họ và tên">{b.contact_name}</Field><Field label="Số điện thoại">{b.contact_phone}</Field><Field label="Email" wide>{b.contact_email}</Field><Field label="Ghi chú" wide><span className="font-normal whitespace-pre-line">{parsedNote.customerNote || "Không có ghi chú."}</span></Field></dl></section>
-      </div>
-      <div className="flex flex-col min-w-0 gap-5 max-[480px]:gap-[15px]">
-        <section className="bg-[#ffffffed] rounded-[19px] shadow-[0_3px_18px_#c9e9fa08] min-w-0 border border-[#dcecff] border-solid p-5 min-[1450px]:p-[21px] max-[1150px]:p-4 max-[800px]:p-4.5 max-[480px]:rounded-[17px] max-[480px]:p-[15px]" aria-label="Danh sách hành khách"><SectionTitle icon={<UsersRound size={25} />} title="Danh sách hành khách" description="Thông tin hành khách đi cùng trong booking này." /><div className="rounded-[15px] overflow-auto border border-[#e0edff] border-solid"><table className="w-full border-collapse text-left whitespace-nowrap text-[11px] [&_thead]:bg-[#f3f8fe] [&_th]:text-[9px] [&_th]:font-medium [&_th]:tracking-[.07em]! [&_th]:text-[#6687b0] [&_th]:uppercase [&_th]:px-[15px] [&_th]:py-3 [&_td]:border-b [&_td]:[border-bottom-style:solid] [&_td]:border-b-[#edf4fc] [&_td]:align-middle [&_td]:px-[15px] [&_td]:py-3 [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_td]:[border-bottom-style:none] [&_tbody_tr:last-child_td]:border-b-[currentColor] [&_strong]:font-[650] [&_small]:block [&_small]:text-[#8295ad] [&_small]:text-[10px] [&_small]:mt-[3px] min-[1450px]:text-[12px] min-[1450px]:[&_th]:text-[10px] max-[1150px]:[&_th]:px-2.5 max-[1150px]:[&_td]:px-2.5 max-[800px]:text-[12px] max-[800px]:[&_th]:text-[10px] max-[480px]:text-[11px] max-[480px]:[&_th]:text-[9px]"><thead><tr><th>Họ tên</th><th>Ngày sinh</th><th>Giới tính</th><th>Giấy tờ</th></tr></thead><tbody>{b.booking_travelers?.length ? b.booking_travelers.map(traveler => <tr key={traveler.traveler_id}><td><strong>{traveler.full_name}</strong><small>{{ adult: "Người lớn", child: "Trẻ em", infant: "Em bé" }[traveler.traveler_type.toLowerCase()] || traveler.traveler_type}</small></td><td>{date(traveler.dob)}</td><td>{{ male: "Nam", female: "Nữ", other: "Khác" }[traveler.gender.toLowerCase()] || traveler.gender || "—"}</td><td>{traveler.id_number || "Chưa cập nhật"}</td></tr>) : <tr><td colSpan={4} className="text-center! text-[#8295ad] p-5.5!">Chưa có thông tin hành khách.</td></tr>}</tbody></table></div></section>
-        <section className="bg-[#ffffffed] rounded-[19px] shadow-[0_3px_18px_#c9e9fa08] min-w-0 border border-[#dcecff] border-solid p-5 min-[1450px]:p-[21px] max-[1150px]:p-4 max-[800px]:p-4.5 max-[480px]:rounded-[17px] max-[480px]:p-[15px]" aria-label="Chi tiết hóa đơn"><SectionTitle icon={<ReceiptText size={25} />} title="Chi tiết hóa đơn" description="Các khoản chi phí trong booking (vé, phụ thu, dịch vụ kèm theo)." /><div className="rounded-[15px] overflow-auto border border-[#e0edff] border-solid"><table className="w-full border-collapse text-left whitespace-nowrap text-[11px] [&_thead]:bg-[#f3f8fe] [&_th]:text-[9px] [&_th]:font-medium [&_th]:tracking-[.07em]! [&_th]:text-[#6687b0] [&_th]:uppercase [&_th]:px-[13px] [&_th]:py-[11px] [&_td]:border-b [&_td]:[border-bottom-style:solid] [&_td]:border-b-[#edf4fc] [&_td]:align-middle [&_td]:px-[13px] [&_td]:py-2.5 [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_td]:[border-bottom-style:none] [&_tbody_tr:last-child_td]:border-b-[currentColor] [&_strong]:font-[650] [&_small]:block [&_small]:text-[#8295ad] [&_small]:text-[10px] [&_small]:mt-[3px] [&_td:last-child]:text-right [&_td:last-child]:font-[650] [&_th:last-child]:text-right min-[1450px]:text-[12px] min-[1450px]:[&_th]:text-[10px] max-[1150px]:[&_th]:px-2.5 max-[1150px]:[&_td]:px-2.5 max-[800px]:text-[12px] max-[800px]:[&_th]:text-[10px] max-[480px]:text-[11px] max-[480px]:[&_th]:text-[9px]"><thead><tr><th>Hạng mục</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>{rows.map(row => <tr key={row.label}><td>{row.label}</td><td>{row.quantity}</td><td>{row.origPrice && <span className="block text-[10px] text-slate-400 line-through font-normal">{money(row.origPrice)}</span>}<span>{money(row.price)}</span></td><td>{money(row.quantity * row.price)}</td></tr>)}{extras.map((item, index) => <tr key={`${item.id}-${index}`}><td>{item.name}</td><td>{item.quantity}</td><td>{money(item.unit_price)}</td><td>{money(item.amount)}</td></tr>)}{services > 0 && !extras.length && <tr><td>Dịch vụ bổ sung</td><td>1</td><td>{money(services)}</td><td>{money(services)}</td></tr>}{surcharge > 0 && <tr><td>Phụ thu phòng / khác</td><td>1</td><td>{money(surcharge)}</td><td>{money(surcharge)}</td></tr>}</tbody></table></div>
-          <div className="grid grid-cols-[1fr_1.02fr] mt-[13px] gap-[15px] max-[1150px]:grid-cols-[1fr] max-[800px]:grid-cols-[1fr_1fr] max-[480px]:grid-cols-[1fr]"><div className="[&_dt]:text-[10px] [&_dt]:uppercase [&_dt]:tracking-[.075em]! [&_dt]:text-[#6283af] [&_dt]:mb-1.5 relative isolate overflow-hidden rounded-[15px] [background:linear-gradient(145deg,_#f0f8fe,_#f6fbff)] pt-[23px] pb-37.5 min-h-[275px] px-4.5 [&_dd]:text-[12px] [&_dd]:mb-5.5 [&_dd]:leading-[1.6] max-[1150px]:min-h-40 max-[1150px]:pt-4.5 max-[1150px]:pb-[15px] max-[1150px]:flex max-[1150px]:items-start max-[1150px]:px-4.5 max-[1150px]:[&_dl]:relative max-[1150px]:[&_dl]:z-[1] max-[1150px]:[&_dl]:max-w-[60%] max-[1150px]:[&_dd]:mb-[15px] max-[800px]:block max-[800px]:pt-5.5 max-[800px]:pb-[145px] max-[800px]:min-h-[295px] max-[800px]:px-4.5 max-[800px]:[&_dl]:max-w-full max-[480px]:min-h-[165px] max-[480px]:pt-5 max-[480px]:pb-[15px] max-[480px]:px-4.5 max-[480px]:[&_dl]:max-w-[60%]"><dl><dt>Giá gốc / giảm giá</dt><dd>{totalDiscount > 0 ? (<div className="space-y-1.5"><div className="font-extrabold text-emerald-600">Tiết kiệm {money(totalDiscount)}</div><div className="space-y-1 text-[11px] text-[#466286]">{promoDiscount > 0 && (<div className="flex items-center gap-1.5 flex-wrap"><span className="inline-block rounded-xs bg-rose-100 text-rose-700 px-1.5 py-0.2 text-[9.5px] font-bold">{promoTitle || "Ưu đãi"}</span><span className="font-semibold text-rose-600">−{money(promoDiscount)}</span></div>)}{memberDiscount > 0 && (<div className="flex items-center gap-1.5 flex-wrap"><span className="inline-block rounded-xs bg-amber-100 text-amber-800 px-1.5 py-0.2 text-[9.5px] font-bold">Hạng {b.membership_snapshot?.name || "thành viên"}</span><span className="font-semibold text-amber-700">−{money(memberDiscount)}</span></div>)}{voucherDiscount > 0 && (<div className="flex items-center gap-1.5 flex-wrap"><span className="inline-block rounded-xs bg-blue-100 text-blue-700 px-1.5 py-0.2 text-[9.5px] font-bold">Voucher</span><span className="font-semibold text-blue-600">−{money(voucherDiscount)}</span></div>)}{promoGift && (<div className="text-[10.5px] text-amber-800 font-semibold bg-amber-50/90 rounded px-1.5 py-0.5 inline-block border border-amber-200/60 mt-0.5">🎁 Quà tặng: {promoGift}</div>)}</div></div>) : ("Không áp dụng giảm giá")}</dd><dt>Voucher</dt><dd>{b.vouchers?.code ? `Mã: ${b.vouchers.code}` : "Không sử dụng"}</dd></dl><span className="[font-family:'Caveat',_cursive] text-[25px] leading-[1.05] text-[#4f8edb] absolute bottom-[99px] right-4 [transform:rotate(-13deg)] text-center max-[1150px]:right-2.5 max-[1150px]:bottom-5 max-[1150px]:text-[23px] max-[800px]:bottom-25 max-[800px]:right-5 max-[480px]:right-2 max-[480px]:bottom-[25px] max-[480px]:text-[22px]">Good Trips<br />Better People ♥</span><div className="absolute top-auto right-0 bottom-0 left-0 h-29 [background:linear-gradient(#f4faff05,_#d7f3ff44),_url('/images/about/our-story-ha-long-bay.png')_center_60%/cover] [clip-path:polygon(0_23%,_13%_8%,_23%_30%,_35%_4%,_45%_25%,_60%_0,_75%_25%,_88%_12%,_100%_32%,_100%_100%,_0_100%)] opacity-[.78] z-[-1] max-[1150px]:left-[55%] max-[1150px]:h-full max-[1150px]:opacity-[.5] max-[800px]:left-0 max-[800px]:h-30 max-[800px]:opacity-[.78] max-[480px]:left-[50%] max-[480px]:h-full max-[480px]:opacity-[.5]" /></div><div className="rounded-[16px] border border-[#dfebfc] border-solid px-4 py-[17px] [&_dl>div]:flex [&_dl>div]:items-start [&_dl>div]:justify-between [&_dl>div]:text-[11px] [&_dl>div]:leading-[1.7] [&_dl>div]:mb-[7px] [&_dl>div]:gap-3 [&_dd]:text-right [&_dd]:wrap-anywhere [&_dd]:min-w-0 min-[1450px]:[&_dl>div]:text-[12px] max-[1150px]:[&_dl>div]:text-[12px] max-[480px]:p-[17px] max-[480px]:[&_dl>div]:text-[12px]"><dl><div><dt>Tạm tính (giá gốc)</dt><dd>{money(subtotalOriginal)}</dd></div>{promoDiscount > 0 && (<div><dt className="text-rose-600 font-medium">{promoTitle || "Ưu đãi / Flash Deal"}</dt><dd className="text-rose-600 font-semibold">− {money(promoDiscount)}</dd></div>)}{memberDiscount > 0 && (<div><dt className="text-amber-800 font-medium">Ưu đãi hạng {b.membership_snapshot?.name || "thành viên"}</dt><dd className="text-amber-700 font-semibold">− {money(memberDiscount)}</dd></div>)}{voucherDiscount > 0 && (<div><dt className="text-blue-700 font-medium">Voucher ({b.vouchers?.code || "giảm giá"})</dt><dd className="text-blue-700 font-semibold">− {money(voucherDiscount)}</dd></div>)}{totalDiscount > 0 && !promoDiscount && !memberDiscount && !voucherDiscount && (<div><dt>Giảm giá</dt><dd className="text-[#607ca3]">− {money(totalDiscount)}</dd></div>)}</dl><div className="border-t [border-top-style:solid] border-t-[#edf3fc] border-b [border-bottom-style:solid] border-b-[#edf3fc] mt-2.5 mb-3 px-0 py-3 mx-0 [&>span]:block [&>span]:text-[#3d85ff] [&>span]:uppercase [&>span]:tracking-[.06em]! [&>span]:text-[10px] [&>span]:mb-1 [&_strong]:text-[#0064ff] [&_strong]:text-[clamp(21px,_1.9vw,_28px)] [&_strong]:leading-[1.3] [&_strong]:font-extrabold [&_strong]:whitespace-nowrap [&_strong]:tracking-[-.035em]! max-[1150px]:[&_strong]:text-[28px] max-[800px]:[&_strong]:text-[28px]"><span>Giá lúc thanh toán</span><strong>{money(b.total_amount)}</strong></div><dl className="text-[#5c7aa2]" data-booking-payment-details=""><div><dt>Trạng thái</dt><dd><Status value={b.status} schedule={b.tour_schedules} meta={b.cancellation_meta} /></dd></div><div><dt>Ngày đặt đơn</dt><dd>{date(b.created_at, true)}</dd></div><div><dt>Giao dịch</dt><dd>{payment?.transaction_code || "Chưa có"}</dd></div><div><dt>Phương thức</dt><dd>{method}</dd></div><div><dt>Thanh toán</dt><dd>{paymentStatus}</dd></div></dl></div></div>
-        </section>
-      </div>
+        {/* Admin Rejection Notice */}
+        {b.status !== "cancel_requested" && !(b.cancellation_meta as any)?.cancelRequest?.withdrawn && parsedNote.adminRejection && (
+          <div className="rounded-[14px] border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 shadow-sm">
+            <strong className="font-bold">Yêu cầu hủy chưa được chấp thuận: </strong>
+            <span>{parsedNote.adminRejection.note || "Vui lòng liên hệ tư vấn viên để được giải thích."}</span>
+          </div>
+        )}
+
+        {/* Resolution Proposal or Cancelled Banner */}
+        {(b.cancellation_meta as any)?.resolutionProposal ? (
+          <UserBookingResolutionProposalCard booking={b} />
+        ) : b.status === "cancelled" ? (
+          <BookingCancelledBanner
+            parsedNote={parsedNote}
+            tourId={tour?.tour_id}
+            onViewRefundSlip={() => setReceiptModalOpen(true)}
+          />
+        ) : null}
+
+        {/* Settlement Panel */}
+        <BookingSettlementPanel booking={b} />
+
+        {/* 2-Column Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,_1.35fr)_minmax(0,_1fr)] gap-3 items-start">
+          {/* Cột trái: Thông tin tour, Đội ngũ phụ trách, Người đặt tour */}
+          <div className="flex flex-col gap-3 min-w-0">
+            {/* Card 1: Thông tin tour */}
+            <section className="rounded-[14px] border border-[#e1edfc] bg-white p-4 shadow-sm space-y-3 min-w-0" aria-label="Thông tin tour">
+              <SectionTitle
+                icon={<Ticket size={20} />}
+                title="Thông tin tour"
+                description="Các thông tin cơ bản của tour bạn đã đặt."
+              />
+              <div className="flex gap-3.5 flex-col sm:flex-row">
+                <ImageWithFallback
+                  src={tour?.tour_images?.[0]?.image_url || ""}
+                  alt={name}
+                  className="w-full sm:w-36 h-36 object-cover rounded-xl shrink-0 border border-[#edf2fb]"
+                />
+                <div className="flex-1 min-w-0">
+                  <dl>
+                    <Field label="Tên tour">
+                      {tour ? (
+                        <Link href={`/tours/${tour.tour_id}`} className="hover:text-[#075bff] transition-colors">
+                          {name}
+                        </Link>
+                      ) : (
+                        name
+                      )}
+                    </Field>
+                  </dl>
+                </div>
+              </div>
+
+              {/* 4 Info Fields */}
+              <dl className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {[
+                  { icon: Plane, label: "Mã tour", value: tour?.code || "Chưa cập nhật" },
+                  { icon: CalendarDays, label: "Ngày khởi hành", value: date(b.tour_schedules?.start_date) },
+                  { icon: Clock3, label: "Thời gian", value: tour ? `${tour.duration_days}N${tour.duration_nights}Đ` : "Chưa cập nhật" },
+                  { icon: MapPin, label: "Điểm khởi hành", value: b.departure_name || b.tour_schedules?.departure_location?.name || "Chưa cập nhật" },
+                ].map(({ icon: Icon, label, value }) => (
+                  <div key={label} className="flex items-center gap-2.5 rounded-xl border border-[#edf2fb] bg-slate-50/70 p-2.5 min-w-0">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#075bff]">
+                      <Icon size={18} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
+                      <dd className="text-[12px] font-bold leading-[1.5] text-[#0b1747] truncate">{value}</dd>
+                    </div>
+                  </div>
+                ))}
+              </dl>
+
+              {/* Pickup Point Information */}
+              {b.pickup_snapshot && (
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {[
+                    { icon: MapPin, label: "Địa điểm đón", value: b.pickup_snapshot.address ? `${b.pickup_snapshot.name} — ${b.pickup_snapshot.address}` : b.pickup_snapshot.name },
+                    { icon: Clock3, label: "Thời gian đón", value: date(b.pickup_snapshot.pickup_at, true) },
+                  ].map(({ icon: Icon, label, value }) => (
+                    <div key={label} className="flex items-center gap-2.5 rounded-xl border border-[#edf2fb] bg-slate-50/70 p-2.5 min-w-0">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#075bff]">
+                        <Icon size={18} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
+                        <dd className="text-[12px] font-bold leading-[1.5] text-[#0b1747] break-words">{value}</dd>
+                      </div>
+                    </div>
+                  ))}
+                </dl>
+              )}
+            </section>
+
+            {/* Card 2: Người phụ trách chuyến đi */}
+            <BookingCrewCard booking={b} />
+
+            {/* Card 3: Đếm ngược thanh toán (nếu pending) */}
+            {b.status === "pending" && <PaymentCountdownCard booking={b} payments={payments} />}
+
+            {/* Card 4: Thông tin người đặt tour */}
+            <section className="rounded-[14px] border border-[#e1edfc] bg-white p-4 shadow-sm space-y-3 min-w-0" aria-label="Thông tin người đặt tour">
+              <SectionTitle
+                icon={<UserRound size={20} />}
+                title="Thông tin người đặt tour"
+                description="Người đại diện đặt tour, các thông tin liên hệ được sử dụng để xác nhận và gửi thông báo."
+              />
+              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <Field label="Họ và tên">{b.contact_name}</Field>
+                <Field label="Số điện thoại">{b.contact_phone}</Field>
+                <Field label="Email" wide>{b.contact_email}</Field>
+                <Field label="Ghi chú" wide>
+                  <span className="font-normal whitespace-pre-line text-slate-700">
+                    {parsedNote.customerNote || "Không có ghi chú."}
+                  </span>
+                </Field>
+              </dl>
+            </section>
+          </div>
+
+          {/* Cột phải: Danh sách hành khách & Chi tiết hóa đơn */}
+          <div className="flex flex-col gap-3 min-w-0">
+            {/* Card 5: Danh sách hành khách */}
+            <section className="rounded-[14px] border border-[#e1edfc] bg-white p-4 shadow-sm space-y-3 min-w-0" aria-label="Danh sách hành khách">
+              <SectionTitle
+                icon={<UsersRound size={20} />}
+                title="Danh sách hành khách"
+                description="Thông tin hành khách đi cùng trong booking này."
+              />
+              <div className="rounded-xl border border-[#edf2fb] overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-left whitespace-nowrap text-[13px]">
+                    <thead>
+                      <tr className="border-b border-[#edf2fb] bg-slate-50/75 text-[12px] font-[650] text-[#7387aa]">
+                        <th className="px-4 py-3">Họ tên</th>
+                        <th className="px-4 py-3">Ngày sinh</th>
+                        <th className="px-4 py-3">Giới tính</th>
+                        <th className="px-4 py-3">Giấy tờ</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#edf2fb]">
+                      {b.booking_travelers?.length ? (
+                        b.booking_travelers.map((traveler) => (
+                          <tr key={traveler.traveler_id} className="hover:bg-slate-50/60 transition-colors">
+                            <td className="px-4 py-3">
+                              <strong className="font-bold text-[#0b1747]">{traveler.full_name}</strong>
+                              <span className="block text-[11px] text-slate-500 mt-0.5">
+                                {{ adult: "Người lớn", child: "Trẻ em", infant: "Em bé" }[traveler.traveler_type.toLowerCase()] || traveler.traveler_type}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-slate-600">{date(traveler.dob)}</td>
+                            <td className="px-4 py-3 text-slate-600">
+                              {{ male: "Nam", female: "Nữ", other: "Khác" }[traveler.gender.toLowerCase()] || traveler.gender || "—"}
+                            </td>
+                            <td className="px-4 py-3 font-medium text-slate-700">{traveler.id_number || "Chưa cập nhật"}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="text-center text-slate-400 py-6">
+                            Chưa có thông tin hành khách.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            {/* Card 6: Chi tiết hóa đơn */}
+            <section className="rounded-[14px] border border-[#e1edfc] bg-white p-4 shadow-sm space-y-3 min-w-0" aria-label="Chi tiết hóa đơn">
+              <SectionTitle
+                icon={<ReceiptText size={20} />}
+                title="Chi tiết hóa đơn"
+                description="Các khoản chi phí trong booking (vé, phụ thu, dịch vụ kèm theo)."
+              />
+              <div className="rounded-xl border border-[#edf2fb] overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-left whitespace-nowrap text-[13px]">
+                    <thead>
+                      <tr className="border-b border-[#edf2fb] bg-slate-50/75 text-[12px] font-[650] text-[#7387aa]">
+                        <th className="px-4 py-3">Hạng mục</th>
+                        <th className="px-4 py-3 text-center">Số lượng</th>
+                        <th className="px-4 py-3 text-right">Đơn giá</th>
+                        <th className="px-4 py-3 text-right">Thành tiền</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#edf2fb]">
+                      {rows.map((row) => (
+                        <tr key={row.label} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="px-4 py-3 font-medium text-[#0b1747]">{row.label}</td>
+                          <td className="px-4 py-3 text-center text-slate-600">{row.quantity}</td>
+                          <td className="px-4 py-3 text-right">
+                            {row.origPrice && (
+                              <span className="block text-[10px] text-slate-400 line-through font-normal">
+                                {money(row.origPrice)}
+                              </span>
+                            )}
+                            <span className="text-slate-700">{money(row.price)}</span>
+                          </td>
+                          <td className="px-4 py-3 text-right font-bold text-[#0b1747]">{money(row.quantity * row.price)}</td>
+                        </tr>
+                      ))}
+                      {extras.map((item, index) => (
+                        <tr key={`${item.id}-${index}`} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="px-4 py-3 font-medium text-[#0b1747]">{item.name}</td>
+                          <td className="px-4 py-3 text-center text-slate-600">{item.quantity}</td>
+                          <td className="px-4 py-3 text-right text-slate-700">{money(item.unit_price)}</td>
+                          <td className="px-4 py-3 text-right font-bold text-[#0b1747]">{money(item.amount)}</td>
+                        </tr>
+                      ))}
+                      {services > 0 && !extras.length && (
+                        <tr className="hover:bg-slate-50/60 transition-colors">
+                          <td className="px-4 py-3 font-medium text-[#0b1747]">Dịch vụ bổ sung</td>
+                          <td className="px-4 py-3 text-center text-slate-600">1</td>
+                          <td className="px-4 py-3 text-right text-slate-700">{money(services)}</td>
+                          <td className="px-4 py-3 text-right font-bold text-[#0b1747]">{money(services)}</td>
+                        </tr>
+                      )}
+                      {surcharge > 0 && (
+                        <tr className="hover:bg-slate-50/60 transition-colors">
+                          <td className="px-4 py-3 font-medium text-[#0b1747]">Phụ thu phòng / khác</td>
+                          <td className="px-4 py-3 text-center text-slate-600">1</td>
+                          <td className="px-4 py-3 text-right text-slate-700">{money(surcharge)}</td>
+                          <td className="px-4 py-3 text-right font-bold text-[#0b1747]">{money(surcharge)}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Sub-Blocks: Ưu đãi & Chi tiết thanh toán */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                {/* Khối Ưu đãi / Giảm giá */}
+                <div className="rounded-xl border border-blue-100/80 bg-blue-50/40 p-4 flex flex-col justify-between space-y-3">
+                  <div>
+                    <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 mb-1.5">
+                      Ưu đãi & Giảm giá
+                    </dt>
+                    <dd className="text-[12px] leading-[1.6]">
+                      {totalDiscount > 0 ? (
+                        <div className="space-y-2">
+                          <div className="text-sm font-extrabold text-emerald-600">
+                            Tiết kiệm {money(totalDiscount)}
+                          </div>
+                          <div className="space-y-1.5 text-[11px] text-[#466286]">
+                            {promoDiscount > 0 && (
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="inline-block rounded-md bg-rose-100 text-rose-700 px-2 py-0.5 text-[10px] font-bold border border-rose-200">
+                                  {promoTitle || "Ưu đãi"}
+                                </span>
+                                <span className="font-semibold text-rose-600">−{money(promoDiscount)}</span>
+                              </div>
+                            )}
+                            {memberDiscount > 0 && (
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="inline-block rounded-md bg-amber-100 text-amber-800 px-2 py-0.5 text-[10px] font-bold border border-amber-200">
+                                  Hạng {b.membership_snapshot?.name || "thành viên"}
+                                </span>
+                                <span className="font-semibold text-amber-700">−{money(memberDiscount)}</span>
+                              </div>
+                            )}
+                            {voucherDiscount > 0 && (
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="inline-block rounded-md bg-blue-100 text-blue-700 px-2 py-0.5 text-[10px] font-bold border border-blue-200">
+                                  Voucher
+                                </span>
+                                <span className="font-semibold text-blue-600">−{money(voucherDiscount)}</span>
+                              </div>
+                            )}
+                            {promoGift && (
+                              <div className="text-[11px] text-amber-900 font-semibold bg-amber-50/90 rounded-lg px-2 py-1 inline-block border border-amber-200/80 mt-1">
+                                🎁 Quà tặng: {promoGift}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-slate-500">Không áp dụng giảm giá</span>
+                      )}
+                    </dd>
+                  </div>
+
+                  <div className="border-t border-blue-100/70 pt-2.5">
+                    <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 mb-0.5">
+                      Mã Voucher
+                    </dt>
+                    <dd className="text-[12px] font-bold text-[#0b1747]">
+                      {b.vouchers?.code ? (
+                        <span className="font-mono text-[#075bff]">{b.vouchers.code}</span>
+                      ) : (
+                        <span className="font-normal text-slate-400">Không sử dụng</span>
+                      )}
+                    </dd>
+                  </div>
+                </div>
+
+                {/* Khối Thanh toán & Trạng thái */}
+                <div className="rounded-xl border border-[#edf2fb] bg-slate-50/60 p-4 space-y-2.5">
+                  <dl className="space-y-1.5 text-[12px]">
+                    <div className="flex items-center justify-between text-slate-600">
+                      <dt>Tạm tính (giá gốc)</dt>
+                      <dd className="font-semibold text-[#0b1747]">{money(subtotalOriginal)}</dd>
+                    </div>
+                    {promoDiscount > 0 && (
+                      <div className="flex items-center justify-between text-rose-600">
+                        <dt>{promoTitle || "Ưu đãi / Flash Deal"}</dt>
+                        <dd className="font-semibold">− {money(promoDiscount)}</dd>
+                      </div>
+                    )}
+                    {memberDiscount > 0 && (
+                      <div className="flex items-center justify-between text-amber-700">
+                        <dt>Ưu đãi hạng {b.membership_snapshot?.name || "thành viên"}</dt>
+                        <dd className="font-semibold">− {money(memberDiscount)}</dd>
+                      </div>
+                    )}
+                    {voucherDiscount > 0 && (
+                      <div className="flex items-center justify-between text-blue-700">
+                        <dt>Voucher ({b.vouchers?.code || "giảm giá"})</dt>
+                        <dd className="font-semibold">− {money(voucherDiscount)}</dd>
+                      </div>
+                    )}
+                    {pointsDiscount > 0 && <div className="flex items-center justify-between text-blue-700"><dt>Điểm thành viên ({b.membership_snapshot?.pointsUsed} điểm)</dt><dd className="font-semibold">− {money(pointsDiscount)}</dd></div>}
+                    {totalDiscount > 0 && !promoDiscount && !memberDiscount && !voucherDiscount && !pointsDiscount && (
+                      <div className="flex items-center justify-between text-[#607ca3]">
+                        <dt>Giảm giá</dt>
+                        <dd className="font-semibold">− {money(totalDiscount)}</dd>
+                      </div>
+                    )}
+                  </dl>
+
+                  {/* Tổng tiền thanh toán */}
+                  <div className="border-y border-[#edf2fb] py-2.5 my-2 flex items-baseline justify-between">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      Giá lúc thanh toán
+                    </span>
+                    <strong className="text-xl font-extrabold leading-6 tracking-tight text-[#075bff]">
+                      {money(b.total_amount)}
+                    </strong>
+                  </div>
+
+                  {/* Metadata giao dịch */}
+                  <dl className="space-y-1.5 text-[11px] text-slate-500" data-booking-payment-details="">
+                    <div className="flex items-center justify-between">
+                      <dt>Trạng thái đơn</dt>
+                      <dd><Status value={b.status} schedule={b.tour_schedules} meta={b.cancellation_meta} /></dd>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <dt>Ngày đặt đơn</dt>
+                      <dd className="font-medium text-slate-700">{date(b.created_at, true)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <dt>Mã giao dịch</dt>
+                      <dd className="font-mono font-medium text-slate-700">{payment?.transaction_code || "Chưa có"}</dd>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <dt>Phương thức</dt>
+                      <dd className="font-medium text-slate-700">{method}</dd>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <dt>Thanh toán</dt>
+                      <dd className="font-semibold text-slate-900">{paymentStatus}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+
+      {/* Popup Modal Hủy Tour / Yêu Cầu Hủy */}
+      <BookingCancelModal
+        open={cancelModalOpen}
+        booking={b}
+        onClose={() => setCancelModalOpen(false)}
+        onSuccess={() => {
+          setCancelModalOpen(false);
+          window.location.reload();
+        }}
+      />
+
+      {/* Popup Modal Xem & In Biên lai / Biên nhận hoàn tiền */}
+      <BookingReceiptModal
+        open={receiptModalOpen}
+        onClose={() => setReceiptModalOpen(false)}
+        booking={b}
+      />
     </div>
-
-    {/* Popup Modal Hủy Tour / Yêu Cầu Hủy */}
-    <BookingCancelModal
-      open={cancelModalOpen}
-      booking={b}
-      onClose={() => setCancelModalOpen(false)}
-      onSuccess={() => {
-        setCancelModalOpen(false);
-        window.location.reload();
-      }}
-    />
-
-    {/* Popup Modal Xem & In Biên lai / Biên nhận hoàn tiền */}
-    <BookingReceiptModal
-      open={receiptModalOpen}
-      onClose={() => setReceiptModalOpen(false)}
-      booking={b}
-    />
-  </div>;
+  );
 }

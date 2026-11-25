@@ -32,6 +32,12 @@ export class PaymentController {
         return this.payment.getPaymentStatus(reference, req.user?.accountId);
     }
 
+    @UseGuards(JwtAuthGuard)
+    @Post("create-reschedule-url")
+    createReschedule(@Body() body: { bookingId: number; proposalId: string }, @Req() req: Request & { user: { accountId: number } }) {
+        return this.payment.createReschedulePaymentUrl(body?.bookingId, body?.proposalId, req.user.accountId, req.ip || req.socket.remoteAddress, resolveClientOrigin(req));
+    }
+
     @Get("vnpay-ipn")
     async ipn(
     @Query()

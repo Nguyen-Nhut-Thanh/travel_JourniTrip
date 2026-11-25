@@ -35,11 +35,7 @@ export const MEMBERSHIP_TIERS: MembershipTier[] = [
     discountValue: 0,
     maxDiscount: 0,
     minOrder: 0,
-    benefits: [
-      "Tích lũy chi tiêu & điểm thưởng sau mỗi chuyến đi",
-      "Voucher sinh nhật 50.000đ hàng năm",
-      "Hỗ trợ tư vấn tour tiêu chuẩn",
-    ],
+    benefits: [],
   },
   {
     id: "silver",
@@ -54,14 +50,7 @@ export const MEMBERSHIP_TIERS: MembershipTier[] = [
     discountValue: 100_000,
     maxDiscount: 100_000,
     minOrder: 2_000_000,
-    benefits: [
-      "Giảm 2% trực tiếp giá vé tour",
-      "Tích lũy ×1.2 điểm thưởng",
-      "Giảm 5% dịch vụ đi kèm (xe riêng, phòng VIP)",
-      "Voucher sinh nhật 100.000đ",
-      "Voucher thăng hạng 100.000đ (đơn từ 2.000.000đ)",
-      "Thức uống chào mừng tại khách sạn đối tác",
-    ],
+    benefits: [],
   },
   {
     id: "gold",
@@ -76,16 +65,7 @@ export const MEMBERSHIP_TIERS: MembershipTier[] = [
     discountValue: 3,
     maxDiscount: 200_000,
     minOrder: 3_000_000,
-    benefits: [
-      "Giảm 3% trực tiếp giá vé tour",
-      "Tích lũy ×1.5 điểm thưởng",
-      "Giảm 10% dịch vụ đi kèm",
-      "Voucher sinh nhật 200.000đ",
-      "Voucher thăng hạng 3% (tối đa 200.000đ)",
-      "Trip Shield: Đổi ngày khởi hành miễn phí 1 lần/năm (trước 7 ngày)",
-      "Ưu tiên chọn chỗ ngồi đầu xe / máy bay",
-      "Ưu tiên hỗ trợ và xử lý giữ chỗ",
-    ],
+    benefits: [],
   },
   {
     id: "platinum",
@@ -100,16 +80,7 @@ export const MEMBERSHIP_TIERS: MembershipTier[] = [
     discountValue: 5,
     maxDiscount: 400_000,
     minOrder: 5_000_000,
-    benefits: [
-      "Giảm 5% trực tiếp giá vé tour (chia sẻ tối đa 2 người đi cùng)",
-      "Tích lũy ×2.0 điểm thưởng",
-      "Giảm 15% dịch vụ đi kèm",
-      "Voucher sinh nhật 300.000đ",
-      "Voucher thăng hạng 5% (tối đa 400.000đ)",
-      "1 lượt nâng hạng phòng resort/năm + 1 chuyến xe đón sân bay",
-      "Trip Shield: Hoàn/hủy linh hoạt trước 72h về ví điểm",
-      "Kênh hỗ trợ VIP riêng biệt",
-    ],
+    benefits: [],
   },
   {
     id: "diamond",
@@ -124,20 +95,9 @@ export const MEMBERSHIP_TIERS: MembershipTier[] = [
     discountValue: 7,
     maxDiscount: 700_000,
     minOrder: 7_000_000,
-    benefits: [
-      "Giảm 7% trực tiếp giá vé tour (chia sẻ tối đa 3 người đi cùng)",
-      "Tích lũy ×3.0 điểm thưởng",
-      "Giảm 20% dịch vụ đi kèm",
-      "Voucher sinh nhật 500.000đ + Quà chào mừng tại điểm đến",
-      "Voucher thăng hạng 7% (tối đa 700.000đ)",
-      "Tự động nâng hạng phòng cao cấp (Presidential/Villa) khi còn phòng",
-      "Phòng chờ thương gia & Fast-track thủ tục sân bay",
-      "Xe Mercedes đưa đón sân bay mọi chuyến đi",
-      "Tặng 01 thẻ Bạc cho người thân",
-      "Chuyên viên tư vấn & Quản gia Concierge 1-1 phục vụ 24/7",
-    ],
+    benefits: [],
   },
-];
+].map((tier) => ({ ...tier, benefits: membershipBenefits(tier as MembershipTier) })) as MembershipTier[];
 
 export interface MembershipVoucher {
   voucher_id: number;
@@ -164,6 +124,8 @@ export interface MembershipNotification {
 }
 
 export interface MembershipRewardItem {
+  minOrder?: number;
+  validityDays?: number;
   id: string;
   title: string;
   category: string;
@@ -174,60 +136,12 @@ export interface MembershipRewardItem {
 }
 
 export const DEFAULT_MEMBERSHIP_REWARDS: MembershipRewardItem[] = [
-  {
-    id: "six-senses-villa",
-    title: "01 Đêm Pool Villa tại Six Senses Ninh Vân Bay / Amanoi",
-    category: "Nghỉ dưỡng 5 sao",
-    pointsCost: 12_000,
-    imageUrl: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80",
-    description: "Bao gồm bữa sáng tự chọn, trà chiều hoàng hôn và đưa đón bằng tàu cao tốc riêng cho 02 người.",
-    valueVnd: 12_000_000,
-  },
-  {
-    id: "business-class-upgrade",
-    title: "Nâng Hạng Thương Gia (Business Class) Chặng Đông Nam Á",
-    category: "Hàng không",
-    pointsCost: 8_500,
-    imageUrl: "https://images.unsplash.com/photo-1540339832862-474599807836?auto=format&fit=crop&w=800&q=80",
-    description: "Áp dụng cho Vietnam Airlines, Singapore Airlines hoặc Qatar Airways kèm dịch vụ phòng chờ VIP.",
-    valueVnd: 8_500_000,
-  },
-  {
-    id: "michelin-dining-spa",
-    title: "Bữa Tối Fine Dining Michelin & Liệu Trình Spa 120 Phút",
-    category: "Wellness & Ẩm thực",
-    pointsCost: 4_500,
-    imageUrl: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=800&q=80",
-    description: "Thực đơn Tasting Menu 7 món kết hợp rượu vang hảo hạng và gói trị liệu thảo mộc hoàng gia.",
-    valueVnd: 4_500_000,
-  },
-  {
-    id: "private-yacht-sunset",
-    title: "Du Thuyền Hoàng Hôn Riêng Tư Vịnh Hạ Long / Phú Quốc",
-    category: "Du thuyền riêng",
-    pointsCost: 18_000,
-    imageUrl: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80",
-    description: "Trải nghiệm 4 giờ trên du thuyền Catamaran riêng tư cùng tiệc Champagne và đầu bếp phục vụ riêng.",
-    valueVnd: 18_000_000,
-  },
-  {
-    id: "tour-discount-voucher-1m",
-    title: "Voucher Giảm Giá Tour Trị Giá 1.000.000đ",
-    category: "Voucher tiền mặt",
-    pointsCost: 1_000,
-    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
-    description: "Trừ trực tiếp 1.000.000đ khi đặt bất kỳ tour du lịch trọn gói nào trên hệ thống JourniTrip.",
-    valueVnd: 1_000_000,
-  },
-  {
-    id: "airport-transfer-mercedes",
-    title: "Đưa Đón Sân Bay Bằng Xe Sang Mercedes-Benz",
-    category: "Đưa đón VIP",
-    pointsCost: 3_000,
-    imageUrl: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=800&q=80",
-    description: "Xe riêng Mercedes E-Class đón hoặc tiễn sân bay với nước suối, khăn lạnh và tài xế chuyên nghiệp.",
-    valueVnd: 3_000_000,
-  },
+  { id: "tour-voucher-100k", title: "Voucher tour 100.000đ", category: "Voucher tour", pointsCost: 100, valueVnd: 100_000,
+    imageUrl: "/images/shared/travel-cover.png", description: "Giảm 100.000đ tiền tour cho một đơn từ 500.000đ. Có hiệu lực 12 tháng; không quy đổi thành tiền mặt." },
+  { id: "tour-voucher-500k", title: "Voucher tour 500.000đ", category: "Voucher tour", pointsCost: 500, valueVnd: 500_000,
+    imageUrl: "/images/shared/travel-cover.png", description: "Giảm 500.000đ tiền tour cho một đơn từ 2.500.000đ. Có hiệu lực 12 tháng; không quy đổi thành tiền mặt." },
+  { id: "tour-discount-voucher-1m", title: "Voucher tour 1.000.000đ", category: "Voucher tour", pointsCost: 1000, valueVnd: 1_000_000,
+    imageUrl: "/images/shared/travel-cover.png", description: "Giảm 1.000.000đ tiền tour cho một đơn từ 5.000.000đ. Có hiệu lực 12 tháng; không quy đổi thành tiền mặt." },
 ];
 
 export interface MembershipSummary {
@@ -238,6 +152,10 @@ export interface MembershipSummary {
   spending: number;
   points: number;
   pointsBalance?: number;
+  pointsHeld?: number;
+  pointsDebt?: number;
+  pointTransactions?: MembershipPointTransaction[];
+  programVersion?: number;
   nextTier: MembershipTier | null;
   toNextTier: number;
   toRetainTier: number;
@@ -261,6 +179,9 @@ export interface MembershipSummary {
 }
 
 export interface MembershipAdminList {
+  rewards?: MembershipRewardItem[];
+  tierCounts?: Partial<Record<MembershipTierId, number>>;
+  programVersion?: number;
   items: {
     userId: number;
     name: string;
@@ -271,6 +192,7 @@ export interface MembershipAdminList {
     voucherCount: number;
     phone: string | null;
     bookingCount: number;
+    pointsBalance?: number;
   }[];
   total: number;
   page: number;
@@ -282,6 +204,9 @@ export interface MembershipAdminList {
 }
 
 export interface MembershipBookingSnapshot {
+  programVersion?: number;
+  pointsUsed?: number;
+  pointsDiscount?: number;
   tier: MembershipTierId;
   name: string;
   pointMultiplier: number;
@@ -306,7 +231,43 @@ export function membershipBenefits(tier: MembershipTier): string[] {
     ...(tier.birthdayVoucherAmount ? [`Voucher sinh nhật ${tier.birthdayVoucherAmount.toLocaleString("vi-VN")}đ`] : []),
     ...(tier.serviceDiscountPercent ? [`Giảm ${tier.serviceDiscountPercent}% dịch vụ đi kèm`] : []),
     ...(tier.priorityReservation ? ["Ưu tiên xử lý yêu cầu giữ chỗ"] : []),
+    ...(tier.id !== "bronze" ? [`Voucher thăng hạng ${tier.discountType === "percentage" ? `${tier.discountValue}% (tối đa ${tier.maxDiscount.toLocaleString("vi-VN")}đ)` : `${tier.discountValue.toLocaleString("vi-VN")}đ`}, đơn từ ${tier.minOrder.toLocaleString("vi-VN")}đ`] : []),
   ];
+}
+
+export interface MembershipPointTransaction {
+  id: number;
+  bookingId: number | null;
+  kind: string;
+  points: number;
+  reserved: number;
+  description: string;
+  createdAt: string;
+}
+
+export const MEMBERSHIP_POINTS_POLICY = {
+  earningBaseVnd: 100_000,
+  valueVnd: 1_000,
+  maxPaymentPercent: 30,
+  expiryMonths: null,
+  cycleMonths: 12,
+} as const;
+
+export function maxBookingPoints(amountAfterDiscounts: number, availablePoints: number) {
+  if (!Number.isFinite(amountAfterDiscounts) || !Number.isFinite(availablePoints)) return 0;
+  return Math.max(0, Math.min(Math.floor(availablePoints), Math.floor(Math.max(0, amountAfterDiscounts) * MEMBERSHIP_POINTS_POLICY.maxPaymentPercent / 100 / MEMBERSHIP_POINTS_POLICY.valueVnd)));
+}
+
+export function membershipEarnedPoints(amount: number, multiplier: number) {
+  return Math.floor(Math.max(0, amount) * Math.round(multiplier * 10) / (MEMBERSHIP_POINTS_POLICY.earningBaseVnd * 10));
+}
+
+export function membershipReschedulePrice(gross: number, discount: number, activePoints: number) {
+  const otherDiscount = Math.max(0, discount - activePoints * MEMBERSHIP_POINTS_POLICY.valueVnd);
+  const afterOtherDiscounts = Math.max(0, gross - otherDiscount);
+  const pointsUsed = maxBookingPoints(afterOtherDiscounts, activePoints);
+  const pointsDiscount = pointsUsed * MEMBERSHIP_POINTS_POLICY.valueVnd;
+  return { pointsUsed, pointsDiscount, pointsReturned: activePoints - pointsUsed, discount: otherDiscount + pointsDiscount, cash: afterOtherDiscounts - pointsDiscount };
 }
 
 export function membershipPrice(tier: MembershipTier | null, subtotal: number, servicesTotal: number, voucherDiscount = 0) {

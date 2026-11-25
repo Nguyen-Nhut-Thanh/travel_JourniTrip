@@ -30,6 +30,13 @@ export function BookingHistoryCard({ item, rawBooking, onReview, onCancelRequest
   const isYellowTag = Boolean(item.isCancelUnapproved);
   const isRefunded = item.statusText === "Đã hoàn tiền";
   const statusLabel = item.paymentStatus === "unpaid" && item.status === "upcoming" ? "Chờ thanh toán" : item.statusText;
+  const infoRows = [
+    { key: "location", icon: MapPin, label: "", value: item.location || "Chưa cập nhật điểm khởi hành", tone: "font-medium text-slate-500" },
+    { key: "booked", icon: CalendarDays, label: "Đặt ngày:", value: bookingDate || "Chưa cập nhật", tone: "font-medium text-blue-700" },
+    { key: "departure", icon: CalendarDays, label: "Khởi hành:", value: `${item.startDate} – ${item.endDate}`, tone: "font-bold text-blue-700" },
+    { key: "duration", icon: Clock, label: "Thời gian:", value: item.duration || "Đang cập nhật", tone: "font-bold text-slate-800" },
+    { key: "passengers", icon: Users, label: "Hành khách:", value: item.passengers, tone: "font-bold text-slate-800" },
+  ];
   const statusClass = isYellowTag
     ? "border-amber-300 bg-amber-50 text-amber-900"
     : isRefunded
@@ -91,23 +98,12 @@ export function BookingHistoryCard({ item, rawBooking, onReview, onCancelRequest
         </span>
       </div>
 
-      <div className="relative z-10 flex min-w-0 flex-1 flex-col justify-between py-1 md:py-2">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h3 className="line-clamp-2 text-base font-extrabold leading-snug tracking-tight text-slate-900 transition-colors group-hover:text-[#1266f1] md:text-lg">
-              <Link href={`/booking/${item.id}`} title={item.name}>{item.name}</Link>
+      <div className="relative z-10 grid min-w-0 flex-1 grid-rows-[36px_116px_auto] gap-2 py-1">
+        <div className="flex h-9 min-w-0 items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-base font-extrabold leading-7 tracking-tight text-slate-900 transition-colors group-hover:text-[#1266f1] md:text-lg">
+              <Link href={`/booking/${item.id}`} title={item.name} className="block truncate">{item.name}</Link>
             </h3>
-            <div className="mt-1.5 flex flex-col gap-2 text-xs font-medium text-slate-500">
-              <span className="flex min-w-0 items-center gap-1.5">
-                <MapPin className="h-4 w-4 shrink-0 text-slate-900" />
-                <span className="truncate">{item.location || "Chưa cập nhật điểm khởi hành"}</span>
-              </span>
-              <span className="flex items-center gap-1.5 text-slate-500">
-                <CalendarDays className="h-4 w-4 shrink-0 text-slate-900" />
-                <span>Đặt ngày:</span>
-                <span className="text-blue-700">{bookingDate || "Chưa cập nhật"}</span>
-              </span>
-            </div>
           </div>
           <div className="relative z-20 shrink-0">
             <AdminRowActions
@@ -127,22 +123,14 @@ export function BookingHistoryCard({ item, rawBooking, onReview, onCancelRequest
           </div>
         </div>
 
-        <div className="mb-2 mt-2 flex flex-col gap-2 text-slate-700">
-          <div className="flex min-w-0 items-center gap-2">
-            <CalendarDays className="h-4 w-4 shrink-0 text-slate-900" />
-            <span className="shrink-0 text-[11px] font-medium text-slate-500">Khởi hành:</span>
-            <span className="truncate text-xs font-bold text-blue-700">{item.startDate} – {item.endDate}</span>
-          </div>
-          <div className="flex min-w-0 items-center gap-2">
-            <Clock className="h-4 w-4 shrink-0 text-slate-900" />
-            <span className="shrink-0 text-[11px] font-medium text-slate-500">Thời gian:</span>
-            <span className="truncate text-xs font-bold text-slate-800">{item.duration || "Đang cập nhật"}</span>
-          </div>
-          <div className="flex min-w-0 items-center gap-2">
-            <Users className="h-4 w-4 shrink-0 text-slate-900" />
-            <span className="shrink-0 text-[11px] font-medium text-slate-500">Hành khách:</span>
-            <span className="truncate text-xs font-bold text-slate-800">{item.passengers}</span>
-          </div>
+        <div className="grid h-[116px] min-w-0 auto-rows-[20px] gap-y-1">
+          {infoRows.map(({ key, icon: Icon, label, value, tone }) => (
+            <div key={key} className="grid h-5 min-w-0 grid-cols-[16px_70px_minmax(0,1fr)] items-center gap-x-2">
+              <Icon className="h-4 w-4 text-slate-900" />
+              {label && <span className="truncate text-[11px] font-medium leading-5 text-slate-500">{label}</span>}
+              <span title={value} className={`min-w-0 truncate text-xs leading-5 ${tone} ${label ? "" : "col-span-2"}`}>{value}</span>
+            </div>
+          ))}
         </div>
 
         <div className="grid min-w-0 grid-cols-2 items-end gap-x-3 gap-y-1 pt-1">

@@ -8,19 +8,20 @@ import { tierStyles } from "@/components/membership/admin_membership/AdminMember
 
 type Field = "threshold" | "tourDiscountPercent" | "pointMultiplier" | "birthdayVoucherAmount" | "serviceDiscountPercent";
 const fields: { key: Field; label: string; suffix: string; max: number; decimal?: boolean }[] = [
-  { key: "threshold", label: "Chi tiêu tối thiểu", suffix: "đ", max: 1_000_000_000_000 },
+  { key: "threshold", label: "Chi tiêu tối thiểu", suffix: "đ", max: 999_999_999_999 },
   { key: "tourDiscountPercent", label: "Giảm giá tour", suffix: "%", max: 100 },
   { key: "pointMultiplier", label: "Hệ số tích điểm", suffix: "×", max: 10, decimal: true },
   { key: "birthdayVoucherAmount", label: "Voucher sinh nhật", suffix: "đ", max: 1_000_000_000 },
   { key: "serviceDiscountPercent", label: "Giảm dịch vụ đi kèm", suffix: "%", max: 100 },
 ];
 
-export function MembershipTierSettings({ tiers, disabled, onSelect, onChange }: {
+export function MembershipTierSettings({ tiers, disabled, onSelect, onChange, initialTier }: {
+  initialTier?: MembershipTierId;
   tiers: MembershipTier[]; disabled: boolean;
   onSelect: (id: MembershipTierId) => void;
   onChange: (id: MembershipTierId, field: Field | "priorityReservation", value: number | boolean) => void;
 }) {
-  const [expanded, setExpanded] = useState<MembershipTierId | null>(null);
+  const [expanded, setExpanded] = useState<MembershipTierId | null>(initialTier ?? null);
   const member = tiers.find(tier => tier.id === "bronze");
 
   function toggle(id: MembershipTierId) {
@@ -59,7 +60,7 @@ export function MembershipTierSettings({ tiers, disabled, onSelect, onChange }: 
     </div>;
   }
 
-  return <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/20 sm:p-5">
+  return <section className="membership-tier-settings min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/20 sm:p-5">
     <header className="border-b border-slate-100 pb-4">
       <h2 className="flex items-center gap-2 text-sm font-bold text-slate-900"><SlidersHorizontal size={17} className="text-cyan-600" />Quy tắc thăng hạng & quyền lợi</h2>
       <p className="mt-1.5 text-xs leading-5 text-slate-500">Chọn một hạng để xem và chỉnh sửa quyền lợi.</p>
@@ -67,14 +68,14 @@ export function MembershipTierSettings({ tiers, disabled, onSelect, onChange }: 
     <div className="mt-4 space-y-3">
       {tiers.filter(tier => tier.id !== "bronze").map(tier => {
         const open = expanded === tier.id;
-        return <article key={tier.id} className={`overflow-hidden rounded-xl border transition-colors ${open ? "border-cyan-200 bg-cyan-50/35" : "border-slate-200 bg-white"}`}>
+        return <article key={tier.id} data-membership-tier={tier.id} data-expanded={open} className={`overflow-hidden rounded-xl border transition-colors ${open ? "border-cyan-200 bg-cyan-50/35" : "border-slate-200 bg-white"}`}>
           <h3>
-            <button type="button" id={`tier-trigger-${tier.id}`} aria-expanded={open} aria-controls={`tier-panel-${tier.id}`} onClick={() => toggle(tier.id)} className="flex w-full items-center justify-between gap-3 p-4 text-left outline-none hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-400">
+            <button type="button" id={`tier-trigger-${tier.id}`} aria-expanded={open} aria-controls={`tier-panel-${tier.id}`} onClick={() => toggle(tier.id)} className="membership-tier-trigger flex w-full items-center justify-between gap-3 p-4 text-left outline-none hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-400">
               <span className="flex min-w-0 items-center gap-3">
                 <span className={`size-2.5 shrink-0 rounded-full ${tierStyles[tier.id].dot}`} />
                 <span><span className="block text-sm font-bold text-slate-900">{tier.name}</span><span className="mt-1 block text-[11px] font-normal text-slate-400">Từ {formatVND(tier.threshold)} / kỳ</span></span>
               </span>
-              <span className="flex shrink-0 items-center gap-3"><span className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold ${tierStyles[tier.id].badge}`}>{tierStyles[tier.id].english}</span><ChevronDown size={17} aria-hidden className={`text-slate-400 transition-transform motion-reduce:transition-none ${open ? "rotate-180" : ""}`} /></span>
+              <span className="flex shrink-0 items-center gap-3"><span className={`membership-tier-badge rounded-md border px-2 py-0.5 text-[10px] font-semibold ${tierStyles[tier.id].badge}`}>{tierStyles[tier.id].english}</span><ChevronDown size={17} aria-hidden className={`text-slate-400 transition-transform motion-reduce:transition-none ${open ? "rotate-180" : ""}`} /></span>
             </button>
           </h3>
           <div id={`tier-panel-${tier.id}`} role="region" aria-labelledby={`tier-trigger-${tier.id}`} hidden={!open}>

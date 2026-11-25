@@ -135,7 +135,7 @@ export function buildBookingNotificationContent(params: BookingNotificationParam
         case 'customer_cancelled_pending':
             return { title: `Đã hủy đơn giữ chỗ #${bookingId}`, message: `Đơn chưa thanh toán của tour "${tourName}" đã được hủy và nhả chỗ.`, eventKey: `booking:customer_cancelled_pending:${bookingId}` };
         case 'topup_pending':
-            return { title: `Chờ nộp bổ sung cho booking #${bookingId}`, message: `Vui lòng xem số tiền, tài khoản công ty và hạn chuyển khoản trong chi tiết booking. Lịch mới chỉ được xác nhận sau khi công ty nhận đủ tiền.`, eventKey: `booking:topup_pending:${bookingId}:${Date.now()}` };
+            return { title: `Chờ nộp bổ sung cho booking #${bookingId}`, message: `Vui lòng thanh toán phần chênh lệch qua VNPay trong chi tiết booking trước hạn giữ chỗ. Lịch mới được xác nhận tự động khi thanh toán hợp lệ.`, eventKey: `booking:topup_pending:${bookingId}:${Date.now()}` };
         case 'topup_late':
             return { title: `Đã ghi nhận tiền về trễ cho booking #${bookingId}`, message: `Khoản nộp thêm được ghi nhận để hoàn lại. Vui lòng bổ sung tài khoản nhận tiền trong chi tiết booking; lịch mới không tự được kích hoạt.`, eventKey: `booking:topup_late:${bookingId}:${Date.now()}` };
         case 'service_adjusted':

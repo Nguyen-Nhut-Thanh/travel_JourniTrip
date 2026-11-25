@@ -15,6 +15,7 @@ export default function BookingDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
+
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
@@ -46,44 +47,48 @@ export default function BookingDetailPage() {
       });
     return () => controller.abort();
   }, [id, attempt]);
+
   if (loading || error || !booking)
     return (
-      <div className="flex min-h-[65vh] items-center justify-center bg-sky-50 px-5">
+      <div className="flex min-h-[65vh] items-center justify-center bg-blue-50 px-5">
         <div
           role={error ? "alert" : "status"}
-          className="max-w-md rounded-3xl border border-blue-100 bg-white p-10 text-center"
+          className="max-w-md w-full rounded-[14px] border border-[#e1edfc] bg-white p-8 text-center shadow-sm"
         >
           {loading ? (
             <>
               <Loader2
-                className="mx-auto mb-4 animate-spin text-blue-600"
+                className="mx-auto mb-4 animate-spin text-[#075bff]"
                 size={36}
               />
-              <p>Đang tải chi tiết booking...</p>
+              <p className="text-sm font-semibold text-slate-700">Đang tải chi tiết booking...</p>
             </>
           ) : (
             <>
               <AlertCircle className="mx-auto mb-4 text-rose-500" size={36} />
-              <h1 className="text-xl font-bold">Chưa thể hiển thị booking</h1>
-              <p className="my-4 text-sm text-slate-500">{error}</p>
+              <h1 className="text-lg font-bold text-[#07123e]">Chưa thể hiển thị booking</h1>
+              <p className="my-3 text-xs leading-relaxed text-slate-500">{error}</p>
               <button
                 type="button"
                 onClick={() => setAttempt((value) => value + 1)}
-                className="mb-5 rounded-full bg-blue-600 px-6 py-2 text-sm font-bold text-white"
+                className="mb-4 inline-flex items-center justify-center rounded-[12px] bg-[#075bff] px-5 py-2 text-xs font-[650] text-white hover:bg-[#064ddd] transition-colors shadow-xs cursor-pointer"
               >
                 Thử lại
               </button>
-              <Link
-                href="/account/bookings"
-                className="flex items-center justify-center gap-2 text-sm text-blue-600"
-              >
-                <ArrowLeft size={16} />
-                Lịch sử đặt tour
-              </Link>
+              <div>
+                <Link
+                  href="/account/bookings"
+                  className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#075bff] hover:underline"
+                >
+                  <ArrowLeft size={15} />
+                  Lịch sử đặt tour
+                </Link>
+              </div>
             </>
           )}
         </div>
       </div>
     );
+
   return <BookingDetailView booking={booking} />;
 }

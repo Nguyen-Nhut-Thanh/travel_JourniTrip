@@ -6,6 +6,8 @@ import type { PrismaService } from "../../infrastructure/database/prisma.service
 import { calculateBookingTourPrice } from "./helpers/booking-tour-price";
 import { sendBookingNotification } from "./helpers/booking-notifications";
 import type { MailService } from "../../infrastructure/mail/mail.service";
+import { refundBookingPoints, settleBookingPoints } from '../membership/helpers/membership.wallet';
+import { membershipReschedulePrice } from 'shared';
 
 function fail(message: string): never { throw new BadRequestException(message); }
 const money = (value: unknown) => {
@@ -79,6 +81,7 @@ export class BookingWorkflow {
   }
   private async restoreBenefits(tx: any, b: any, m: any) {
     if (m.benefitsReleased) return;
+    await settleBookingPoints(tx, b, false);
     if (b.voucher_id) await tx.vouchers.updateMany({ where: { voucher_id: b.voucher_id, used_count: { gt: 0 } }, data: { used_count: { decrement: 1 } } });
     if (b.membership_snapshot?.promoType === "schedule_promotion") await tx.schedule_promotions.updateMany({ where: { tour_schedule_id: b.tour_schedule_id, used_slots: { gte: b.adult_count + b.child_count } }, data: { used_slots: { decrement: b.adult_count + b.child_count } } });
     m.benefitsReleased = true;
@@ -149,10 +152,14 @@ export class BookingWorkflow {
       const refund = amount === undefined ? quotedRefund : money(amount);
       if (refund > portion.amount) fail("Tiền hoàn vượt phần dịch vụ hủy.");
       if (refund !== quotedRefund && !note?.trim()) fail("Cần ghi lý do khi duyệt khác báo giá hủy đã tiếp nhận.");
+      const activePoints = Number(b.membership_snapshot?.pointsUsed || 0);
+      const allocatedPoints = portion.partial ? Math.floor(activePoints * portion.amount / Number(b.total_amount)) : activePoints;
+      const returnedPoints = portion.amount > 0 ? Math.floor(allocatedPoints * refund / portion.amount) : 0;
       await this.seats(tx, [b.tour_schedule_id]);
       await this.release(tx, b, portion.partial ? portion.travelers.length : this.guests(b));
+      await refundBookingPoints(tx, b, returnedPoints, `cancel-points:${id}:${request.requestedAtISO || request.requestedAt}`);
       this.addRefund(b, m, refund, portion.partial ? "partial_cancellation" : "cancellation", refund && request.bankName && request.bankAccountNumber && request.bankAccountName ? request : undefined);
-      const history = { ...request, approvedAt: new Date().toISOString(), refundAmount: refund, penalty: portion.amount - refund, travelers: portion.travelers, note };
+      const history = { ...request, approvedAt: new Date().toISOString(), refundAmount: refund, pointsRefunded: returnedPoints, penalty: portion.amount - refund, travelers: portion.travelers, note };
       m.cancellationHistory = [...(m.cancellationHistory || []), history];
       m.cancelRequest = { ...request, processed: true };
       m.adminApproval = { approvedAt: history.approvedAt, refundAmount: `${refund}đ`, note, actorId };
@@ -172,7 +179,7 @@ export class BookingWorkflow {
         const remainingGross = portion.remaining.reduce((sum, t) => sum + Number(b[`${t.traveler_type.toLowerCase()}_unit_price`]), 0);
         const oldGross = b.booking_travelers.reduce((sum: number, t: any) => sum + Number(b[`${t.traveler_type.toLowerCase()}_unit_price`]), 0);
         const allocatedDiscount = oldGross - remainingGross - portion.amount;
-        return this.save(tx, b, m, { status: "paid", ...counts, total_amount: Number(b.total_amount) - portion.amount, discount_amount: Math.max(0, Number(b.discount_amount) - allocatedDiscount) });
+        return this.save(tx, b, m, { status: "paid", ...counts, total_amount: Number(b.total_amount) - portion.amount, discount_amount: Math.max(0, Number(b.discount_amount) - allocatedDiscount), membership_snapshot: { ...b.membership_snapshot, pointsUsed: activePoints - allocatedPoints, pointsDiscount: (activePoints - allocatedPoints) * 1000 } });
       }
       await this.restoreBenefits(tx, b, m);
       m.seatsReleased = true;
@@ -212,7 +219,8 @@ export class BookingWorkflow {
         const fees = money(m.retainedCancellationFees || 0);
         const available = bookingFunds(b.payments).available - fees;
         // Preserve the agreed discount; don't silently reclaim the customer's old voucher.
-        const quoted = Math.max(0, Math.round(pricing.subtotal + surcharge + Number(b.services_total) - Number(b.discount_amount)));
+        const pointsQuote = membershipReschedulePrice(pricing.subtotal + surcharge + Number(b.services_total), Number(b.discount_amount), Number(b.membership_snapshot?.pointsUsed || 0));
+        const quoted = Math.round(pointsQuote.cash);
         const newTotal = dto.waiveDifference && quoted > available ? available : quoted;
         const difference = newTotal - available;
         const selectedPickup = schedule.pickup_points.find((p: any) => p.pickup_point_id === dto.pickupPointId);
@@ -220,12 +228,12 @@ export class BookingWorkflow {
         Object.assign(proposal, { allowedOptions: ["full_refund", "reschedule"], suggestedScheduleId: schedule.tour_schedule_id, newScheduleId: schedule.tour_schedule_id,
           suggestedScheduleStartDate: schedule.start_date.toISOString(), suggestedScheduleEndDate: schedule.end_date.toISOString(),
           newScheduleStart: schedule.start_date.toISOString(), newScheduleEnd: schedule.end_date.toISOString(),
-          newTotal, priceDifference: difference, waiveDifference: Boolean(dto.waiveDifference),
+          newTotal, priceDifference: difference, pointsReturned: pointsQuote.pointsReturned, waiveDifference: Boolean(dto.waiveDifference),
           newPromotion: pricing.activeSchedulePromo ? { count: b.adult_count + b.child_count } : null,
-          newMembershipSnapshot: { ...(b.membership_snapshot || {}), promoType: pricing.appliedPromoType, promoDiscount: pricing.promoDiscount, promoTitle: pricing.appliedPromoTitle, promoGift: pricing.appliedGiftDescription, originalAdultPrice: pricing.baseAdultPrice, originalChildPrice: pricing.baseChildPrice },
-          newPricing: { adult_unit_price: pricing.adultPrice, child_unit_price: pricing.childPrice, infant_unit_price: pricing.infantPrice, room_selection: { ...b.room_selection, surcharge, single_room_count: singleCount }, discount_amount: Number(b.discount_amount) + Math.max(0, quoted - newTotal) },
+          newMembershipSnapshot: { ...(b.membership_snapshot || {}), pointsUsed: pointsQuote.pointsUsed, pointsDiscount: pointsQuote.pointsDiscount, promoType: pricing.appliedPromoType, promoDiscount: pricing.promoDiscount, promoTitle: pricing.appliedPromoTitle, promoGift: pricing.appliedGiftDescription, originalAdultPrice: pricing.baseAdultPrice, originalChildPrice: pricing.baseChildPrice },
+          newPricing: { adult_unit_price: pricing.adultPrice, child_unit_price: pricing.childPrice, infant_unit_price: pricing.infantPrice, room_selection: { ...b.room_selection, surcharge, single_room_count: singleCount }, discount_amount: pointsQuote.discount + Math.max(0, quoted - newTotal) },
           pickup: selectedPickup ? { id: selectedPickup.pickup_point_id, name: selectedPickup.name, address: selectedPickup.address, pickup_at: selectedPickup.pickup_at.toISOString(), note: selectedPickup.note } : null,
-          ...(difference > 0 ? { companyBankInfo: bank(dto.companyBankInfo), transferContent: `BK${id}-${Date.now()}` } : {}) });
+          ...(difference > 0 ? { paymentMethod: "vnpay" } : {}) });
       }
       if (m.resolutionProposal) m.proposalHistory = [...(m.proposalHistory || []), m.resolutionProposal];
       proposal.proposedBy = dto.actorId;
@@ -263,6 +271,7 @@ export class BookingWorkflow {
     p.status = "accepted_reschedule";
     p.completedAt = new Date().toISOString();
     if (p.priceDifference < 0) this.addRefund(b, m, -p.priceDifference, "reschedule", p.customerBankInfo);
+    await refundBookingPoints(tx, b, Number(p.pointsReturned || 0), `reschedule-points:${b.booking_id}:${p.id}`);
     return this.save(tx, b, m, { status: "paid", tour_schedule_id: p.newScheduleId, total_amount: p.newTotal, ...p.newPricing,
       pickup_point_id: p.pickup?.id ?? null, pickup_snapshot: p.pickup ? { name: p.pickup.name, address: p.pickup.address, pickup_at: p.pickup.pickup_at, note: p.pickup.note } : Prisma.DbNull,
       departure_name: null, membership_snapshot: p.newMembershipSnapshot });
@@ -289,6 +298,7 @@ export class BookingWorkflow {
       if (b.status !== "cancel_proposed" || !p || !["pending_customer", "awaiting_payment", "expired", "contact_support"].includes(p.status)) fail("Đề xuất đã được xử lý hoặc không còn hiệu lực.");
       p.id ||= `legacy-${id}`;
       if (!dto.proposalId || dto.proposalId !== p.id) fail("Đề xuất đã thay đổi. Vui lòng tải lại booking.");
+      if (p.status === "awaiting_payment" && dto.decision === "reschedule") return b;
       if (dto.decision === "full_refund") {
         await this.seats(tx, p.status === "awaiting_payment" ? [b.tour_schedule_id, p.newScheduleId] : [b.tour_schedule_id]);
         if (p.status === "awaiting_payment") { await this.release(tx, { ...b, tour_schedule_id: p.newScheduleId }); await this.releasePromotion(tx, p); }
@@ -296,6 +306,7 @@ export class BookingWorkflow {
         this.addRefund(b, m, amount, "cancellation", amount ? dto : undefined);
         await this.release(tx, b);
         await this.restoreBenefits(tx, b, m);
+        await refundBookingPoints(tx, b, Number(b.membership_snapshot?.pointsUsed || 0), `admin-cancel-points:${id}:${p.id}`);
         Object.assign(p, { status: "accepted_refund", refundAmount: amount, customerBankInfo: amount ? bank(dto) : undefined, customerDecision: { selectedOption: "full_refund", decidedAt: new Date().toISOString(), userId } });
         m.seatsReleased = true;
         return this.save(tx, b, m, { status: pendingRefunds(m) ? "refund_pending" : "cancelled" });
@@ -311,10 +322,10 @@ export class BookingWorkflow {
       p.customerDecision = { selectedOption: "reschedule", decidedAt: new Date().toISOString() };
       if (p.priceDifference < 0) p.customerBankInfo = bank(dto);
       if (p.priceDifference > 0) {
-        bank(p.companyBankInfo);
+        p.paymentMethod = "vnpay";
         p.status = "awaiting_payment";
         p.paymentDeadline = new Date(Math.min(Date.now() + 30 * 60000, +new Date(p.expiresAt), +schedule.start_date - (schedule.tours.cut_off_hours ?? 24) * 3600000)).toISOString();
-        if (+new Date(p.paymentDeadline) <= Date.now()) fail("Không còn đủ thời gian giữ chỗ chuyển khoản.");
+        if (+new Date(p.paymentDeadline) <= Date.now()) fail("Không còn đủ thời gian giữ chỗ thanh toán bổ sung.");
         await tx.tour_schedules.update({ where: { tour_schedule_id: p.newScheduleId }, data: { booked_count: { increment: this.guests(b) } } });
         return this.save(tx, b, m);
       }
@@ -326,6 +337,7 @@ export class BookingWorkflow {
     if (!String(dto.transactionCode || "").trim() || String(dto.transactionCode).trim().length > 100) fail("Cần mã giao dịch chuyển khoản hợp lệ (tối đa 100 ký tự).");
     return this.transaction(id, "rescheduled_confirmed", async tx => {
       const b = await this.booking(tx, id), m = metaOf(b), p = m.resolutionProposal;
+      if (p?.paymentMethod === "vnpay") fail("Khoản bổ sung này được xác nhận tự động qua VNPay, không xác nhận chuyển khoản thủ công.");
       if (!["awaiting_payment", "expired", "accepted_refund"].includes(p?.status) || !p.paymentDeadline || p.id !== dto.proposalId || p.collection) fail("Không có khoản nộp thêm đang chờ xác nhận.");
       if (money(dto.amount) !== p.priceDifference) fail("Số tiền thực nhận phải khớp khoản bổ sung.");
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${dto.transactionCode.trim()}, 0))`;
@@ -341,6 +353,48 @@ export class BookingWorkflow {
       }
       return this.move(tx, b, m, true);
     });
+  }
+
+  /** Called only inside the verified VNPay callback transaction, after locking the booking. */
+  async settleVnpayTopup(tx: any, b: any, payment: any, paidAt: Date | null) {
+    const m = metaOf(b);
+    m.refunds = bookingRefunds(b);
+    const p = [m.resolutionProposal, ...(m.proposalHistory || [])].find(p => p?.topupPaymentRefs?.includes(payment.provider_reference));
+    if (!p || !Number.isSafeInteger(p.priceDifference) || p.priceDifference <= 0 || Number(payment.amount) !== p.priceDifference) {
+      return { applied: false, review: true };
+    }
+    if (b.payments.some((attempt: any) => attempt.status === "review")) return { applied: false, review: true };
+    const currentProposal = m.resolutionProposal?.id === p.id;
+    const ownsHold = currentProposal && b.status === "cancel_proposed" && p.status === "awaiting_payment";
+    await this.seats(tx, [b.tour_schedule_id, p.newScheduleId]);
+    const schedule = await tx.tour_schedules.findUnique({ where: { tour_schedule_id: p.newScheduleId }, include: { tours: true, pickup_points: true } });
+    let holdValid = ownsHold && !p.collection && Date.now() < +new Date(p.paymentDeadline) &&
+      schedule?.status === 1 && schedule.tours.status === 1 && schedule.tour_id === b.tour_schedules.tour_id &&
+      +schedule.start_date - Date.now() >= (schedule.tours.cut_off_hours ?? 24) * 3600000 &&
+      (!p.pickup?.id || schedule.pickup_points.some((point: any) => point.pickup_point_id === p.pickup.id));
+    if (holdValid) {
+      try { await this.checkConflict(tx, b, schedule); } catch (error) {
+        if (error instanceof BadRequestException) holdValid = false; else throw error;
+      }
+    }
+    const usable = holdValid && paidAt !== null && +paidAt >= +new Date(payment.created_at) - 1000 && +paidAt <= +new Date(payment.expires_at);
+    const transactionCode = payment.transaction_code;
+    if (usable) {
+      p.collection = { amount: Number(payment.amount), transactionCode, receivedAt: new Date().toISOString(), method: "vnpay", reference: payment.provider_reference };
+      await this.move(tx, b, m, true);
+      return { applied: true, review: false, schedule };
+    }
+    // The money is real even if the hold expired, the customer chose refund, or another attempt already paid.
+    if (ownsHold && !p.collection && !holdValid) {
+      await this.release(tx, { ...b, tour_schedule_id: p.newScheduleId });
+      await this.releasePromotion(tx, p);
+      p.status = "expired";
+    }
+    this.addRefund(b, m, Number(payment.amount), "reschedule", p.customerBankInfo);
+    const refund = m.refunds.at(-1);
+    Object.assign(refund, { paymentReference: payment.provider_reference, note: "Khoản VNPay bổ sung không áp dụng được vào đổi lịch; hoàn lại cho khách." });
+    await this.save(tx, b, m, { status: b.status === "cancelled" ? "refund_pending" : b.status });
+    return { applied: false, review: false };
   }
 
   async expireHolds() {
@@ -429,7 +483,7 @@ export class BookingWorkflow {
       const bookings = await tx.bookings.findMany({ where: { tour_schedule_id: scheduleId, status: { in: ["pending", "paid", "cancel_requested", "cancel_proposed"] } }, include: { payments: true, booking_travelers: true } });
       if (bookings.some(b => (b.cancellation_meta as any)?.resolutionProposal?.status === "awaiting_payment")) fail("Chuyến có khách đang nộp thêm tiền đổi lịch. Hãy xử lý hoặc hết hạn đề xuất đó trước.");
       await tx.tour_schedules.update({ where: { tour_schedule_id: scheduleId }, data: { status: 0 } });
-      for (const b of bookings) {
+      for (const b of bookings.sort((a, b) => a.user_id - b.user_id || a.booking_id - b.booking_id)) {
         const m = metaOf(b);
         if (["cancel_proposed"].includes(b.status) && m.departureCancelled) continue;
         m.departureCancelled = { scheduleId, reason: reason.trim(), at: new Date().toISOString() };

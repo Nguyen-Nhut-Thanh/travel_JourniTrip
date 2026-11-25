@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   Logger,
   NotFoundException,
@@ -11,7 +12,6 @@ import { Prisma } from "@prisma/client";
 import { sqlSearchText } from "../../common/search";
 import {
   MEMBERSHIP_TIERS,
-  DEFAULT_MEMBERSHIP_REWARDS,
   type MembershipSummary,
   type MembershipTier,
   type MembershipAdminList,
@@ -23,6 +23,8 @@ import {
   creditForBooking,
   normalizeMembershipTiers,
 } from "./helpers";
+import { lockWallet, reconcileWallet, walletBalance } from './helpers/membership.wallet';
+import { membershipRewards, normalizeMembershipReward } from './helpers/membership.rewards';
 import { getAccountUserId } from "../../common/auth/account-user";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 
@@ -32,7 +34,7 @@ export class MembershipService
 {
   private readonly logger = new Logger(MembershipService.name);
   private timer?: ReturnType<typeof setInterval>;
-  private running = false;
+  private running?: Promise<void>;
   private stopped = false;
   constructor(private readonly prisma: PrismaService) {}
 
@@ -47,27 +49,19 @@ export class MembershipService
   }
 
   // Periodic reconciliation also handles expired cycles while customers are offline.
-  async sweep() {
-    if (this.running || this.stopped) return;
-    this.running = true;
+  sweep(): Promise<void> {
+    if (this.stopped) return Promise.resolve();
+    return this.running ??= this.runSweep().finally(() => { this.running = undefined; });
+  }
+
+  private async runSweep() {
     try {
       let cursor = 0;
       while (!this.stopped) {
         const users = await this.prisma.users.findMany({
           where: {
             user_id: { gt: cursor },
-            OR: [
-              { membership: { isNot: null } },
-              { birthday: { not: null } },
-              {
-                bookings: {
-                  some: {
-                    status: { in: ["paid", "completed"] },
-                    tour_schedules: { end_date: { lte: new Date() } },
-                  },
-                },
-              },
-            ],
+            is_staff: false,
           },
           select: { user_id: true },
           orderBy: { user_id: "asc" },
@@ -91,8 +85,6 @@ export class MembershipService
         "Không thể chạy xét hạng thành viên",
         error instanceof Error ? error.stack : undefined,
       );
-    } finally {
-      this.running = false;
     }
   }
 
@@ -116,9 +108,15 @@ export class MembershipService
         const existing = await tx.memberships.findUnique({
           where: { user_id: userId },
         });
-        const program = await tx.membership_program.findUnique({
+        let program = await tx.membership_program.findUnique({
           where: { id: 1 },
         });
+        if (!program) {
+          const defaults = JSON.parse(JSON.stringify(normalizeMembershipTiers(MEMBERSHIP_TIERS)));
+          await tx.membership_program.createMany({ data: [{ id: 1, tiers: defaults, version: 1 }], skipDuplicates: true });
+          program = await tx.membership_program.findUniqueOrThrow({ where: { id: 1 } });
+          await tx.membership_program_versions.upsert({ where: { version: 1 }, update: {}, create: { version: 1, tiers: JSON.parse(JSON.stringify(program.tiers)) } });
+        }
         const tiers = program
           ? normalizeMembershipTiers(program.tiers)
           : normalizeMembershipTiers(MEMBERSHIP_TIERS);
@@ -173,6 +171,17 @@ export class MembershipService
             },
             update: {},
           });
+        const wallet = await reconcileWallet(tx, userId, now);
+        if (state.start) for (const tier of tiers.slice(1).filter(t => state.spending >= t.threshold)) {
+          const key = `upgrade:${userId}:${state.start.toISOString()}:${tier.id}`;
+          const voucher = await tx.vouchers.upsert({ where: { reward_key: key }, update: {}, create: {
+            owner_user_id: userId, reward_key: key, code: 'UP-' + randomBytes(10).toString('hex').toUpperCase(),
+            name: `Quà thăng hạng ${tier.name}`, discount_type: tier.discountType, discount_value: tier.discountValue,
+            min_order_value: tier.minOrder, max_discount_amount: tier.maxDiscount, usage_limit: 1,
+            start_date: now, expiry_date: new Date(now.getTime() + 365 * 86400_000),
+          } });
+          await notify(key, `Chúc mừng đạt hạng ${tier.name}!`, `Voucher ${voucher.code} đã được thêm vào ví.`, voucher.voucher_id);
+        }
         const birthday = birthdayWindow(user.birthday, now);
         if (birthday && state.tier.birthdayVoucherAmount > 0) {
           const rewardKey = 'birthday:' + userId + ':' + birthday.year;
@@ -233,19 +242,7 @@ export class MembershipService
             sum + (credit.points ?? Math.floor(credit.amount / 100_000)),
           0,
         );
-        const spentPoints = vouchers
-          .filter(
-            (v) =>
-              v.owner_user_id === userId &&
-              v.reward_key?.startsWith(`redeemed:${userId}:`),
-          )
-          .reduce((sum, v) => {
-            const parts = v.reward_key?.split(":");
-            const cost =
-              parts && parts.length >= 4 ? parseInt(parts[3], 10) : 0;
-            return sum + (Number.isFinite(cost) ? cost : 0);
-          }, 0);
-        const pointsBalance = Math.max(0, totalPoints - spentPoints);
+        const pointTransactions = await tx.membership_point_transactions.findMany({ where: { user_id: userId }, orderBy: [{ created_at: 'desc' }, { transaction_id: 'desc' }], take: 100 });
 
         return {
           tier: state.tier,
@@ -254,8 +251,12 @@ export class MembershipService
           cycleEnd: state.end?.toISOString() ?? null,
           spending: state.spending,
           points: totalPoints,
-          pointsBalance,
-          rewards: DEFAULT_MEMBERSHIP_REWARDS,
+          pointsBalance: wallet.balance,
+          pointsHeld: wallet.held,
+          pointsDebt: wallet.debt,
+          programVersion: program?.version ?? 1,
+          pointTransactions: pointTransactions.map(e => ({ id: e.transaction_id, bookingId: e.booking_id, kind: e.kind, points: e.points, reserved: e.reserved, description: e.description, createdAt: e.created_at.toISOString() })),
+          rewards: await membershipRewards(tx),
           nextTier,
           toNextTier: nextTier
             ? Math.max(0, nextTier.threshold - state.spending)
@@ -317,113 +318,88 @@ export class MembershipService
     return { success: true };
   }
 
-  async redeemReward(accountId: number, rewardId: string) {
-    const userId = await getAccountUserId(
-      this.prisma,
-      accountId,
-      "Không tìm thấy người dùng.",
-    );
-    const reward = DEFAULT_MEMBERSHIP_REWARDS.find((r) => r.id === rewardId);
-    if (!reward) throw new NotFoundException("Phần thưởng không tồn tại.");
-
-    return this.prisma.$transaction(
-      async (tx) => {
-        await tx.$executeRaw`SELECT pg_advisory_xact_lock(73129, ${userId}::integer)`;
-        const now = new Date();
-        const bookings = await tx.bookings.findMany({
-          where: {
-            user_id: userId,
-            tour_schedules: { end_date: { lte: now } },
-          },
-          include: {
-            payments: true,
-            tour_schedules: { include: { tours: { select: { name: true } } } },
-          },
-        });
-        const credits = bookings.flatMap((booking) => {
-          const credit = creditForBooking(booking, now);
-          return credit ? [credit] : [];
-        });
-        const totalEarnedPoints = credits.reduce(
-          (sum, credit) =>
-            sum + (credit.points ?? Math.floor(credit.amount / 100_000)),
-          0,
-        );
-
-        const redeemedVouchers = await tx.vouchers.findMany({
-          where: {
-            owner_user_id: userId,
-            reward_key: { startsWith: `redeemed:${userId}:` },
-          },
-          select: { reward_key: true },
-        });
-        const spentPoints = redeemedVouchers.reduce((sum, v) => {
-          const parts = v.reward_key?.split(":");
-          const cost = parts && parts.length >= 4 ? parseInt(parts[3], 10) : 0;
-          return sum + (Number.isFinite(cost) ? cost : 0);
-        }, 0);
-
-        const pointsBalance = Math.max(0, totalEarnedPoints - spentPoints);
-        if (pointsBalance < reward.pointsCost) {
-          throw new BadRequestException(
-            `Số điểm khả dụng (${pointsBalance.toLocaleString("vi-VN")} điểm) không đủ để đổi phần thưởng này (${reward.pointsCost.toLocaleString("vi-VN")} điểm).`,
-          );
-        }
-
-        const code = `VIP-${randomBytes(4).toString("hex").toUpperCase()}`;
-        const rewardKey = `redeemed:${userId}:${reward.id}:${reward.pointsCost}:${Date.now()}`;
-        const voucher = await tx.vouchers.create({
-          data: {
-            owner_user_id: userId,
-            reward_key: rewardKey,
-            code,
-            name: reward.title,
-            short_description: reward.description,
-            image_url: reward.imageUrl,
-            discount_type: "fixed",
-            discount_value: reward.valueVnd ?? reward.pointsCost * 1000,
-            min_order_value: 0,
-            max_discount_amount: reward.valueVnd ?? reward.pointsCost * 1000,
-            usage_limit: 1,
-            start_date: now,
-            expiry_date: new Date(now.getTime() + 365 * 86400_000),
-            status: 1,
-          },
-        });
-
-        await tx.membership_notifications.create({
-          data: {
-            user_id: userId,
-            voucher_id: voucher.voucher_id,
-            event_key: `notify:${rewardKey}`,
-            title: "Đổi thưởng thành công!",
-            message: `Bạn đã đổi ${reward.pointsCost.toLocaleString("vi-VN")} điểm lấy: "${reward.title}". Mã voucher: ${code}`,
-            created_at: now,
-          },
-        });
-
-        const newBalance = pointsBalance - reward.pointsCost;
-        return {
-          success: true,
-          voucherCode: code,
-          remainingPoints: newBalance,
-        };
-      },
-      { timeout: 20_000 },
-    );
+  async redeemReward(accountId: number, rewardId: string, requestId: string) {
+    if (!/^[a-zA-Z0-9-]{16,80}$/.test(requestId || '')) throw new BadRequestException('Mã yêu cầu đổi điểm không hợp lệ.');
+    const userId = await getAccountUserId(this.prisma, accountId, 'Không tìm thấy người dùng.');
+    const reward = (await membershipRewards(this.prisma)).find(r => r.id === rewardId);
+    if (!reward) throw new NotFoundException('Phần thưởng không tồn tại.');
+    return this.prisma.$transaction(async tx => {
+      await lockWallet(tx, userId);
+      const wallet = await reconcileWallet(tx, userId);
+      const key = `wallet-redeem:${userId}:${requestId}`;
+      const existing = await tx.vouchers.findUnique({ where: { reward_key: key } });
+      if (existing) {
+        if (existing.name !== reward.title) throw new ConflictException('Mã yêu cầu đã được dùng cho phần thưởng khác.');
+        return { success: true, voucherCode: existing.code, remainingPoints: wallet.balance };
+      }
+      if (wallet.balance < reward.pointsCost) throw new BadRequestException('Không đủ điểm khả dụng để đổi voucher này.');
+      const now = new Date();
+      const voucher = await tx.vouchers.create({ data: {
+        owner_user_id: userId, reward_key: key, code: 'VIP-' + randomBytes(10).toString('hex').toUpperCase(),
+        name: reward.title, short_description: reward.description, image_url: reward.imageUrl,
+        discount_type: 'fixed', discount_value: reward.valueVnd!, min_order_value: reward.minOrder ?? reward.valueVnd! * 5,
+        max_discount_amount: reward.valueVnd!, usage_limit: 1, start_date: now,
+        expiry_date: new Date(now.getTime() + (reward.validityDays ?? 365) * 86400_000), status: 1,
+      } });
+      await tx.membership_point_transactions.create({ data: {
+        user_id: userId, voucher_id: voucher.voucher_id, kind: 'redeem', points: -reward.pointsCost,
+        event_key: key, description: `Đổi voucher ${voucher.code}`,
+      } });
+      await tx.membership_notifications.create({ data: { user_id: userId, voucher_id: voucher.voucher_id,
+        event_key: `notify:${key}`, title: 'Đổi thưởng thành công', message: `Đã dùng ${reward.pointsCost} điểm đổi ${reward.title}. Mã: ${voucher.code}` } });
+      return { success: true, voucherCode: voucher.code, remainingPoints: wallet.balance - reward.pointsCost };
+    }, { timeout: 20_000 });
   }
 
-  async updateSettings(value: unknown): Promise<MembershipTier[]> {
-    const tiers = normalizeMembershipTiers(value);
-    await this.prisma.membership_program.upsert({
-      where: { id: 1 },
-      create: { id: 1, tiers: JSON.parse(JSON.stringify(tiers)) },
-      update: { tiers: JSON.parse(JSON.stringify(tiers)) },
+  async createReward(value: unknown, requestId: string, actorAccountId: number) {
+    if (!/^[a-zA-Z0-9-]{16,80}$/.test(requestId || '')) throw new BadRequestException('Mã yêu cầu không hợp lệ.');
+    const config = { ...normalizeMembershipReward(value), id: `custom-${requestId}` };
+    return this.prisma.$transaction(async tx => {
+      await tx.$executeRaw`INSERT INTO membership_reward_catalog (reward_id, config, created_by) VALUES (${config.id}, ${JSON.stringify(config)}::jsonb, ${actorAccountId}) ON CONFLICT (reward_id) DO NOTHING`;
+      const [row] = await tx.$queryRaw<{ config: typeof config; created_by: number }[]>`SELECT config, created_by FROM membership_reward_catalog WHERE reward_id = ${config.id}`;
+      if (row.created_by !== actorAccountId || JSON.stringify(normalizeMembershipReward(row.config)) !== JSON.stringify(normalizeMembershipReward(config))) throw new ConflictException('Mã yêu cầu đã được dùng cho voucher khác.');
+      return row.config;
     });
+  }
+
+  async adjustPoints(userId: number, points: number, reason: string, requestId: string, actorAccountId: number) {
+    if (!Number.isSafeInteger(points) || points === 0 || Math.abs(points) > 1_000_000 || typeof reason !== 'string' || reason.trim().length < 5 || reason.length > 400 || !/^[a-zA-Z0-9-]{16,80}$/.test(requestId || '')) throw new BadRequestException('Cần số điểm hợp lệ, lý do từ 5–400 ký tự và mã yêu cầu.');
+    await this.syncUser(userId);
+    await this.prisma.$transaction(async tx => {
+      await lockWallet(tx, userId);
+      const key = `adjust:${userId}:${requestId}`;
+      const existing = await tx.membership_point_transactions.findUnique({ where: { event_key: key } });
+      if (existing) {
+        if (existing.points !== points || existing.description !== reason.trim()) throw new ConflictException('Mã yêu cầu đã được sử dụng.');
+        return;
+      }
+      const wallet = await reconcileWallet(tx, userId);
+      if (points < 0 && wallet.balance < -points) throw new BadRequestException('Không đủ điểm khả dụng để trừ.');
+      await tx.membership_point_transactions.create({ data: { user_id: userId, kind: 'adjust', points, event_key: key, description: reason.trim(), actor_account_id: actorAccountId } });
+    });
+    return this.syncUser(userId);
+  }
+
+  async updateSettings(value: unknown, expectedVersion: number, actorAccountId: number): Promise<MembershipTier[]> {
+    const tiers = normalizeMembershipTiers(value);
+    if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 1) throw new BadRequestException('Phiên bản cấu hình không hợp lệ.');
+    await this.prisma.$transaction(async tx => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(73130, 1)`;
+      const existing = await tx.membership_program.findUnique({ where: { id: 1 } });
+      if ((existing?.version ?? 1) !== expectedVersion) throw new ConflictException('Cấu hình đã được người khác cập nhật. Vui lòng tải lại trước khi lưu.');
+      const version = expectedVersion + 1;
+      const json = JSON.parse(JSON.stringify(tiers));
+      await tx.membership_program_versions.upsert({ where: { version: expectedVersion }, update: {}, create: { version: expectedVersion, tiers: existing?.tiers ?? JSON.parse(JSON.stringify(normalizeMembershipTiers(MEMBERSHIP_TIERS))) } });
+      await tx.membership_program.upsert({ where: { id: 1 }, create: { id: 1, tiers: json, version }, update: { tiers: json, version } });
+      await tx.membership_program_versions.create({ data: { version, tiers: json, actor_account_id: actorAccountId } });
+    });
+    // Cached summaries are refreshed using the same policy before the admin list is returned.
+    await this.sweep();
     return tiers;
   }
 
   async adminList(page: number, search = '', tier = 'all', limit = 20): Promise<MembershipAdminList> {
+    await this.sweep();
     const matched = search.trim() ? await this.prisma.$queryRaw<{ user_id: number }[]>(Prisma.sql`
       SELECT u.user_id FROM users u
       JOIN accounts a ON a.account_id = u.account_id
@@ -431,6 +407,7 @@ export class MembershipService
         OR u.user_id = ${/^\d+$/.test(search.trim()) && Number(search) <= 2147483647 ? Number(search) : -1}
     `) : null;
     const where = {
+      user: { is_staff: false },
       ...(tier !== 'all' ? { tier } : {}),
       ...(matched ? { user_id: { in: matched.map(item => item.user_id) } } : {}),
     };
@@ -451,9 +428,9 @@ export class MembershipService
           },
         }),
         this.prisma.memberships.count({ where }),
-        this.prisma.vouchers.count({ where: { owner_user_id: { not: null } } }),
+        this.prisma.vouchers.count({ where: { owner_user_id: { not: null }, owner: { is_staff: false } } }),
         this.prisma.vouchers.count({
-          where: { owner_user_id: { not: null }, used_count: { gt: 0 } },
+          where: { owner_user_id: { not: null }, owner: { is_staff: false }, used_count: { gt: 0 } },
         }),
         this.prisma.bookings.aggregate({
           where: {
@@ -463,10 +440,14 @@ export class MembershipService
           _sum: { discount_amount: true },
         }),
         this.prisma.membership_program.findUnique({ where: { id: 1 } }),
-        this.prisma.memberships.count(),
+        this.prisma.memberships.count({ where: { user: { is_staff: false } } }),
       ]);
+    const tierCounts = await this.prisma.memberships.groupBy({ by: ['tier'], where: { user: { is_staff: false } }, _count: { _all: true } });
     return {
-      items: members.map((member) => ({
+      tierCounts: Object.fromEntries(tierCounts.map(item => [item.tier, item._count._all])),
+      rewards: await membershipRewards(this.prisma),
+      items: await Promise.all(members.map(async (member) => ({
+        pointsBalance: (await walletBalance(this.prisma, member.user_id)).balance,
         userId: member.user_id,
         name: member.user.full_name,
         email: member.user.accounts.email,
@@ -476,9 +457,10 @@ export class MembershipService
         voucherCount: member.user._count.member_vouchers,
         phone: member.user.phone,
         bookingCount: member.user._count.bookings,
-      })),
+      }))),
       total,
       memberTotal,
+      programVersion: program?.version ?? 1,
       page,
       tiers: program
         ? normalizeMembershipTiers(program.tiers)

@@ -2,19 +2,16 @@
 
 import { useState } from "react";
 import { Calculator } from "lucide-react";
-import type { MembershipTierId } from "shared";
+import { membershipEarnedPoints, type MembershipTier, type MembershipTierId } from "shared";
 import { formatVND } from "@/lib/utils/currency";
 
 interface UserMembershipPointsSimulatorProps {
+  tiers: MembershipTier[];
   currentTierId: MembershipTierId;
 }
 
 interface TierSimConfig {
   id: MembershipTierId;
-  name: string;
-  badge: string;
-  multiplier: number;
-  multiplierText: string;
   borderClass: string;
   textColor: string;
 }
@@ -22,59 +19,39 @@ interface TierSimConfig {
 const SIM_TIER_CONFIGS: TierSimConfig[] = [
   {
     id: "bronze",
-    name: "Đồng (Member)",
-    badge: "1.0× Điểm",
-    multiplier: 1.0,
-    multiplierText: "1.0×",
     borderClass: "border-white/10 hover:border-white/20",
     textColor: "text-amber-200",
   },
   {
     id: "silver",
-    name: "Bạc (Explorer)",
-    badge: "1.2× Điểm",
-    multiplier: 1.2,
-    multiplierText: "1.2×",
     borderClass: "border-white/10 hover:border-white/20",
     textColor: "text-slate-200",
   },
   {
     id: "gold",
-    name: "Vàng (Voyager)",
-    badge: "1.5× Điểm",
-    multiplier: 1.5,
-    multiplierText: "1.5×",
     borderClass: "border-amber-400/40 hover:border-amber-400/60",
     textColor: "text-amber-400",
   },
   {
     id: "platinum",
-    name: "Bạch Kim (Elite)",
-    badge: "2.0× Điểm",
-    multiplier: 2.0,
-    multiplierText: "2.0×",
     borderClass: "border-cyan-500/30 hover:border-cyan-400/50",
     textColor: "text-cyan-300",
   },
   {
     id: "diamond",
-    name: "Kim Cương (Signature)",
-    badge: "3.0× Điểm",
-    multiplier: 3.0,
-    multiplierText: "3.0×",
     borderClass: "border-emerald-500/30 hover:border-emerald-400/50",
     textColor: "text-emerald-300",
   },
 ];
 
 export function UserMembershipPointsSimulator({
+  tiers,
   currentTierId,
 }: UserMembershipPointsSimulatorProps) {
   const [spendMillions, setSpendMillions] = useState<number>(50);
 
   const spendAmount = spendMillions * 1_000_000;
   // 100,000 VND = 1 base point -> 1 Million VND = 10 base points
-  const basePoints = spendMillions * 10;
 
   return (
     <section className="relative overflow-hidden rounded-3xl border border-amber-400/35 bg-gradient-to-br from-amber-500/12 via-[#0A1424]/80 to-[#050B14] p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
@@ -134,9 +111,11 @@ export function UserMembershipPointsSimulator({
 
       {/* 5 Tiers Output Grid */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5 xl:gap-2.5">
-        {SIM_TIER_CONFIGS.map((t) => {
+        {tiers.map((tier) => {
+          const style = SIM_TIER_CONFIGS.find(t => t.id === tier.id)!;
+          const t = { ...style, name: tier.name, multiplier: tier.pointMultiplier, multiplierText: `×${tier.pointMultiplier.toLocaleString("vi-VN")}`, badge: `×${tier.pointMultiplier.toLocaleString("vi-VN")} Điểm` };
           const isUserTier = t.id === currentTierId;
-          const pointsEarned = Math.round(basePoints * t.multiplier);
+          const pointsEarned = membershipEarnedPoints(spendAmount, t.multiplier);
           const pointsCashValue = pointsEarned * 1_000;
 
           return (

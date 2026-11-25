@@ -28,6 +28,8 @@ export function normalizeMembershipTiers(value: unknown): MembershipTier[] {
           number <= 1_000_000_000_000,
       ) ||
       item.threshold <= previous ||
+      item.threshold > 999_999_999_999 ||
+      [item.discountValue, item.minOrder, item.maxDiscount].some(value => value > 9_999_999_999) ||
       !["fixed", "percentage"].includes(item.discountType) ||
       (index === 0 &&
         (item.threshold !== 0 ||

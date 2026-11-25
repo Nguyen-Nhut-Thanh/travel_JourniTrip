@@ -237,12 +237,12 @@ export function BookingReceiptModal({
       />
 
       {/* Container card của Modal: Giới hạn chiều cao vừa vặn màn hình (không bao giờ bị tràn/mất mép trên) */}
-      <div className="receipt-modal-panel relative my-auto flex max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2.5rem)] w-full max-w-[820px] flex-col rounded-2xl bg-slate-50/95 shadow-2xl overflow-hidden border border-slate-200">
+      <div className="receipt-modal-panel relative my-auto flex max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2.5rem)] w-full max-w-[820px] flex-col rounded-[14px] bg-slate-50/95 shadow-2xl overflow-hidden border border-[#e1edfc]">
         {/* Thanh công cụ Modal Header (In & Đóng) - CỐ ĐỊNH TRÊN CÙNG - ẨN KHI IN */}
-        <div className="no-print flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6">
+        <div className="no-print flex shrink-0 items-center justify-between border-b border-[#e1edfc] bg-white px-4 py-2.5 sm:px-6">
           <div className="flex items-center gap-2">
-            <FileText className="text-blue-600" size={17} />
-            <span className="text-xs sm:text-sm font-bold text-slate-800">
+            <FileText className="text-[#075bff]" size={17} />
+            <span className="text-xs sm:text-sm font-bold text-[#0b1747]">
               {isCancelled ? "Biên nhận hủy tour & Quyết toán hoàn tiền" : "Biên lai thanh toán điện tử"}
             </span>
           </div>
@@ -250,7 +250,7 @@ export function BookingReceiptModal({
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 text-xs font-bold text-white transition shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-[12px] bg-[#075bff] hover:bg-[#064ddd] px-3.5 py-1.5 text-xs font-[650] text-white transition-colors shadow-xs cursor-pointer"
             >
               <Printer size={14} />
               <span>In / Lưu PDF</span>
@@ -258,7 +258,7 @@ export function BookingReceiptModal({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
               aria-label="Đóng"
             >
               <X size={18} />
@@ -669,12 +669,13 @@ export function BookingReceiptModal({
                             <span className="font-semibold">−{money(promoDiscount)}</span>
                           </div>
                         )}
-                        {discount > 0 && (
+                        {discount - Number(b.membership_snapshot?.pointsDiscount || 0) > 0 && (
                           <div className="flex justify-between sm:justify-end gap-4 text-emerald-600">
                             <span>Giảm giá (Voucher / Thành viên):</span>
-                            <span className="font-semibold">−{money(discount)}</span>
+                            <span className="font-semibold">−{money(discount - Number(b.membership_snapshot?.pointsDiscount || 0))}</span>
                           </div>
                         )}
+                        {!!b.membership_snapshot?.pointsDiscount && <div className="flex justify-between"><span>Điểm thành viên ({b.membership_snapshot.pointsUsed} điểm):</span><span className="font-semibold">−{money(b.membership_snapshot.pointsDiscount)}</span></div>}
                       </>
                     ) : (
                       <>

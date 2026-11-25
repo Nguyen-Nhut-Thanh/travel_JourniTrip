@@ -487,7 +487,7 @@ export default function AdminBookingsPage() {
           allowedOptions,
           newScheduleId,
           waiveDifference,
-          companyBankInfo, pickupPointId, bankName, bankAccountNumber, bankAccountName,
+          pickupPointId, bankName, bankAccountNumber, bankAccountName,
         }) => {
           if (!modal) return;
           try {
@@ -508,7 +508,7 @@ export default function AdminBookingsPage() {
                 allowedOptions,
                 newScheduleId,
                 waiveDifference,
-                companyBankInfo, pickupPointId, bankName, bankAccountNumber, bankAccountName,
+                pickupPointId, bankName, bankAccountNumber, bankAccountName,
               });
               if (cancelType === "operator_fault") {
                 toast.success(

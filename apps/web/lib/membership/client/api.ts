@@ -13,7 +13,7 @@ export function markMembershipNotificationsRead() {
   );
 }
 
-export function redeemMembershipReward(rewardId: string) {
+export function redeemMembershipReward(rewardId: string, requestId: string) {
   return requestWithToken<{
     success: boolean;
     voucherCode: string;
@@ -21,6 +21,6 @@ export function redeemMembershipReward(rewardId: string) {
   }>("/membership/rewards/redeem", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ rewardId }),
+    body: JSON.stringify({ rewardId, requestId }),
   });
 }

@@ -7,5 +7,9 @@ export type PaymentStatusResponse = {
     expiresAt: string | null;
     responseCode: string | null;
     bookingStatus: string;
+    purpose?: 'booking' | 'reschedule';
+    proposalId?: string;
+    canRetry?: boolean;
+    resolution?: 'applied' | 'refund_pending' | 'refunded' | 'review';
 };
 export type PaymentUrlResponse = { paymentUrl: string; reference: string; expiresAt: string };

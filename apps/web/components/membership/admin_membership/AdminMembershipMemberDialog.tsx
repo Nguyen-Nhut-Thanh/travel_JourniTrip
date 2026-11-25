@@ -1,23 +1,40 @@
 "use client";
-
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { History, Loader2, X } from "lucide-react";
-import type { MembershipSummary } from "shared";
-import { getMemberDetails } from "@/lib/membership/admin/api";
-import { formatVND } from "@/lib/utils/currency";
-import { membershipDate, type MemberRow } from "@/components/membership/admin_membership/AdminMembershipMembersTable";
-import { MembershipTierPreview } from "@/components/membership/admin_membership/AdminMembershipTierPreview";
+import { useEffect, useRef, useState } from 'react';
+import { Loader2, X } from 'lucide-react';
+import type { MembershipSummary } from 'shared';
+import { getMemberDetails, adjustMembershipPoints } from '@/lib/membership/admin/api';
+import { formatVND } from '@/lib/utils/currency';
+import { membershipDate, type MemberRow } from './AdminMembershipMembersTable';
+import { MembershipTierPreview } from './AdminMembershipTierPreview';
+import { MembershipPointHistory } from '../MembershipPointHistory';
 
 export function MembershipMemberDialog({ member, onClose }: { member: MemberRow; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
-  const [data, setData] = useState<MembershipSummary | null>(null);
-  const [error, setError] = useState('');
-  const [revision, setRevision] = useState(0);
+  const [data, setData] = useState<MembershipSummary | null>(null), [error, setError] = useState('');
+  const [revision, setRevision] = useState(0), [points, setPoints] = useState(''), [reason, setReason] = useState('');
+  const [saving, setSaving] = useState(false), [notice, setNotice] = useState('');
+  const request = useRef<{ points: number; reason: string; id: string } | null>(null);
   useEffect(() => { const element = dialog.current; element?.showModal(); return () => element?.close(); }, []);
-  useEffect(() => { let active = true; setError(''); getMemberDetails(member.userId).then(result => { if (active) setData(result); }).catch(cause => { if (active) setError(cause instanceof Error ? cause.message : 'Không thể tải hồ sơ.'); }); return () => { active = false; }; }, [member.userId, revision]);
-  return <dialog ref={dialog} aria-labelledby="member-detail-title" onCancel={onClose} className="fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%_-_32px)] max-w-[900px] overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-0 text-slate-800 shadow-2xl backdrop:bg-slate-950/50">
-    <header className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white p-5"><div><h2 id="member-detail-title" className="font-bold">{member.name}</h2><p className="mt-1 text-xs text-slate-500">{member.email}{member.phone ? ` · ${member.phone}` : ''}</p></div><button type="button" aria-label="Đóng hồ sơ" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"><X size={19} /></button></header>
-    {error ? <div role="alert" className="p-8 text-sm text-rose-600">{error}<button onClick={() => setRevision(value => value + 1)} className="ml-3 underline">Thử lại</button></div> : !data ? <div className="p-20"><Loader2 className="mx-auto animate-spin text-cyan-600" aria-label="Đang tải hồ sơ" /></div> : <div className="grid gap-5 p-5 md:grid-cols-2"><div className="space-y-5"><div className="grid grid-cols-2 gap-3">{[['Chi tiêu kỳ này', formatVND(data.spending)], ['Điểm thưởng kỳ này', data.points.toLocaleString('vi-VN')], ['Ngày xét lại', membershipDate(data.cycleEnd)], ['Voucher khả dụng', data.vouchers.filter(v => v.state === 'available').length]].map(([label, value]) => <div key={label} className="rounded-xl border border-slate-200 bg-white p-3"><p className="text-[10px] text-slate-500">{label}</p><p className="mt-1.5 text-sm font-bold">{value}</p></div>)}</div><section className="rounded-xl border border-slate-200 bg-white"><h3 className="flex items-center gap-2 border-b border-slate-100 p-4 text-xs font-bold"><History size={15} />Lịch sử tích lũy trong kỳ</h3><ul className="divide-y divide-slate-100">{data.history.map(item => <li key={item.bookingId} className="p-4"><Link href={`/admin/bookings?search=${item.bookingId}`} className="text-xs font-semibold text-slate-700 hover:text-cyan-600">{item.tourName}</Link><p className="mt-1 text-[10px] text-slate-400">Đơn #{item.bookingId} · {membershipDate(item.completedAt)}</p><p className="mt-2 text-xs font-bold text-cyan-700">{formatVND(item.amount)} · +{item.points} điểm</p></li>)}</ul>{!data.history.length && <p className="p-6 text-xs text-slate-400">Chưa có tour đủ điều kiện tích lũy trong kỳ.</p>}</section></div><MembershipTierPreview tier={data.tier} /></div>}
+  useEffect(() => { let active = true; setError(''); getMemberDetails(member.userId).then(result => { if (active) setData(result); }).catch(e => { if (active) setError(e instanceof Error ? e.message : 'Không thể tải hồ sơ.'); }); return () => { active = false; }; }, [member.userId, revision]);
+  async function adjust(e: React.FormEvent) {
+    e.preventDefault(); if (saving) return;
+    const amount = Number(points), text = reason.trim();
+    if (!Number.isSafeInteger(amount) || !amount || Math.abs(amount) > 1000000 || text.length < 5) { setError('Nhập số điểm nguyên khác 0 và lý do ít nhất 5 ký tự.'); return; }
+    if (!request.current || request.current.points !== amount || request.current.reason !== text) request.current = { points: amount, reason: text, id: crypto.randomUUID() };
+    setSaving(true); setError(''); setNotice('');
+    try { setData(await adjustMembershipPoints(member.userId, amount, text, request.current.id)); setPoints(''); setReason(''); request.current = null; setNotice('Đã điều chỉnh điểm và lưu người thực hiện cùng lý do.'); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Không thể điều chỉnh điểm.'); }
+    finally { setSaving(false); }
+  }
+  return <dialog ref={dialog} aria-labelledby="member-detail-title" onCancel={e => { if (saving) e.preventDefault(); else onClose(); }} className="fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%_-_32px)] max-w-[1000px] overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-0 text-slate-800 shadow-2xl backdrop:bg-slate-950/50">
+    <header className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b bg-white p-5"><div><h2 id="member-detail-title" className="font-bold">{member.name}</h2><p className="mt-1 text-xs text-slate-500">{member.email}</p></div><button disabled={saving} aria-label="Đóng hồ sơ" onClick={onClose} className="p-1.5"><X size={19} /></button></header>
+    {error && <p role="alert" className="m-5 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{error}<button onClick={() => setRevision(v => v + 1)} className="ml-3 underline">Tải lại</button></p>}
+    {notice && <p role="status" className="m-5 text-sm text-emerald-700">{notice}</p>}
+    {!data ? !error && <Loader2 className="m-12 mx-auto animate-spin" aria-label="Đang tải hồ sơ" /> : <div className="grid items-start gap-5 p-5 md:grid-cols-[1.4fr_1fr]"><div className="space-y-5">
+      <div className="grid grid-cols-2 gap-3">{[['Chi tiêu kỳ này',formatVND(data.spending)],['Ngày xét lại',membershipDate(data.cycleEnd)]].map(([label,value]) => <div key={label} className="rounded-xl border bg-white p-4"><p className="text-xs text-slate-500">{label}</p><p className="mt-2 text-sm font-bold">{value}</p></div>)}</div>
+      <MembershipPointHistory summary={data} admin />
+      <form onSubmit={adjust} className="space-y-3 rounded-2xl border bg-white p-5"><h3 className="text-sm font-bold">Điều chỉnh điểm</h3><label className="block text-xs">Số điểm (âm để trừ, dương để cộng)<input type="number" required step={1} min={-1000000} max={1000000} disabled={saving} value={points} onChange={e => setPoints(e.target.value)} className="mt-1 w-full rounded-lg border p-2" /></label><label className="block text-xs">Lý do<textarea required minLength={5} maxLength={400} disabled={saving} value={reason} onChange={e => setReason(e.target.value)} className="mt-1 w-full rounded-lg border p-2" /></label><button disabled={saving} className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">{saving ? 'Đang lưu...' : 'Lưu điều chỉnh'}</button></form>
+      <section className="rounded-2xl border bg-white p-5"><h3 className="text-sm font-bold">Voucher hội viên</h3><ul className="mt-3 space-y-2">{data.vouchers.map(v => <li key={v.voucher_id} className="text-xs"><strong>{v.code}</strong> · {v.state === 'available' ? 'Khả dụng' : v.state === 'used' ? 'Đã dùng' : v.state === 'upcoming' ? 'Sắp có hiệu lực' : 'Hết hạn'}</li>)}</ul></section>
+    </div><MembershipTierPreview tier={data.tier} /></div>}
   </dialog>;
 }

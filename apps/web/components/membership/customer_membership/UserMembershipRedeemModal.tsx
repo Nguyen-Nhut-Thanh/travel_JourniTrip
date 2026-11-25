@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -27,6 +27,7 @@ export function UserMembershipRedeemModal({
   onSuccess,
 }: UserMembershipRedeemModalProps) {
   const [loading, setLoading] = useState(false);
+  const requestKey = useRef<{ rewardId: string; id: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successData, setSuccessData] = useState<{
     code: string;
@@ -45,7 +46,8 @@ export function UserMembershipRedeemModal({
     setError(null);
 
     try {
-      const res = await redeemMembershipReward(reward.id);
+      if (requestKey.current?.rewardId !== reward.id) requestKey.current = { rewardId: reward.id, id: crypto.randomUUID() };
+      const res = await redeemMembershipReward(reward.id, requestKey.current.id);
       if (res.success) {
         setSuccessData({
           code: res.voucherCode,
@@ -80,6 +82,7 @@ export function UserMembershipRedeemModal({
         <button
           type="button"
           onClick={onClose}
+          disabled={loading}
           aria-label="Đóng hộp thoại"
           className="absolute top-5 right-5 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-slate-300 transition-colors hover:bg-white/20 hover:text-white"
         >
@@ -102,6 +105,12 @@ export function UserMembershipRedeemModal({
             >
               {reward.title}
             </h3>
+            <p className="mt-3 text-xs leading-5 text-slate-400">{reward.description}</p>
+            <div className="mt-3 space-y-1 rounded-xl border border-amber-400/20 bg-amber-500/5 p-3 text-xs leading-5 text-slate-300">
+              <p>Giá trị giảm: <strong>{(reward.valueVnd ?? reward.pointsCost * 1000).toLocaleString('vi-VN')} đ</strong></p>
+              <p>Đơn tối thiểu: <strong>{(reward.minOrder ?? (reward.valueVnd ?? reward.pointsCost * 1000) * 5).toLocaleString('vi-VN')} đ</strong></p>
+              <p>Hiệu lực {reward.validityDays ?? 365} ngày kể từ khi đổi voucher. Không quy đổi thành tiền mặt.</p>
+            </div>
 
             {/* Calculations Box */}
             <div className="my-5 space-y-2.5 rounded-2xl border border-white/10 bg-[#050B14]/90 p-4 text-xs">
@@ -187,7 +196,7 @@ export function UserMembershipRedeemModal({
               Đổi Thưởng Thành Công!
             </h3>
             <p className="mt-2 text-xs leading-relaxed text-slate-300">
-              Mã E-Voucher đặc quyền đã được phát hành và lưu vào ví ưu đãi AURA
+              Mã E-Voucher đặc quyền đã được phát hành và lưu vào ví ưu đãi JourniTrip
               của bạn.
             </p>
 

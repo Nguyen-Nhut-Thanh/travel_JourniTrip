@@ -7,6 +7,8 @@ import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { MailService } from '../../infrastructure/mail/mail.service';
 import { formatVnpayDate, parseVnpayDate, signedVnpayQuery, verifyVnpayQuery, vnpayIp, type VnpayFields, type VnpayQuery } from './vnpay';
 import { sendBookingNotification } from '../bookings/helpers';
+import { BookingWorkflow } from '../bookings/booking-workflow';
+import { holdBookingPoints, settleBookingPoints, lockWallet } from '../membership/helpers/membership.wallet';
 
 type IpnResponse = { RspCode: string; Message: string };
 const response = (RspCode: string, Message: string): IpnResponse => ({ RspCode, Message });
@@ -62,6 +64,7 @@ export class PaymentService {
                 throw new BadRequestException('Đợt khởi hành này không còn nhận thanh toán. Vui lòng liên hệ hỗ trợ.');
             }
             minorUnits(booking.total_amount);
+            await holdBookingPoints(tx, booking);
             const review = await tx.payments.findFirst({ where: { booking_id: bookingId, status: 'review' } });
             if (review) throw new BadRequestException('Giao dịch của đơn đang được đối soát. Vui lòng liên hệ hỗ trợ trước khi thanh toán thêm.');
             // Reuse a live attempt so double clicks and multiple tabs do not create new transactions.
@@ -84,15 +87,57 @@ export class PaymentService {
                 created_at: now, expires_at: expiresAt,
             } });
         });
+        return this.paymentUrl(attempt, bookingId, ipAddress);
+    }
+
+    private paymentUrl(attempt: { provider_reference: string | null; amount: Prisma.Decimal; created_at: Date; expires_at: Date | null }, bookingId: number, ipAddress?: string, supplemental = false): PaymentUrlResponse {
+        const config = this.config();
         const { query, signature } = signedVnpayQuery({
             vnp_Version: '2.1.0', vnp_Command: 'pay', vnp_TmnCode: config.merchant,
             vnp_Locale: 'vn', vnp_CurrCode: 'VND', vnp_TxnRef: attempt.provider_reference!,
-            vnp_OrderInfo: `Thanh toan tour don hang ${bookingId}`, vnp_OrderType: 'other',
+            vnp_OrderInfo: supplemental ? `Thanh toan bo sung doi lich don hang ${bookingId}` : `Thanh toan tour don hang ${bookingId}`, vnp_OrderType: 'other',
             vnp_Amount: minorUnits(attempt.amount), vnp_ReturnUrl: config.returnUrl,
             vnp_IpAddr: vnpayIp(ipAddress), vnp_CreateDate: formatVnpayDate(attempt.created_at),
             vnp_ExpireDate: formatVnpayDate(attempt.expires_at!),
         }, config.secret);
         return { paymentUrl: `${config.gateway}?${query}&vnp_SecureHash=${signature}`, reference: attempt.provider_reference!, expiresAt: attempt.expires_at!.toISOString() };
+    }
+
+    async createReschedulePaymentUrl(bookingId: number, proposalId: string, accountId: number, ipAddress?: string, clientOrigin?: string): Promise<PaymentUrlResponse> {
+        if (!Number.isSafeInteger(bookingId) || bookingId < 1 || typeof proposalId !== 'string' || !proposalId || proposalId.length > 100) throw new BadRequestException('Thông tin đề xuất đổi lịch không hợp lệ.');
+        const config = this.config();
+        const userId = await getAccountUserId(this.prisma, accountId, 'Không tìm thấy người dùng.');
+        const attempt = await this.prisma.$transaction(async tx => {
+            await tx.$queryRaw`SELECT booking_id FROM bookings WHERE booking_id = ${bookingId} FOR UPDATE`;
+            const b = await tx.bookings.findUnique({ where: { booking_id: bookingId }, include: { payments: true } });
+            if (!b || b.user_id !== userId) throw new NotFoundException('Không tìm thấy booking.');
+            const m = { ...((b.cancellation_meta as any) || {}) }, p = m.resolutionProposal;
+            const now = new Date();
+            if (b.status !== 'cancel_proposed' || p?.id !== proposalId || p.status !== 'awaiting_payment' || p.collection || !(p.priceDifference > 0)) throw new BadRequestException('Không có khoản chênh lệch đang chờ thanh toán cho đề xuất này.');
+            if (!(+new Date(p.paymentDeadline) > +now)) throw new BadRequestException('Đã hết hạn giữ chỗ. Vui lòng liên hệ để nhận đề xuất mới.');
+            if (b.payments.some(payment => payment.status === 'review')) throw new BadRequestException('Có giao dịch đang đối soát; vui lòng không thanh toán thêm.');
+            minorUnits(p.priceDifference);
+            const references: string[] = Array.isArray(p.topupPaymentRefs) ? p.topupPaymentRefs : [];
+            const pending = b.payments.find(payment => references.includes(payment.provider_reference || '') && payment.method === 'vnpay' && payment.status === 'pending' && payment.expires_at && payment.expires_at > now && payment.amount.equals(p.priceDifference));
+            if (pending) {
+                if (clientOrigin && pending.provider_reference) this.clientOriginByRef.set(pending.provider_reference, { origin: clientOrigin, expiresAt: Date.now() + 3600_000 });
+                return pending;
+            }
+            const expiresAt = new Date(Math.min(+now + config.minutes * 60000, +new Date(p.paymentDeadline)));
+            const reference = `S${bookingId}${Date.now()}${randomBytes(8).toString('hex')}`;
+            const payment = await tx.payments.create({ data: {
+                booking_id: bookingId, method: 'vnpay', amount: p.priceDifference, status: 'pending', provider_reference: reference,
+                transaction_code: clientOrigin ? `origin:${clientOrigin}` : null, created_at: now, expires_at: expiresAt,
+            } });
+            p.paymentMethod = 'vnpay';
+            p.topupPaymentRefs = [...references, reference];
+            delete p.companyBankInfo;
+            delete p.transferContent;
+            await tx.bookings.update({ where: { booking_id: bookingId }, data: { cancellation_meta: m } });
+            if (clientOrigin) this.clientOriginByRef.set(reference, { origin: clientOrigin, expiresAt: Date.now() + 3600_000 });
+            return payment;
+        });
+        return this.paymentUrl(attempt, bookingId, ipAddress, true);
     }
 
     private callback(query: VnpayQuery) {
@@ -125,12 +170,13 @@ export class PaymentService {
                         include: {
                             tour_schedules: {
                                 include: {
-                                    tours: { select: { name: true, code: true, duration_days: true, duration_nights: true } },
+                                    tours: true,
                                     departure_location: { select: { name: true } },
                                 },
                             },
                             vouchers: { select: { code: true } },
                             booking_travelers: true,
+                            payments: true,
                         },
                     },
                 },
@@ -148,18 +194,50 @@ export class PaymentService {
                 } });
                 return { result: response('00', 'Payment recorded for review') };
             }
+            if (successful && fields.vnp_TxnRef.startsWith('S')) {
+                const paidAt = fields.vnp_PayDate ? parseVnpayDate(fields.vnp_PayDate) : new Date();
+                const ledger = await tx.payments.update({ where: { payment_id: current.payment_id }, data: {
+                    status: 'completed', transaction_code: transactionCode, response_code: fields.vnp_ResponseCode,
+                    provider_status: fields.vnp_TransactionStatus, paid_at: paidAt,
+                } });
+                const fundedBooking = { ...booking, payments: booking.payments.map(p => p.payment_id === current.payment_id ? ledger : p) };
+                const settlement = await new BookingWorkflow(this.prisma).settleVnpayTopup(tx, fundedBooking, ledger, paidAt);
+                if (settlement.review) {
+                    await tx.payments.update({ where: { payment_id: current.payment_id }, data: { status: 'review' } });
+                    return { result: response('00', 'Supplement recorded for review') };
+                }
+                await sendBookingNotification(tx, {
+                    type: settlement.applied ? 'rescheduled_confirmed' : 'topup_late', userId: booking.user_id,
+                    bookingId: booking.booking_id, tourName: settlement.schedule?.tours.name || booking.tour_schedules.tours.name,
+                });
+                return {
+                    result: response('00', settlement.applied ? 'Reschedule payment confirmed' : 'Supplement recorded for refund'),
+                    topupNotification: settlement.applied ? {
+                        email: booking.contact_email, contactName: booking.contact_name, bookingId: booking.booking_id,
+                        tourName: settlement.schedule!.tours.name, newStartDate: settlement.schedule!.start_date,
+                        newEndDate: settlement.schedule!.end_date, priceDifference: Number(current.amount),
+                    } : undefined,
+                };
+            }
             if (successful) {
                 // Keep late/double payments in the ledger for reconciliation without reopening a cancelled booking.
                 const paidAt = fields.vnp_PayDate ? parseVnpayDate(fields.vnp_PayDate) : new Date();
                 const withinHold = current.amount.equals(booking.total_amount) && paidAt !== null && paidAt.getTime() <= new Date(booking.created_at).getTime() + 15 * 60000 &&
                     (!current.expires_at || paidAt <= current.expires_at) && paidAt < booking.tour_schedules.start_date && booking.tour_schedules.status === 1;
-                const payable = booking.status === 'pending' && withinHold;
+                let payable = booking.status === 'pending' && withinHold;
+                const points = Number((booking.membership_snapshot as any)?.pointsUsed || 0);
+                if (payable && points) {
+                    await lockWallet(tx, booking.user_id);
+                    const held = await tx.membership_point_transactions.aggregate({ where: { user_id: booking.user_id, booking_id: booking.booking_id }, _sum: { reserved: true } });
+                    payable = (held._sum.reserved ?? 0) === points;
+                }
                 await tx.payments.update({ where: { payment_id: current.payment_id }, data: {
-                    status: payable || (booking.status === 'cancel_requested' && withinHold) ? 'completed' : 'review', transaction_code: transactionCode,
+                    status: payable ? 'completed' : 'review', transaction_code: transactionCode,
                     response_code: fields.vnp_ResponseCode, provider_status: fields.vnp_TransactionStatus,
                     paid_at: fields.vnp_PayDate ? parseVnpayDate(fields.vnp_PayDate) : new Date(),
                 } });
                 if (payable) {
+                    await settleBookingPoints(tx, booking, true);
                     await tx.bookings.update({ where: { booking_id: booking.booking_id }, data: { status: 'paid' } });
                     await sendBookingNotification(tx, {
                         type: 'paid',
@@ -214,10 +292,14 @@ export class PaymentService {
                 status: 'failed', transaction_code: transactionCode, response_code: fields.vnp_ResponseCode,
                 provider_status: fields.vnp_TransactionStatus,
             } });
+            if (!fields.vnp_TxnRef.startsWith('S') && booking.status === 'pending' && !booking.payments.some(p => p.payment_id !== current.payment_id && p.status === 'pending' && p.expires_at && p.expires_at > new Date())) await settleBookingPoints(tx, booking, false);
             return { result: response('00', 'Confirm Success') };
         });
         if ('notification' in outcome && outcome.notification) {
             await this.mailService.sendBookingPaidEmail(outcome.notification).catch(() => this.logger.warn('Thanh toán đã được lưu; không thể gửi email xác nhận.'));
+        }
+        if ('topupNotification' in outcome && outcome.topupNotification) {
+            await this.mailService.sendRescheduleConfirmedEmail(outcome.topupNotification).catch(() => this.logger.warn('Đổi lịch đã được lưu; không thể gửi email xác nhận.'));
         }
         return outcome;
     }
@@ -279,18 +361,28 @@ export class PaymentService {
                 provider_reference: reference,
                 ...(userId ? { bookings: { user_id: userId } } : {}),
             },
-            include: { bookings: { select: { booking_id: true, status: true } } }
+            include: { bookings: { select: { booking_id: true, status: true, cancellation_meta: true } } }
         });
         const finalAttempt = attempt ?? (await this.prisma.payments.findFirst({
             where: { provider_reference: reference },
-            include: { bookings: { select: { booking_id: true, status: true } } }
+            include: { bookings: { select: { booking_id: true, status: true, cancellation_meta: true } } }
         }));
         if (!finalAttempt) throw new NotFoundException('Không tìm thấy giao dịch của bạn.');
+        const supplemental = reference.startsWith('S');
+        const meta = (finalAttempt.bookings.cancellation_meta as any) || {};
+        const proposal = [meta.resolutionProposal, ...(meta.proposalHistory || [])].find(p => p?.topupPaymentRefs?.includes(reference));
+        const applied = proposal?.collection?.reference === reference;
+        const refund = meta.refunds?.find((r: any) => r.paymentReference === reference);
         const status = finalAttempt.status === 'review' ? 'review'
-            : finalAttempt.status === 'completed' ? (['paid', 'completed'].includes(finalAttempt.bookings.status) ? 'success' : 'review')
+            : finalAttempt.status === 'completed' ? (supplemental ? (applied ? 'success' : 'review') : (['paid', 'completed'].includes(finalAttempt.bookings.status) ? 'success' : 'review'))
             : finalAttempt.status === 'failed' ? (finalAttempt.response_code === '24' ? 'cancelled' : 'failed')
             : finalAttempt.expires_at && finalAttempt.expires_at.getTime() <= Date.now() ? 'expired' : 'pending';
         return { bookingId: finalAttempt.booking_id, reference, status, amount: finalAttempt.amount.toString(),
-            expiresAt: finalAttempt.expires_at?.toISOString() ?? null, responseCode: finalAttempt.response_code, bookingStatus: finalAttempt.bookings.status };
+            expiresAt: finalAttempt.expires_at?.toISOString() ?? null, responseCode: finalAttempt.response_code, bookingStatus: finalAttempt.bookings.status,
+            purpose: supplemental ? 'reschedule' : 'booking',
+            ...(supplemental ? { proposalId: proposal?.id,
+                canRetry: finalAttempt.bookings.status === 'cancel_proposed' && proposal?.id === meta.resolutionProposal?.id && proposal?.status === 'awaiting_payment' && !proposal.collection && +new Date(proposal.paymentDeadline) > Date.now(),
+                resolution: applied ? 'applied' : refund ? (refund.status === 'completed' ? 'refunded' : 'refund_pending') : finalAttempt.status === 'review' ? 'review' : undefined,
+            } : {}) };
     }
 }

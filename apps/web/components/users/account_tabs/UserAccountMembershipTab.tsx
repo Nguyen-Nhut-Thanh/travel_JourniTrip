@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { MembershipRewardItem, MembershipTierId } from "shared";
 import { DEFAULT_MEMBERSHIP_REWARDS } from "shared";
+import { MembershipPointHistory } from "@/components/membership/MembershipPointHistory";
 import { useAccountResource } from "@/lib/users/account/useAccountResource";
 import { getMembership } from "@/lib/membership/client/api";
 import { formatVND } from "@/lib/utils/currency";
@@ -38,6 +39,14 @@ export function AccountMembershipTab() {
     getMembership,
   );
 
+  useEffect(() => {
+    const refreshVisible = () => { if (document.visibilityState === 'visible') refresh(); };
+    refreshVisible();
+    window.addEventListener('focus', refreshVisible);
+    const timer = window.setInterval(refreshVisible, 60_000);
+    return () => { window.removeEventListener('focus', refreshVisible); window.clearInterval(timer); };
+  }, [refresh]);
+
   const [activePreviewTier, setActivePreviewTier] =
     useState<MembershipTierId | null>(null);
   const [selectedReward, setSelectedReward] =
@@ -58,7 +67,7 @@ export function AccountMembershipTab() {
       >
         <Loader2 className="h-7 w-7 animate-spin text-amber-400" />
         <span className="text-sm font-semibold text-slate-200">
-          Đang mở không gian đặc quyền thượng lưu AURA...
+          Đang mở không gian đặc quyền thượng lưu JourniTrip...
         </span>
       </div>
     );
@@ -103,7 +112,7 @@ export function AccountMembershipTab() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium mb-3">
             <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-            <span>Không Gian Đặc Quyền Hội Viên AURA</span>
+            <span>Không Gian Đặc Quyền Hội Viên JourniTrip</span>
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
             Hành trình thượng lưu,{" "}
@@ -112,9 +121,9 @@ export function AccountMembershipTab() {
             </span>
           </h1>
           <p className="mt-2 text-xs sm:text-sm text-slate-400 max-w-2xl leading-relaxed">
-            Trải nghiệm dịch vụ cá nhân hóa tại hơn 1,200 khu nghỉ dưỡng 5 sao,
-            hãng hàng không đối tác và du thuyền hạng sang trên toàn cầu.
+            Theo dõi hạng thành viên, tích điểm sau mỗi chuyến đi và sử dụng ưu đãi cho hành trình tiếp theo.
           </p>
+          <button type="button" onClick={refresh} className="mt-3 rounded-lg border border-white/15 px-3 py-1.5 text-xs text-amber-300">Cập nhật hạng & điểm</button>
         </div>
       </header>
 
@@ -127,6 +136,7 @@ export function AccountMembershipTab() {
         <div className="lg:col-span-5 flex flex-col justify-between">
           <UserMembershipCard3D
             currentTierId={data.tier.id}
+            tiers={data.tiers}
             memberName={user?.full_name ?? ""}
             memberId={user?.user_id}
             cycleEnd={data.cycleEnd}
@@ -142,7 +152,7 @@ export function AccountMembershipTab() {
 
       {/* 3. Interactive Points & Cash Simulator */}
       <div className="relative z-10">
-        <UserMembershipPointsSimulator currentTierId={data.tier.id} />
+        <UserMembershipPointsSimulator currentTierId={data.tier.id} tiers={data.tiers} />
       </div>
 
       {/* 4. 5-Tier Cards Grid with Perk Filters */}
@@ -261,6 +271,8 @@ export function AccountMembershipTab() {
         </section>
       </div>
 
+      <div className="relative z-10"><MembershipPointHistory summary={data} /></div>
+
       {/* 8. Policy & Operation Rules Explanations */}
       <section className="relative z-10 rounded-3xl border border-amber-400/35 bg-gradient-to-br from-amber-500/12 via-[#0A1424]/85 to-[#050B14] p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
         <div className="flex items-center gap-2 text-amber-400 mb-4">
@@ -278,7 +290,7 @@ export function AccountMembershipTab() {
             </h3>
             <p>
               Chu kỳ tính từ ngày tour đầu tiên hoàn thành. Ngay khi tổng chi tiêu
-              thực tế đạt mốc mới, hệ thống tự động thăng hạng tức thì (real-time)
+              hợp lệ đạt mốc mới, hệ thống cập nhật hạng khi đồng bộ
               và phát voucher thăng hạng vào ví. Hết 12 tháng, hệ thống xét duy trì
               hoặc điều chỉnh hạng theo chi tiêu kỳ vừa qua.
             </p>
@@ -292,8 +304,7 @@ export function AccountMembershipTab() {
             <p>
               Mỗi 100.000đ thực trả của tour hoàn thành = 1 điểm cơ bản × Hệ số
               hạng thẻ. Điểm thưởng có thể dùng để trừ tiền trực tiếp khi đặt tour
-              (1 điểm = 1.000đ, tối đa 30% giá trị đơn hàng) hoặc đổi các gói nghỉ
-              dưỡng cao cấp tại Sàn đổi quà.
+              (1 điểm = 1.000đ, tối đa 30% giá trị đơn hàng) hoặc đổi voucher tour. Điểm không hết hạn và không bị đặt lại khi sang chu kỳ xét hạng mới.
             </p>
           </div>
 
@@ -304,8 +315,8 @@ export function AccountMembershipTab() {
             </h3>
             <p>
               Khi thanh toán đơn tour: Lớp 1 (Trừ voucher) → Lớp 2 (Giảm theo hạng
-              hội viên 2% – 7% trên giá tour còn lại) → Lớp 3 (Giảm dịch vụ đi kèm
-              5% – 20%) → Lớp 4 (Quy đổi điểm thưởng Points + Cash).
+              hội viên trên giá tour còn lại) → Lớp 3 (Giảm dịch vụ đi kèm
+              theo hạng) → Lớp 4 (Quy đổi điểm thưởng Points + Cash).
             </p>
           </div>
         </div>

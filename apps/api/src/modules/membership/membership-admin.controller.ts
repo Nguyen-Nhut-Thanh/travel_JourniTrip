@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   Query,
   Req,
   UseGuards,
@@ -36,8 +37,18 @@ export class MembershipAdminController {
   }
   @Patch("settings")
   @UseGuards(AdminAuthGuard)
-  settings(@Body("tiers") tiers: unknown) {
-    return this.service.updateSettings(tiers);
+  settings(@Body() body: { tiers: unknown; version: number }, @Req() req: any) {
+    return this.service.updateSettings(body.tiers, body.version, req.user.accountId);
+  }
+  @Post("customers/:id/points")
+  @UseGuards(AdminAuthGuard)
+  adjust(@Param("id", ParseIntPipe) id: number, @Body() body: { points: number; reason: string; requestId: string }, @Req() req: any) {
+    return this.service.adjustPoints(id, body.points, body.reason, body.requestId, req.user.accountId);
+  }
+  @Post("rewards")
+  @UseGuards(AdminAuthGuard)
+  createReward(@Body() body: { reward: unknown; requestId: string }, @Req() req: any) {
+    return this.service.createReward(body?.reward, body?.requestId, req.user.accountId);
   }
   @Get("customers/:id")
   async customer(@Param("id", ParseIntPipe) id: number, @Req() req: any) {

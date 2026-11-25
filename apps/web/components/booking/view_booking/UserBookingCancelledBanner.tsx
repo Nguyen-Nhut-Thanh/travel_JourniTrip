@@ -16,11 +16,11 @@ export function BookingCancelledBanner({
   onViewRefundSlip,
 }: BookingCancelledBannerProps) {
   return (
-    <div className="w-[min(1430px,_93%)] mx-auto mt-3.5 mb-1.5 rounded-2xl border border-rose-200 bg-rose-50/90 p-3 sm:px-4.5 sm:py-3 shadow-2xs text-rose-950">
+    <div className="w-full rounded-[14px] border border-rose-200 bg-rose-50/90 p-4 shadow-sm text-rose-950">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         {/* Vế trái: Icon + Khối thông tin hủy */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-600 text-white shadow-xs">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-600 text-white shadow-xs">
             <XCircle size={20} />
           </div>
           <div className="min-w-0 flex-1 space-y-1">
@@ -59,7 +59,7 @@ export function BookingCancelledBanner({
                 )}
                 {(parsedNote.cancellation?.refundAmount ||
                   parsedNote.adminApproval?.refundAmount) && (
-                  <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
                     Tiền hoàn:{" "}
                     {parsedNote.cancellation?.refundAmount ||
                       parsedNote.adminApproval?.refundAmount}
@@ -85,7 +85,7 @@ export function BookingCancelledBanner({
             <button
               type="button"
               onClick={onViewRefundSlip}
-              className="inline-flex items-center justify-center rounded-xl bg-white border border-rose-300 hover:bg-rose-100 text-rose-900 px-3.5 py-2 text-xs font-bold transition shadow-2xs whitespace-nowrap cursor-pointer"
+              className="inline-flex items-center justify-center rounded-[12px] bg-white border border-rose-300 hover:bg-rose-100 text-rose-900 px-3.5 py-2 text-xs font-bold transition-colors shadow-xs whitespace-nowrap cursor-pointer"
             >
               Xem biên nhận hoàn tiền
             </button>
@@ -93,7 +93,7 @@ export function BookingCancelledBanner({
           {tourId && (
             <Link
               href={`/tours/${tourId}`}
-              className="inline-flex items-center justify-center rounded-xl bg-rose-600 hover:bg-rose-700 px-4 py-2 text-xs font-bold text-white transition shadow-xs whitespace-nowrap cursor-pointer"
+              className="inline-flex items-center justify-center rounded-[12px] bg-rose-600 hover:bg-rose-700 px-4 py-2 text-xs font-bold text-white transition-colors shadow-xs whitespace-nowrap cursor-pointer"
             >
               Đặt lại tour này
             </Link>
@@ -103,4 +103,3 @@ export function BookingCancelledBanner({
     </div>
   );
 }
-

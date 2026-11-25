@@ -31,12 +31,12 @@ export class MembershipController {
   @Post("rewards/redeem")
   redeem(
     @Req() req: AuthenticatedRequest,
-    @Body() body: { rewardId: string },
+    @Body() body: { rewardId: string; requestId: string },
   ) {
     if (!body?.rewardId) {
       throw new BadRequestException("Vui lòng chọn phần thưởng cần đổi.");
     }
-    return this.service.redeemReward(req.user.accountId, body.rewardId);
+    return this.service.redeemReward(req.user.accountId, body.rewardId, body.requestId);
   }
   @Get("vouchers/validate")
   async validate(

@@ -1,7 +1,9 @@
 // Public package entry point. Internal modules import directly from one another.
 export { CREW_ROLES, WORKFORCE_REGIONS, WORKFORCE_ROLES } from './workforce/models';
 export type { CrewRole, RegionCode, WorkforceRole, WorkforceActor, EmployeePayload, Employee, StaffShiftPayload, StaffShift, CrewPayload, CrewAssignment, WorkforceSchedule, WorkforceOverview } from './workforce/models';
-export { MEMBERSHIP_TIERS, DEFAULT_MEMBERSHIP_REWARDS, membershipDiscount, membershipBenefits, membershipPrice } from "./membership/models";
+export { MEMBERSHIP_TIERS, DEFAULT_MEMBERSHIP_REWARDS, MEMBERSHIP_POINTS_POLICY, maxBookingPoints, membershipEarnedPoints, membershipDiscount, membershipBenefits, membershipPrice } from "./membership/models";
+export type { MembershipPointTransaction } from "./membership/models";
+export { membershipReschedulePrice } from "./membership/models";
 export type { MembershipBookingSnapshot } from "./membership/models";
 export type { MembershipTierId, MembershipTier, MembershipSummary, MembershipVoucher, MembershipNotification, MembershipAdminList, MembershipRewardItem } from "./membership/models";
 export type { AccountResourceCache, AccountResourceEntry } from "./account/models";

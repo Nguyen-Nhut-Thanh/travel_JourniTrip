@@ -55,6 +55,9 @@ export function BookingCancelModal({
   catch (error) { portionError = (error as Error).message; }
   const { isPaid, startDate, totalAmount, estimate, theme } =
     useBookingCancelPolicy(booking ? { ...booking, total_amount: portionAmount } : booking);
+  const activePoints = Number(booking?.membership_snapshot?.pointsUsed || 0);
+  const allocatedPoints = travelerIds.length && Number(booking?.total_amount) > 0 ? Math.floor(activePoints * portionAmount / Number(booking.total_amount)) : activePoints;
+  const estimatedPointRefund = portionAmount > 0 ? Math.floor(allocatedPoints * estimate.refundAmount / portionAmount) : 0;
 
   // Reset form khi mở modal
   useEffect(() => {
@@ -166,7 +169,7 @@ export function BookingCancelModal({
       />
 
       {/* Modal Container: Rộng max-w-5xl để chia 2 cột đẹp mắt */}
-      <div className="relative z-10 my-auto flex max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl lg:max-w-5xl flex-col overflow-hidden rounded-[24px] bg-white shadow-2xl border border-slate-200 text-[#092448] sm:max-h-[calc(100dvh-2.5rem)]">
+      <div className="relative z-10 my-auto flex max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl lg:max-w-5xl flex-col overflow-hidden rounded-[14px] bg-white shadow-2xl border border-[#e1edfc] text-[#07123e] sm:max-h-[calc(100dvh-2.5rem)]">
         {/* Nút đóng */}
         <button
           type="button"
@@ -180,7 +183,7 @@ export function BookingCancelModal({
 
         {/* Header */}
         <header
-          className={`relative isolate shrink-0 pt-6 pb-5 px-6 sm:px-7 overflow-hidden border-b ${theme.headerBg}`}
+          className={`relative isolate shrink-0 pt-5 pb-4 px-6 overflow-hidden border-b border-[#e1edfc] ${theme.headerBg}`}
         >
           <div className="flex items-center gap-2.5 mb-1.5 flex-wrap">
             <span
@@ -200,7 +203,7 @@ export function BookingCancelModal({
 
           <h2
             id="cancel-modal-title"
-            className="text-lg sm:text-xl font-black text-[#092448] truncate"
+            className="text-[18px] sm:text-[20px] font-extrabold text-[#07123e] truncate"
           >
             {tourName}
           </h2>
@@ -226,7 +229,7 @@ export function BookingCancelModal({
         </header>
 
         {/* Form Body: Chia làm 2 cột chính */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
           {isPaid && booking.booking_travelers?.length > 1 && <fieldset className="space-y-2 rounded-xl border border-blue-100 bg-blue-50 p-4">
             <legend className="px-1 text-sm font-bold">Hủy toàn bộ hoặc chọn hành khách cần hủy</legend>
             <label className="flex gap-2 text-sm"><input type="checkbox" checked={!travelerIds.length} onChange={() => setTravelerIds([])} />Hủy toàn bộ booking</label>
@@ -237,7 +240,8 @@ export function BookingCancelModal({
             <p className="text-xs text-slate-600">Hủy một phần chỉ tính trên phần giá vé thực trả của người được chọn. Phòng và dịch vụ dùng chung được giữ nguyên cho đoàn còn lại; liên hệ trước nếu cần thay đổi phòng/dịch vụ. Đoàn còn lại phải có người lớn.</p>
             {portionError && <p role="alert" className="text-sm text-red-700">{portionError}</p>}
           </fieldset>}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 items-start">
+          {activePoints > 0 && <p className="rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-700">{isPaid ? `Phần dịch vụ hủy phân bổ ${allocatedPoints.toLocaleString('vi-VN')} điểm. Dự kiến hoàn ${estimatedPointRefund.toLocaleString('vi-VN')} điểm theo tỷ lệ hoàn tiền, tách riêng tiền chuyển khoản. Số chính thức được chốt khi duyệt hủy.` : `Hủy đơn chưa thanh toán sẽ giải phóng ${activePoints.toLocaleString('vi-VN')} điểm đang giữ.`}</p>}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 items-start">
             {/* CỘT TRÁI: Phần đầu (Đếm ngược thời gian, 3 ô chi phí, Bảng quy định hoàn hủy tour) */}
             <BookingCancelPolicySection
               estimate={estimate}
@@ -248,7 +252,7 @@ export function BookingCancelModal({
             />
 
             {/* CỘT PHẢI: Từ lý do hủy tour trở xuống */}
-            <div className="space-y-4">
+            <div className="space-y-3.5">
               {/* Chọn lý do hủy tour */}
               <BookingCancelReasonPicker
                 reasons={CANCELLATION_REASONS}
@@ -335,12 +339,12 @@ export function BookingCancelModal({
           </div>
 
           {/* Footer Buttons: Phía dưới cùng dàn hàng ngang */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+          <div className="pt-3.5 border-t border-[#e1edfc] flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition disabled:opacity-50 cursor-pointer"
+              className="rounded-[12px] border border-slate-200 bg-white px-4 py-2 text-xs font-[650] text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer"
             >
               Giữ lại đơn
             </button>
@@ -348,7 +352,7 @@ export function BookingCancelModal({
             <button
               type="submit"
               disabled={loading}
-              className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold text-white shadow-md transition disabled:opacity-50 cursor-pointer ${theme.submitBtnClass}`}
+              className={`flex items-center gap-2 rounded-[12px] px-4 py-2 text-xs font-[650] text-white shadow-xs transition-colors disabled:opacity-50 cursor-pointer ${theme.submitBtnClass}`}
             >
               {loading ? (
                 <>

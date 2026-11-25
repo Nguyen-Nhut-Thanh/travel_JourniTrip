@@ -97,7 +97,6 @@ export class BookingsAdminController {
             allowedOptions?: ('full_refund' | 'reschedule')[];
             newScheduleId?: number;
             waiveDifference?: boolean;
-            companyBankInfo?: { bankName: string; bankAccountNumber: string; bankAccountName: string };
             pickupPointId?: number;
             bankName?: string;
             bankAccountNumber?: string;

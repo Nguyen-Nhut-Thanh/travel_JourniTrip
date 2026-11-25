@@ -9,6 +9,7 @@ export const TravelerSchema = z.object({
 });
 
 export const CreateBookingSchema = z.object({
+  points_to_use: z.number().int().min(0).max(2_147_483_647).optional(),
   tour_schedule_id: z.number({ message: 'Vui lòng chọn lịch khởi hành.' }).int().positive(),
   pickup_point_id: z.number().int().positive().optional().nullable(),
   contact_name: z.string({ message: 'Vui lòng nhập họ tên người liên hệ.' }).min(1, 'Họ tên người liên hệ không được để trống.'),
@@ -16,7 +17,6 @@ export const CreateBookingSchema = z.object({
   contact_email: z.string({ message: 'Vui lòng nhập email liên hệ.' }).email('Email không hợp lệ.'),
   contact_id_card: z.string().optional(),
   confirmed_schedule_conflict: z.boolean().optional(),
-  policyAccepted: z.boolean().optional(),
   adult_count: z.number().int().min(1, 'Phải có ít nhất 1 người lớn.'),
   child_count: z.number().int().min(0).default(0),
   infant_count: z.number().int().min(0).default(0),

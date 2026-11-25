@@ -2,54 +2,12 @@ import "reflect-metadata";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { allocateBookingAmount, bookingFunds, bookingRefunds, calculateCancellationEstimate, cancellationPortion, DEFAULT_CANCELLATION_TIERS, normalizeBookingBank } from "shared";
-import { BookingWorkflow } from "../src/modules/bookings/booking-workflow";
+import { bookingFixture as fixture } from "./booking-workflow.fixture";
 
 const recipient = { bankName: "Vietcombank", bankAccountNumber: "0123456789", bankAccountName: "NGUYEN VAN A" };
 const future = (days: number) => new Date(Date.now() + days * 86400000);
 
-function fixture(count = 2, total = count * 3000000) {
-  let state: any = {
-    booking: { booking_id: 1, user_id: 7, status: "paid", tour_schedule_id: 1, adult_count: count, child_count: 0, infant_count: 0,
-      adult_unit_price: 3000000, child_unit_price: 0, infant_unit_price: 0, total_amount: total, services_total: 0, discount_amount: count * 3000000 - total,
-      cancellation_meta: {}, room_selection: { type: "shared" }, membership_snapshot: {},
-      booking_travelers: Array.from({ length: count }, (_, i) => ({ traveler_id: i + 1, traveler_type: "ADULT", full_name: `Khách ${i + 1}` })) },
-    schedules: [
-      { tour_schedule_id: 1, tour_id: 9, status: 1, start_date: future(10), end_date: future(11), booked_count: count, quota: 20, tours: { status: 1, cut_off_hours: 24, name: "Tour A" } },
-      { tour_schedule_id: 2, tour_id: 9, status: 1, start_date: future(20), end_date: future(21), booked_count: 0, quota: 20, price: 4000000, single_room_surcharge: 0,
-        tour_schedule_prices: [{ passenger_type: "child", price: 0 }, { passenger_type: "infant", price: 0 }], pickup_points: [], tours: { status: 1, cut_off_hours: 24, name: "Tour A" } },
-    ], payments: [{ payment_id: 1, status: "completed", amount: total, booking_id: 1 }], locks: [] as string[],
-  };
-  const hydrated = () => structuredClone({ ...state.booking, payments: state.payments, tour_schedules: state.schedules.find((s: any) => s.tour_schedule_id === state.booking.tour_schedule_id) });
-  const apply = (row: any, data: any) => { for (const [key, value] of Object.entries(data)) row[key] = value && typeof value === "object" && "increment" in value ? row[key] + (value as any).increment : value && typeof value === "object" && "decrement" in value ? row[key] - (value as any).decrement : structuredClone(value); return row; };
-  const tx: any = {
-    $queryRaw: async (strings: any) => { state.locks.push(String(strings)); return []; },
-    bookings: {
-      findUnique: async () => hydrated(),
-      findMany: async (query: any) => query.where?.tour_schedule_id ? [hydrated()] : [{ booking_id: 1, cancellation_meta: structuredClone(state.booking.cancellation_meta) }],
-      update: async ({ data }: any) => { apply(state.booking, data); return hydrated(); },
-    },
-    tour_schedules: {
-      findUnique: async ({ where }: any) => structuredClone(state.schedules.find((s: any) => s.tour_schedule_id === where.tour_schedule_id) || null),
-      update: async ({ where, data }: any) => apply(state.schedules.find((s: any) => s.tour_schedule_id === where.tour_schedule_id), data),
-      updateMany: async ({ where, data }: any) => { const row = state.schedules.find((s: any) => s.tour_schedule_id === where.tour_schedule_id && s.booked_count >= (where.booked_count?.gte || 0)); if (!row) return { count: 0 }; apply(row, data); return { count: 1 }; },
-    },
-    booking_travelers: { findFirst: async () => null, deleteMany: async ({ where }: any) => { state.booking.booking_travelers = state.booking.booking_travelers.filter((t: any) => !where.traveler_id.in.includes(t.traveler_id)); } },
-    payments: {
-      update: async ({ where, data }: any) => apply(state.payments.find((p: any) => p.payment_id === where.payment_id), data),
-      findFirst: async ({ where }: any) => state.payments.find((p: any) => p.method === where.method && p.transaction_code === where.transaction_code),
-      create: async ({ data }: any) => { if (state.payments.some((p: any) => p.provider_reference && p.provider_reference === data.provider_reference)) throw new Error("duplicate reference"); const row = { ...data, payment_id: state.payments.length + 1 }; state.payments.push(row); return row; },
-      updateMany: async () => ({ count: 0 }),
-    },
-    vouchers: { updateMany: async () => ({ count: 1 }) }, schedule_promotions: { updateMany: async () => ({ count: 1 }) },
-    membership_notifications: { upsert: async () => ({}) },
-  };
-  let queue = Promise.resolve();
-  const prisma: any = { ...tx, $transaction: (fn: any) => {
-    const result = queue.then(async () => { const before = structuredClone(state); try { return await fn(tx); } catch (error) { state = before; throw error; } });
-    queue = result.then(() => undefined, () => undefined); return result;
-  } };
-  return { workflow: new BookingWorkflow(prisma), state: () => state, booking: hydrated };
-}
+
 
 test("cancellation tiers use exact thresholds, including immediately below each boundary", () => {
   const start = new Date("2026-12-27T08:00:00+07:00");
@@ -111,17 +69,20 @@ test("refund confirmation is bound to an approved amount and cannot be replayed"
   await assert.rejects(f.workflow.confirmRefund(1, { refundId: refund.id, amount: refund.amount, transactionCode: "R2" }));
   assert.equal(f.state().payments.filter((p: any) => p.status === "refunded").length, 1);
 });
-test("different tours and incomplete company bank details are rejected", async () => {
+test("different tours are rejected and VNPay proposals need no company bank account", async () => {
   const f = fixture(); f.state().schedules[1].tour_id = 10;
   await assert.rejects(f.workflow.propose(1, { allowedOptions: ["reschedule"], newScheduleId: 2, companyBankInfo: recipient }));
   f.state().schedules[1].tour_id = 9;
-  await assert.rejects(f.workflow.propose(1, { allowedOptions: ["reschedule"], newScheduleId: 2 }));
+  await f.workflow.propose(1, { allowedOptions: ["reschedule"], newScheduleId: 2 });
+  assert.equal(f.state().booking.cancellation_meta.resolutionProposal.paymentMethod, "vnpay");
+  assert.equal(f.state().booking.cancellation_meta.resolutionProposal.companyBankInfo, undefined);
 });
 test("more expensive schedule is held but not assigned until admin confirms actual receipt", async () => {
   const f = fixture(); await f.workflow.propose(1, { allowedOptions: ["reschedule"], newScheduleId: 2, companyBankInfo: recipient });
   const p = f.state().booking.cancellation_meta.resolutionProposal;
   assert.equal(p.priceDifference, 2000000);
   await f.workflow.resolve(1, 7, { proposalId: p.id, decision: "reschedule" });
+  f.state().booking.cancellation_meta.resolutionProposal.paymentMethod = "bank";
   assert.equal(f.state().booking.tour_schedule_id, 1); assert.equal(f.state().schedules[1].booked_count, 2);
   await assert.rejects(f.workflow.confirmCollection(1, { proposalId: p.id, amount: 1, transactionCode: "TOP1" }));
   await f.workflow.confirmCollection(1, { proposalId: p.id, amount: 2000000, transactionCode: "TOP1" });
@@ -152,6 +113,7 @@ test("expired payment holds release once, and late money is recorded for refund 
   const f = fixture(); await f.workflow.propose(1, { allowedOptions: ["reschedule"], newScheduleId: 2, companyBankInfo: recipient });
   const p = f.state().booking.cancellation_meta.resolutionProposal;
   await f.workflow.resolve(1, 7, { proposalId: p.id, decision: "reschedule" });
+  f.state().booking.cancellation_meta.resolutionProposal.paymentMethod = "bank";
   f.state().booking.cancellation_meta.resolutionProposal.paymentDeadline = new Date(Date.now() - 1000).toISOString();
   await f.workflow.expireHolds(); await f.workflow.expireHolds();
   assert.equal(f.state().schedules[1].booked_count, 0);
@@ -163,6 +125,7 @@ test("customer can choose refund while awaiting a top-up, releasing both reserva
   const f = fixture(); await f.workflow.propose(1, { allowedOptions: ["reschedule"], newScheduleId: 2, companyBankInfo: recipient });
   const p = f.state().booking.cancellation_meta.resolutionProposal;
   await f.workflow.resolve(1, 7, { proposalId: p.id, decision: "reschedule" });
+  f.state().booking.cancellation_meta.resolutionProposal.paymentMethod = "bank";
   await f.workflow.resolve(1, 7, { ...recipient, proposalId: p.id, decision: "full_refund" });
   assert.equal(f.state().booking.status, "refund_pending"); assert.equal(f.state().schedules[0].booked_count, 0); assert.equal(f.state().schedules[1].booked_count, 0);
   await assert.rejects(f.workflow.resolve(1, 7, { ...recipient, proposalId: p.id, decision: "full_refund" }));
@@ -172,6 +135,7 @@ test("late top-up after the original refund is completed becomes its own refunda
   const f = fixture(); await f.workflow.propose(1, { allowedOptions: ["reschedule"], newScheduleId: 2, companyBankInfo: recipient });
   const p = f.state().booking.cancellation_meta.resolutionProposal;
   await f.workflow.resolve(1, 7, { proposalId: p.id, decision: "reschedule" });
+  f.state().booking.cancellation_meta.resolutionProposal.paymentMethod = "bank";
   await f.workflow.resolve(1, 7, { ...recipient, proposalId: p.id, decision: "full_refund" });
   const first = f.state().booking.cancellation_meta.refunds[0];
   await f.workflow.beginRefundTransfer(1, { refundId: first.id });
@@ -213,6 +177,7 @@ test("company support can waive a higher price without creating a collection", a
   const p = f.state().booking.cancellation_meta.resolutionProposal;
   assert.equal(p.priceDifference, 0); assert.equal(p.newPricing.discount_amount, 2000000);
   await f.workflow.resolve(1, 7, { proposalId: p.id, decision: "reschedule" });
+  f.state().booking.cancellation_meta.resolutionProposal.paymentMethod = "bank";
   assert.equal(f.state().booking.total_amount, 6000000); assert.equal(f.state().payments.length, 1);
 });
 test("stale proposal IDs and oversized admin refunds cannot change booking or seats", async () => {

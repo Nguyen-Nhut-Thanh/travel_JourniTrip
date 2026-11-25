@@ -13,6 +13,8 @@ import type { PaymentMethod, TravelerForm, TravelerType, UserProfileLite, Vouche
 
 import { BookingContactForm } from "@/components/booking/create_booking/UserBookingContactForm";
 import { BookingExtraServices } from "@/components/booking/create_booking/UserBookingExtraServices";
+import { UserBookingPointsPayment } from "@/components/booking/create_booking/UserBookingPointsPayment";
+import { maxBookingPoints, MEMBERSHIP_POINTS_POLICY } from "shared";
 import { BookingOrderSummary } from "@/components/booking/create_booking/UserBookingOrderSummary";
 import { BookingPassengerCounts } from "@/components/booking/create_booking/UserBookingPassengerCounts";
 import { BookingPickupPointSection } from "@/components/booking/create_booking/UserBookingPickupPointSection";
@@ -45,14 +47,16 @@ function BookingContent() {
 
   const [loading, setLoading] = useState(true);
   const [memberTier, setMemberTier] = useState<MembershipTier | null>(null);
+  const [memberPoints, setMemberPoints] = useState(0);
+  const [requestedPoints, setRequestedPoints] = useState(0);
   const [membershipError, setMembershipError] = useState(false);
   const [membershipLoading, setMembershipLoading] = useState(true);
   const [membershipRevision, setMembershipRevision] = useState(0);
   useEffect(() => {
     let active = true;
     if (!customerId && !getToken()) { setMemberTier(null); setMembershipLoading(false); return; }
-    setMemberTier(null); setMembershipLoading(true); setMembershipError(false);
-    (customerId ? getMemberDetails(customerId) : getMembership()).then(result => { if (active) setMemberTier(result.tier); }).catch(() => { if (active) setMembershipError(true); }).finally(() => { if (active) setMembershipLoading(false); });
+    setMemberTier(null); setMemberPoints(0); setRequestedPoints(0); setMembershipLoading(true); setMembershipError(false);
+    (customerId ? getMemberDetails(customerId) : getMembership()).then(result => { if (active) { setMemberTier(result.tier); setMemberPoints(result.pointsBalance ?? 0); } }).catch(() => { if (active) setMembershipError(true); }).finally(() => { if (active) setMembershipLoading(false); });
     return () => { active = false; };
   }, [customerId, membershipRevision]);
   const [tour, setTour] = useState<PublicTourDetail | null>(null);
@@ -187,8 +191,11 @@ function BookingContent() {
     const servicesTotal = extraServices.filter(service => selectedExtraIds.includes(service.id))
       .reduce((total, service) => total + service.unit_price * (service.pricing_unit === "guest" ? adultCount + childCount + infantCount : 1), 0);
     const { tourDiscount, serviceDiscount } = membershipPrice(memberTier, subtotal, servicesTotal, voucherDiscount);
-    const discount = voucherDiscount + tourDiscount + serviceDiscount;
-    const total = Math.max(subtotal + singleRoomSurcharge + servicesTotal - discount, 0);
+    const beforePoints = Math.max(subtotal + singleRoomSurcharge + servicesTotal - voucherDiscount - tourDiscount - serviceDiscount, 0);
+    const pointsUsed = Math.min(requestedPoints, maxBookingPoints(beforePoints, memberPoints));
+    const pointsDiscount = pointsUsed * MEMBERSHIP_POINTS_POLICY.valueVnd;
+    const discount = voucherDiscount + tourDiscount + serviceDiscount + pointsDiscount;
+    const total = beforePoints - pointsDiscount;
 
     return {
       adultUnitPrice,
@@ -201,7 +208,7 @@ function BookingContent() {
       discount,
       total,
       servicesTotal,
-      voucherDiscount, tourDiscount, serviceDiscount, membershipName: memberTier?.name,
+      voucherDiscount, tourDiscount, serviceDiscount, pointsUsed, pointsDiscount, beforePoints, membershipName: memberTier?.name,
     };
   }, [
     adultCount,
@@ -212,7 +219,7 @@ function BookingContent() {
     voucherResult,
     extraServices,
     selectedExtraIds,
-    memberTier,
+    memberTier, memberPoints, requestedPoints,
   ]);
 
   const seatsLeft = useMemo(() => {
@@ -355,11 +362,11 @@ function BookingContent() {
           note,
           voucher_code: voucherResult?.code,
           payment_method: paymentMethod,
-          policyAccepted: true,
           room_type: pricing.singleRoomCount > 0 ? "single" : "shared",
           single_room_surcharge: pricing.singleRoomSurcharge,
           single_room_count: pricing.singleRoomCount,
           additional_service_ids: selectedExtraIds,
+          points_to_use: pricing.pointsUsed,
         },
         customerId,
       );
@@ -730,6 +737,7 @@ function BookingContent() {
             {membershipError && <InlineNotice tone="error">Không thể tải ưu đãi hội viên. <button type="button" onClick={() => setMembershipRevision(value => value + 1)} className="underline">Thử lại</button></InlineNotice>}
             {voucherPickerOpen && getToken() && !customerId && <BookingMemberVouchers subtotal={pricing.subtotal} total={pricing.total} disabled={voucherLoading || submitting} selectedCode={voucherResult?.code ?? null} selectionError={voucherError} onSelect={handleApplyVoucher} onClose={() => setVoucherPickerOpen(false)} />}
 
+            <UserBookingPointsPayment balance={memberPoints} amount={pricing.beforePoints} points={pricing.pointsUsed} disabled={submitting || membershipLoading || membershipError} onChange={setRequestedPoints} />
             <BookingVoucherAndPayment
               voucherCode={voucherCode}
               voucherLoading={voucherLoading}

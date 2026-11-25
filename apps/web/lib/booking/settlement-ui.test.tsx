@@ -16,12 +16,21 @@ test("recipient form exposes all three required bank fields and preserves accoun
   assert.match(html, /Ngân hàng/); assert.match(html, /Số tài khoản/); assert.match(html, /Tên chủ tài khoản/);
   assert.match(html, /inputMode="numeric"/); assert.ok((html.match(/required=""/g) || []).length >= 3);
 });
-test("customer sees company recipient, exact top-up amount, content and deadline", () => {
+test("customer sees a VNPay top-up button and deadline without company bank details", () => {
   const html = renderToStaticMarkup(React.createElement(UserBookingResolutionProposalCard, { booking: { ...booking, status: "cancel_proposed", cancellation_meta: { resolutionProposal: {
     id: "P1", version: 2, status: "awaiting_payment", priceDifference: 2000000, companyBankInfo: recipient, transferContent: "BK1-P1", paymentDeadline: "2027-01-01T00:00:00Z",
   } } } }));
-  assert.match(html, /0123456789/); assert.match(html, /NGUYEN VAN A/); assert.match(html, /BK1-P1/); assert.match(html, /2\.000\.000/); assert.match(html, /Hạn giữ chỗ/);
+  assert.match(html, /Thanh toán bổ sung 2\.000\.000.*qua VNPay/); assert.match(html, /Hạn giữ chỗ/);
+  assert.doesNotMatch(html, /0123456789|NGUYEN VAN A|BK1-P1|Số tài khoản công ty/);
   assert.doesNotMatch(html, /phương án khác/);
+});
+
+test("new VNPay proposals do not offer manual admin confirmation of supplemental money", () => {
+  const html = renderToStaticMarkup(React.createElement(BookingSettlementPanel, { admin: true, booking: { ...booking, status: "cancel_proposed", cancellation_meta: { resolutionProposal: {
+    id: "P1", status: "awaiting_payment", paymentMethod: "vnpay", priceDifference: 2000000, paymentDeadline: "2027-01-01T00:00:00Z", companyBankInfo: recipient,
+  } } } }));
+  assert.match(html, /Khách nộp bổ sung qua VNPay/);
+  assert.doesNotMatch(html, /Xác nhận thực nhận khoản bổ sung|0123456789|Mã giao dịch ngân hàng/);
 });
 test("admin refund action uses the approved refund amount and freezes recipient before transfer", () => {
   const html = renderToStaticMarkup(React.createElement(BookingSettlementPanel, { admin: true, booking: { ...booking, cancellation_meta: { refunds: [{ id: "R1", amount: 2000000, status: "pending", reason: "reschedule", bank: recipient }] } } }));

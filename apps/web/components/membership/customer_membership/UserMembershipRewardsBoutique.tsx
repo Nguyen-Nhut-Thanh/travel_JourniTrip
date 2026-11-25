@@ -21,14 +21,13 @@ export function UserMembershipRewardsBoutique({
         <div>
           <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400">
             <Gift className="h-3.5 w-3.5" />
-            <span>AURA Boutique</span>
+            <span>Đổi điểm lấy voucher</span>
           </div>
           <h2 className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-white">
-            Đổi Điểm Lấy Trải Nghiệm Độc Bản
+            Đổi điểm lấy voucher tour
           </h2>
           <p className="mt-1 text-xs text-slate-400 sm:text-sm">
-            Quy đổi điểm thưởng tích lũy lấy các kỳ nghỉ 5 sao, vé máy bay thương
-            gia và du thuyền sang trọng.
+            Đổi điểm tích lũy lấy voucher giảm giá tour cho hành trình tiếp theo.
           </p>
         </div>
 
@@ -87,6 +86,7 @@ export function UserMembershipRewardsBoutique({
                   <p className="mt-2 text-xs leading-relaxed text-slate-400">
                     {reward.description}
                   </p>
+                  <p className="mt-2 text-xs leading-5 text-amber-300/80">Đơn từ {(reward.minOrder ?? (reward.valueVnd ?? reward.pointsCost * 1000) * 5).toLocaleString('vi-VN')} đ · Hạn dùng {reward.validityDays ?? 365} ngày sau khi đổi.</p>
                 </div>
               </div>
 

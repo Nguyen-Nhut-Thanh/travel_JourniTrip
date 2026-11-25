@@ -52,7 +52,6 @@ export interface AdminCancelBookingPayload {
   allowedOptions?: ("full_refund" | "reschedule")[];
   newScheduleId?: number;
   waiveDifference?: boolean;
-  companyBankInfo?: import("shared").BookingBankAccount;
   pickupPointId?: number;
   bankName?: string;
   bankAccountNumber?: string;

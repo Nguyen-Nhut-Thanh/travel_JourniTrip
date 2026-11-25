@@ -154,12 +154,16 @@ function ResultContent() {
       </div>
     );
 
-  const copy = COPY[payment.status];
+  const supplemental = payment.purpose === "reschedule";
+  const copy = supplemental && payment.resolution === "refund_pending" ? { title: "Đã nhận tiền — chờ hoàn lại", description: "Khoản thanh toán bổ sung này không áp dụng được vào đổi lịch và được ghi nhận để hoàn lại. Vui lòng xem khoản hoàn trong chi tiết booking." }
+    : supplemental && payment.resolution === "refunded" ? { title: "Đã hoàn lại khoản bổ sung", description: "Khoản thanh toán bổ sung này đã được hoàn lại. Bạn có thể xem giao dịch trong chi tiết booking." }
+    : supplemental && payment.status === "success" ? { title: "Đã thanh toán bổ sung và đổi lịch", description: "VNPay đã xác nhận khoản chênh lệch. Lịch mới đã được cập nhật trong booking." }
+    : COPY[payment.status];
   const success = payment.status === "success";
   const waiting = ["pending", "review"].includes(payment.status);
   const canRetry =
     ["failed", "cancelled", "expired"].includes(payment.status) &&
-    payment.bookingStatus === "pending";
+    (supplemental ? payment.canRetry && Boolean(payment.proposalId) : payment.bookingStatus === "pending");
   const Icon = success ? CheckCircle2 : waiting ? Clock3 : XCircle;
   return (
     <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-xl shadow-slate-200/50">
@@ -187,6 +191,7 @@ function ResultContent() {
           <BookingPaymentButton
             bookingId={payment.bookingId}
             label="Thanh toán lại qua VNPay"
+            rescheduleProposalId={supplemental ? payment.proposalId : undefined}
           />
         )}
         {payment.status === "pending" && (

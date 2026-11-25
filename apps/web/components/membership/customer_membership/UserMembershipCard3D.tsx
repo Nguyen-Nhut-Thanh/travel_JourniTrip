@@ -1,14 +1,13 @@
 "use client";
 
-import { useMemo, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { Compass, Sparkles, Wifi } from "lucide-react";
-import type { MembershipTierId } from "shared";
+import type { MembershipTier, MembershipTierId } from "shared";
 
 interface CardTierVisual {
   id: MembershipTierId;
   name: string;
   badge: string;
-  multiplier: string;
   gradient: string;
   shadow: string;
   accentText: string;
@@ -19,7 +18,6 @@ const CARD_TIER_CONFIGS: Record<MembershipTierId, CardTierVisual> = {
     id: "bronze",
     name: "MEMBER BRONZE",
     badge: "Hạng Đồng",
-    multiplier: "1.0× Điểm",
     gradient: "linear-gradient(135deg, #2D1B10 0%, #6E3D1A 48%, #A05A2C 100%)",
     shadow: "0 25px 50px -12px rgba(160, 90, 44, 0.35)",
     accentText: "text-amber-200",
@@ -28,7 +26,6 @@ const CARD_TIER_CONFIGS: Record<MembershipTierId, CardTierVisual> = {
     id: "silver",
     name: "EXPLORER SILVER",
     badge: "Hạng Bạc",
-    multiplier: "1.2× Điểm",
     gradient: "linear-gradient(135deg, #1E293B 0%, #475569 50%, #94A3B8 100%)",
     shadow: "0 25px 50px -12px rgba(148, 163, 184, 0.3)",
     accentText: "text-slate-200",
@@ -37,7 +34,6 @@ const CARD_TIER_CONFIGS: Record<MembershipTierId, CardTierVisual> = {
     id: "gold",
     name: "VOYAGER GOLD",
     badge: "Hạng Vàng",
-    multiplier: "1.5× Điểm",
     gradient: "linear-gradient(135deg, #2A2112 0%, #8A6421 48%, #D4AF37 100%)",
     shadow: "0 25px 50px -12px rgba(212, 175, 55, 0.35)",
     accentText: "text-amber-300",
@@ -46,7 +42,6 @@ const CARD_TIER_CONFIGS: Record<MembershipTierId, CardTierVisual> = {
     id: "platinum",
     name: "ELITE PLATINUM",
     badge: "Hạng Bạch Kim",
-    multiplier: "2.0× Điểm",
     gradient: "linear-gradient(135deg, #082F49 0%, #0E7490 50%, #38BDF8 100%)",
     shadow: "0 25px 50px -12px rgba(56, 189, 248, 0.35)",
     accentText: "text-cyan-300",
@@ -55,7 +50,6 @@ const CARD_TIER_CONFIGS: Record<MembershipTierId, CardTierVisual> = {
     id: "diamond",
     name: "SIGNATURE DIAMOND",
     badge: "Hạng Kim Cương",
-    multiplier: "3.0× Điểm",
     gradient: "linear-gradient(135deg, #022C22 0%, #065F46 45%, #10B981 100%)",
     shadow: "0 25px 50px -12px rgba(16, 185, 129, 0.35)",
     accentText: "text-emerald-300",
@@ -71,6 +65,7 @@ const ALL_TIER_KEYS: MembershipTierId[] = [
 ];
 
 interface UserMembershipCard3DProps {
+  tiers: MembershipTier[];
   currentTierId: MembershipTierId;
   memberName?: string | null;
   memberId?: string | number | null;
@@ -80,6 +75,7 @@ interface UserMembershipCard3DProps {
 }
 
 export function UserMembershipCard3D({
+  tiers,
   currentTierId,
   memberName,
   memberId,
@@ -89,6 +85,8 @@ export function UserMembershipCard3D({
 }: UserMembershipCard3DProps) {
   const [internalPreviewTier, setInternalPreviewTier] =
     useState<MembershipTierId>(currentTierId);
+
+  useEffect(() => { setInternalPreviewTier(currentTierId); }, [currentTierId]);
 
   const selectedTier = activePreviewTier ?? internalPreviewTier;
   const config = CARD_TIER_CONFIGS[selectedTier] ?? CARD_TIER_CONFIGS.bronze;
@@ -254,7 +252,7 @@ export function UserMembershipCard3D({
                 Tích lũy
               </p>
               <p className="text-sm sm:text-base font-extrabold text-white">
-                {config.multiplier}
+                {`×${tiers.find(t => t.id === selectedTier)?.pointMultiplier.toLocaleString("vi-VN")} Điểm`}
               </p>
               <p className="text-[9px] text-white/75">
                 Hiệu lực: {formattedExpiry}
