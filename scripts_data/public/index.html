@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JourniTrip — Mock Data Studio (Port 3500)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .console-scroll::-webkit-scrollbar { width: 6px; }
+    .console-scroll::-webkit-scrollbar-track { background: #0f172a; }
+    .console-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased flex flex-col">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black shadow-lg shadow-blue-500/20 text-lg">
+          JT
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-bold tracking-tight text-white">Mock Data Studio</h1>
+            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              Port 3500 • Độc lập
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">Công cụ sinh dữ liệu mẫu Tour, Khởi hành, Booking cho Thống kê & Báo cáo</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="http://localhost:3000/admin" target="_blank" class="text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+          <span>📊 Mở Admin Dashboard</span>
+          <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </a>
+        <a href="http://localhost:3000/admin/analytics" target="_blank" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition flex items-center gap-1.5">
+          <span>📈 Xem Báo cáo Analytics</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="border-b border-slate-800 bg-slate-900/50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap gap-6">
+      <button id="tab-btn-generator" onclick="switchTab('generator')" class="py-3 px-1 text-sm font-semibold border-b-2 border-blue-500 text-blue-400 flex items-center gap-2">
+        <span>⚡ Kịch bản Tour & Booking</span>
+      </button>
+      <button id="tab-btn-batches" onclick="switchTab('batches')" class="py-3 px-1 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+        <span>📦 Lịch sử Đợt & Dọn dẹp</span>
+        <span id="batch-count-badge" class="px-1.5 py-0.2 text-[10px] rounded-full bg-slate-800 text-slate-300">0</span>
+      </button>
+      <button id="tab-btn-membership" onclick="switchTab('membership')" class="py-3 px-1 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+        <span>👑 Hội viên & Nâng hạng</span>
+      </button>
+      <button id="tab-btn-admin" onclick="switchTab('admin')" class="py-3 px-1 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+        <span>🛡️ Cấp quyền Admin</span>
+        <span id="admin-count-badge" class="px-1.5 py-0.2 text-[10px] rounded-full bg-slate-800 text-slate-300">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+    <!-- VIEW 1: GENERATOR TAB -->
+    <div id="view-generator" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Form Controls (7 cols) -->
+        <div class="lg:col-span-7 space-y-6">
+          
+          <!-- Section 1: Tour Selection -->
+          <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4 shadow-sm">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span> 1. Chọn hoặc Tạo Tour
+              </h2>
+              <div class="inline-flex rounded-lg bg-slate-800 p-0.5 border border-slate-700 text-xs">
+                <button type="button" id="btn-mode-existing" onclick="setTourMode('existing')" class="px-3 py-1 rounded-md font-semibold bg-blue-600 text-white transition">Tour có sẵn</button>
+                <button type="button" id="btn-mode-new" onclick="setTourMode('new')" class="px-3 py-1 rounded-md font-semibold text-slate-400 hover:text-slate-200 transition">Tạo Tour mới</button>
+              </div>
+            </div>
+
+            <!-- Existing Tour Picker -->
+            <div id="wrapper-existing-tour" class="space-y-2">
+              <label class="block text-xs font-semibold text-slate-300">Chọn Tour trong Database:</label>
+              <select id="select-tour" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition">
+                <option value="">Đang tải danh sách Tour...</option>
+              </select>
+              <p id="tour-selected-hint" class="text-xs text-slate-400 italic"></p>
+            </div>
+
+            <!-- New Tour Form -->
+            <div id="wrapper-new-tour" class="space-y-3 hidden">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Tên Tour mới:</label>
+                <input type="text" id="new-tour-name" value="Khám phá Đà Nẵng - Hội An - Bà Nà Hills 4N3Đ" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1">Số ngày:</label>
+                  <input type="number" id="new-tour-days" value="4" min="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1">Số đêm:</label>
+                  <input type="number" id="new-tour-nights" value="3" min="0" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1">Giá gốc (VNĐ):</label>
+                  <input type="number" id="new-tour-price" value="3490000" step="50000" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1">Điểm xuất phát:</label>
+                  <select id="new-tour-location" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1">Phương tiện:</label>
+                  <select id="new-tour-transport" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Schedules in specified Month -->
+          <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4 shadow-sm">
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span> 2. Đợt khởi hành & Mốc thời gian
+            </h2>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Tháng khởi hành:</label>
+                <select id="select-month" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 font-semibold text-amber-400">
+                  <option value="1">Tháng 1</option>
+                  <option value="2">Tháng 2</option>
+                  <option value="3">Tháng 3</option>
+                  <option value="4">Tháng 4</option>
+                  <option value="5">Tháng 5</option>
+                  <option value="6">Tháng 6</option>
+                  <option value="7">Tháng 7</option>
+                  <option value="8" selected>Tháng 8 (Mặc định)</option>
+                  <option value="9">Tháng 9</option>
+                  <option value="10">Tháng 10</option>
+                  <option value="11">Tháng 11</option>
+                  <option value="12">Tháng 12</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Năm:</label>
+                <input type="number" id="input-year" value="2026" min="2024" max="2030" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 font-semibold text-amber-400">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Số đợt trong tháng:</label>
+                <input type="number" id="input-departure-count" value="4" min="1" max="10" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Số chỗ mỗi đợt:</label>
+                <input type="number" id="input-seats" value="30" min="5" max="100" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+              </div>
+            </div>
+            <p class="text-xs text-slate-400">
+              💡 Hệ thống sẽ tự động rải đều các ngày khởi hành và ngày kết thúc trong tháng được chọn, tự sinh bảng giá cho người lớn, trẻ em và em bé.
+            </p>
+          </div>
+
+          <!-- Section 3: Bookings & Revenue -->
+          <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4 shadow-sm">
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 3. Khách hàng, Booking & Doanh thu
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Số lượng Booking muốn sinh:</label>
+                <div class="flex items-center gap-2">
+                  <input type="number" id="input-booking-count" value="20" min="1" max="200" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-emerald-400 font-bold focus:outline-none focus:border-blue-500">
+                  <span class="text-xs text-slate-400 shrink-0">đơn</span>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Tỷ lệ Hoàn thành (Phát sinh Doanh thu):</label>
+                <div class="flex items-center gap-2">
+                  <input type="number" id="input-completed-ratio" value="80" min="0" max="100" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                  <span class="text-xs text-slate-400 shrink-0">%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Options -->
+            <div class="pt-3 border-t border-slate-800/80 space-y-2 text-xs">
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="check-payments" checked class="w-4 h-4 rounded text-blue-600 bg-slate-950 border-slate-700 focus:ring-0">
+                <span class="text-slate-200">Tạo hóa đơn thanh toán thành công (VNPAY / MoMo / Chuyển khoản)</span>
+              </label>
+
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="check-reviews" checked class="w-4 h-4 rounded text-blue-600 bg-slate-950 border-slate-700 focus:ring-0">
+                <span class="text-slate-200">Tự động sinh Đánh giá & Bình luận chân thực (Reviews 4-5 sao, lượt like)</span>
+              </label>
+
+              <div class="pl-6 space-y-1.5 pt-0.5 text-slate-400">
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                  <input type="checkbox" id="check-review-images" checked class="w-3.5 h-3.5 rounded text-blue-600 bg-slate-950 border-slate-700 focus:ring-0">
+                  <span class="text-slate-300">📸 Đính kèm ảnh check-in phong cảnh / ẩm thực thực tế</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                  <input type="checkbox" id="check-admin-replies" checked class="w-3.5 h-3.5 rounded text-blue-600 bg-slate-950 border-slate-700 focus:ring-0">
+                  <span class="text-slate-300">💬 Tự động sinh phản hồi cảm ơn từ CSKH / Quản trị viên (Replies)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <button id="btn-submit" onclick="startGeneration()" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-base shadow-xl shadow-blue-500/20 hover:shadow-blue-500/30 transition transform active:scale-[0.99] flex items-center justify-center gap-3">
+            <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            <span>BẮT ĐẦU TẠO DỮ LIỆU VÀO DATABASE</span>
+          </button>
+        </div>
+
+        <!-- Right: Real-time Terminal Log & Result (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col space-y-4">
+          
+          <!-- Result Card (shown after completion) -->
+          <div id="result-box" class="hidden bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-5 space-y-3">
+            <div class="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>DỮ LIỆU ĐÃ ĐƯỢC NẠP VÀO DATABASE!</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                <span class="text-slate-400 block">Số đợt khởi hành:</span>
+                <span id="res-schedules" class="text-white font-bold text-sm">0</span>
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                <span class="text-slate-400 block">Tổng số booking:</span>
+                <span id="res-bookings" class="text-white font-bold text-sm">0</span>
+              </div>
+              <div class="col-span-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center">
+                <div>
+                  <span class="text-slate-400 block">Đánh giá & Phản hồi CSKH:</span>
+                  <span id="res-reviews" class="text-amber-400 font-bold text-sm">0 reviews</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-slate-400 block">Doanh thu nạp:</span>
+                  <span id="res-revenue" class="text-emerald-400 font-extrabold text-base">0 đ</span>
+                </div>
+              </div>
+            </div>
+            <div class="pt-2">
+              <a href="http://localhost:3000/admin/analytics" target="_blank" class="block text-center py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition">
+                👉 Xem ngay Biểu đồ Doanh thu (Admin Analytics)
+              </a>
+            </div>
+          </div>
+
+          <!-- Terminal Box -->
+          <div class="flex-1 bg-slate-900 rounded-2xl border border-slate-800 flex flex-col min-h-[380px] overflow-hidden shadow-sm">
+            <div class="px-4 py-2.5 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+                <span class="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
+                <span class="w-3 h-3 rounded-full bg-green-500/80 inline-block"></span>
+                <span class="text-xs font-mono text-slate-400 ml-1">Live Process Logs</span>
+              </div>
+              <button onclick="clearLogs()" class="text-[11px] text-slate-400 hover:text-slate-200">Xóa log</button>
+            </div>
+            <div id="console-logs" class="console-scroll flex-1 p-4 font-mono text-xs overflow-y-auto space-y-1.5 bg-[#0b1120] text-slate-300">
+              <div class="text-slate-400">[Hệ thống] Sẵn sàng tạo dữ liệu mẫu. Chọn cấu hình bên trái và bấm Bắt đầu.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VIEW 2: BATCHES & ROLLBACK TAB -->
+    <div id="view-batches" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-white">Danh sách các Đợt dữ liệu mẫu đã tạo</h2>
+          <p class="text-xs text-slate-400">Bạn có thể xóa an toàn (Rollback) các đợt mẫu mà không ảnh hưởng tới dữ liệu thật của dự án.</p>
+        </div>
+        <button onclick="loadBatches()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition">
+          🔄 Tải lại danh sách
+        </button>
+      </div>
+
+      <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-950 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4">Mã đợt (Batch Tag)</th>
+                <th class="py-3 px-4">Tour liên kết</th>
+                <th class="py-3 px-4">Số chuyến</th>
+                <th class="py-3 px-4">Số Bookings</th>
+                <th class="py-3 px-4">Doanh thu nạp</th>
+                <th class="py-3 px-4">Ngày tạo</th>
+                <th class="py-3 px-4 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="batches-tbody" class="divide-y divide-slate-800/80">
+              <tr>
+                <td colspan="7" class="py-8 text-center text-slate-400">Đang tải danh sách đợt...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: MEMBERSHIP UPGRADE TAB -->
+    <div id="view-membership" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left Form -->
+        <div class="lg:col-span-5 bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4 shadow-sm">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span> Nâng hạng / Seed Hội viên
+            </h2>
+            <button onclick="loadUsers()" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">🔄 Tải lại</button>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Chọn nhanh tài khoản có sẵn:</label>
+            <select id="mem-user-select" onchange="onSelectMemUser()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+              <option value="">-- Nhập email mới bên dưới hoặc chọn user --</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Email tài khoản *</label>
+              <input type="email" id="mem-email" placeholder="user@example.com" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Mật khẩu (tạo mới / đổi):</label>
+              <input type="text" id="mem-password" placeholder="Mặc định 123456 nếu tạo mới" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Họ và tên (tùy chọn):</label>
+            <input type="text" id="mem-fullname" placeholder="Để trống nếu giữ nguyên tên cũ" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Hạng mục tiêu:</label>
+              <select id="mem-tier" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-amber-400 font-semibold focus:outline-none focus:border-amber-500">
+                <option value="bronze">🥉 Đồng (Bronze • 0đ)</option>
+                <option value="silver">🥈 Bạc (Silver • 5tr+)</option>
+                <option value="gold">🥇 Vàng (Gold • 15tr+)</option>
+                <option value="platinum">💎 Bạch kim (Platinum • 30tr+)</option>
+                <option value="diamond" selected>👑 Kim cương (Diamond • 60tr+)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Chi tiêu tùy chỉnh (VNĐ):</label>
+              <input type="number" id="mem-spending" placeholder="Tự động theo hạng" min="0" step="1000000" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-800 space-y-2 text-xs">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" id="mem-create-bookings" checked class="w-4 h-4 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="text-slate-200">Tạo Booking hoàn thành & Thanh toán tương ứng phần chi tiêu tăng thêm</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" id="mem-issue-vouchers" checked class="w-4 h-4 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="text-slate-200">Cấp Voucher Thăng Hạng & Voucher Sinh Nhật vào ví</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" id="mem-reset-spending" class="w-4 h-4 rounded text-rose-500 bg-slate-950 border-slate-700">
+              <span class="text-slate-300">Reset chi tiêu về đúng mốc của hạng đã chọn (dùng khi hạ/đặt lại hạng)</span>
+            </label>
+          </div>
+
+          <button id="btn-mem-upgrade" onclick="submitMembershipUpgrade()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition">
+            👑 CẬP NHẬT HẠNG HỘI VIÊN
+          </button>
+
+          <div id="mem-log-box" class="hidden bg-[#0b1120] border border-slate-800 rounded-xl p-3 font-mono text-xs space-y-1 max-h-40 overflow-y-auto console-scroll"></div>
+        </div>
+
+        <!-- Right Users Table -->
+        <div class="lg:col-span-7 bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden flex flex-col">
+          <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white">Danh sách Hội viên hiện có</h3>
+              <p class="text-xs text-slate-400">Click "Chọn" để điền nhanh vào form nâng hạng</p>
+            </div>
+          </div>
+          <div class="overflow-x-auto flex-1">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                <tr>
+                  <th class="py-3 px-4">ID / Tên</th>
+                  <th class="py-3 px-4">Email</th>
+                  <th class="py-3 px-4">Hạng hiện tại</th>
+                  <th class="py-3 px-4">Chi tiêu</th>
+                  <th class="py-3 px-4 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="mem-users-tbody" class="divide-y divide-slate-800/80">
+                <tr><td colspan="5" class="py-8 text-center text-slate-400">Đang tải danh sách...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: GRANT ADMIN TAB -->
+    <div id="view-admin" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left Grant Form -->
+        <div class="lg:col-span-5 bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4 shadow-sm">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Cấp quyền Quản trị viên (Admin)
+            </h2>
+            <button onclick="loadAdmins()" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">🔄 Tải lại</button>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Chọn từ tài khoản có sẵn:</label>
+            <select id="adm-user-select" onchange="onSelectAdminUser()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500">
+              <option value="">-- Nhập email mới bên dưới hoặc chọn user --</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Email tài khoản *</label>
+            <input type="email" id="adm-email" placeholder="admin@travol.vn" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Mật khẩu (bắt buộc nếu tạo mới):</label>
+              <input type="text" id="adm-password" placeholder="Để trống nếu giữ MK cũ" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Họ và tên (tùy chọn):</label>
+              <input type="text" id="adm-fullname" placeholder="Nguyễn Văn Admin" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500">
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-400">
+            💡 Thao tác này sẽ bật <code class="text-emerald-400">is_staff = true</code>, gán role <code class="text-emerald-400">admin</code>, xác thực email và tạo hồ sơ nhân viên nếu chưa có.
+          </p>
+
+          <button id="btn-adm-grant" onclick="submitGrantAdmin()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 transition">
+            🛡️ CẤP QUYỀN ADMIN NGAY
+          </button>
+
+          <div id="adm-log-box" class="hidden bg-[#0b1120] border border-slate-800 rounded-xl p-3 font-mono text-xs space-y-1 max-h-40 overflow-y-auto console-scroll"></div>
+        </div>
+
+        <!-- Right Admins Table -->
+        <div class="lg:col-span-7 bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden flex flex-col">
+          <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white">Danh sách Quản trị viên hiện có</h3>
+              <p class="text-xs text-slate-400">Các tài khoản có quyền đăng nhập <a href="http://localhost:3000/admin/login" target="_blank" class="text-blue-400 underline">/admin/login</a></p>
+            </div>
+          </div>
+          <div class="overflow-x-auto flex-1">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                <tr>
+                  <th class="py-3 px-4">ID</th>
+                  <th class="py-3 px-4">Email</th>
+                  <th class="py-3 px-4">Họ và tên</th>
+                  <th class="py-3 px-4">Mã NV</th>
+                  <th class="py-3 px-4">Vị trí</th>
+                </tr>
+              </thead>
+              <tbody id="adm-tbody" class="divide-y divide-slate-800/80">
+                <tr><td colspan="5" class="py-8 text-center text-slate-400">Đang tải danh sách Admin...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 py-3 text-center text-xs text-slate-400">
+    JourniTrip Local Mock Data Studio • Port 3500 • Phục vụ thử nghiệm dữ liệu & báo cáo
+  </footer>
+
+  <script>
+    let currentTourMode = 'existing';
+    let metadata = { tours: [], locations: [], transports: [] };
+
+    // Khởi tạo tải metadata
+    async function init() {
+      try {
+        const res = await fetch('/api/metadata');
+        const json = await res.json();
+        if (json.success) {
+          metadata = json.data;
+          renderMetadata();
+        }
+      } catch (e) {
+        appendLog('error', 'Lỗi kết nối tới Server Studio: ' + e.message);
+      }
+      loadBatches();
+    }
+
+    function renderMetadata() {
+      // Tours dropdown
+      const selectTour = document.getElementById('select-tour');
+      selectTour.innerHTML = '';
+      if (metadata.tours.length === 0) {
+        selectTour.innerHTML = '<option value="">Không có tour nào trong DB</option>';
+      } else {
+        metadata.tours.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.tour_id;
+          opt.textContent = `[${t.code}] ${t.name} — ${Number(t.base_price).toLocaleString('vi-VN')} đ`;
+          selectTour.appendChild(opt);
+        });
+        updateTourHint();
+      }
+
+      // Locations dropdown
+      const selectLoc = document.getElementById('new-tour-location');
+      selectLoc.innerHTML = '';
+      metadata.locations.forEach(l => {
+        const opt = document.createElement('option');
+        opt.value = l.location_id;
+        opt.textContent = l.name;
+        selectLoc.appendChild(opt);
+      });
+
+      // Transports dropdown
+      const selectTrans = document.getElementById('new-tour-transport');
+      selectTrans.innerHTML = '';
+      metadata.transports.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.transport_id;
+        opt.textContent = t.name;
+        selectTrans.appendChild(opt);
+      });
+    }
+
+    function updateTourHint() {
+      const selectTour = document.getElementById('select-tour');
+      const selectedId = Number(selectTour.value);
+      const tour = metadata.tours.find(t => t.tour_id === selectedId);
+      const hint = document.getElementById('tour-selected-hint');
+      if (tour) {
+        hint.textContent = `Thời lượng: ${tour.duration_days} ngày ${tour.duration_nights} đêm | Giá gốc: ${Number(tour.base_price).toLocaleString('vi-VN')} đ`;
+      } else {
+        hint.textContent = '';
+      }
+    }
+
+    document.getElementById('select-tour').addEventListener('change', updateTourHint);
+
+    function setTourMode(mode) {
+      currentTourMode = mode;
+      const btnExisting = document.getElementById('btn-mode-existing');
+      const btnNew = document.getElementById('btn-mode-new');
+      const wrapperExisting = document.getElementById('wrapper-existing-tour');
+      const wrapperNew = document.getElementById('wrapper-new-tour');
+
+      if (mode === 'existing') {
+        btnExisting.className = 'px-3 py-1 rounded-md font-semibold bg-blue-600 text-white transition';
+        btnNew.className = 'px-3 py-1 rounded-md font-semibold text-slate-400 hover:text-slate-200 transition';
+        wrapperExisting.classList.remove('hidden');
+        wrapperNew.classList.add('hidden');
+      } else {
+        btnNew.className = 'px-3 py-1 rounded-md font-semibold bg-blue-600 text-white transition';
+        btnExisting.className = 'px-3 py-1 rounded-md font-semibold text-slate-400 hover:text-slate-200 transition';
+        wrapperNew.classList.remove('hidden');
+        wrapperExisting.classList.add('hidden');
+      }
+    }
+
+    function switchTab(tab) {
+      const tabs = ['generator', 'batches', 'membership', 'admin'];
+      tabs.forEach(t => {
+        const view = document.getElementById(`view-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tab) {
+          view.classList.remove('hidden');
+          btn.className = 'py-3 px-1 text-sm font-semibold border-b-2 border-blue-500 text-blue-400 flex items-center gap-2';
+        } else {
+          view.classList.add('hidden');
+          btn.className = 'py-3 px-1 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2';
+        }
+      });
+      if (tab === 'batches') loadBatches();
+      if (tab === 'membership') loadUsers();
+      if (tab === 'admin') { loadAdmins(); loadUsers(); }
+    }
+
+    function appendLog(level, msg) {
+      const box = document.getElementById('console-logs');
+      const line = document.createElement('div');
+      const now = new Date().toLocaleTimeString('vi-VN');
+
+      let colorClass = 'text-slate-300';
+      if (level === 'success') colorClass = 'text-emerald-400 font-semibold';
+      if (level === 'error') colorClass = 'text-rose-400 font-bold';
+      if (level === 'warn') colorClass = 'text-amber-400';
+
+      line.className = `${colorClass} leading-relaxed`;
+      line.textContent = `[${now}] ${msg}`;
+      box.appendChild(line);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function clearLogs() {
+      document.getElementById('console-logs').innerHTML = '';
+    }
+
+    async function startGeneration() {
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      const payload = {
+        tourMode: currentTourMode,
+        tourId: currentTourMode === 'existing' ? Number(document.getElementById('select-tour').value) : undefined,
+        newTour: currentTourMode === 'new' ? {
+          name: document.getElementById('new-tour-name').value,
+          duration_days: Number(document.getElementById('new-tour-days').value),
+          duration_nights: Number(document.getElementById('new-tour-nights').value),
+          base_price: Number(document.getElementById('new-tour-price').value),
+          departure_location: Number(document.getElementById('new-tour-location').value),
+          transport_id: Number(document.getElementById('new-tour-transport').value)
+        } : undefined,
+        year: Number(document.getElementById('input-year').value),
+        month: Number(document.getElementById('select-month').value),
+        departureCount: Number(document.getElementById('input-departure-count').value),
+        seatsPerSchedule: Number(document.getElementById('input-seats').value),
+        bookingCount: Number(document.getElementById('input-booking-count').value),
+        completedRatio: Number(document.getElementById('input-completed-ratio').value),
+        pendingRatio: 15,
+        cancelledRatio: 5,
+        includeReviews: document.getElementById('check-reviews').checked,
+        includeReviewImages: document.getElementById('check-review-images').checked,
+        includeAdminReplies: document.getElementById('check-admin-replies').checked,
+        includePayments: document.getElementById('check-payments').checked
+      };
+
+      appendLog('info', `Gửi yêu cầu tạo dữ liệu đợt tháng ${payload.month}/${payload.year}...`);
+
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const json = await res.json();
+
+        if (json.logs) {
+          json.logs.forEach(l => appendLog(l.level, l.message));
+        }
+
+        if (json.success) {
+          appendLog('success', '✨ ĐÃ HOÀN TẤT VÀ NẠP THÀNH CÔNG VÀO DATABASE!');
+          document.getElementById('result-box').classList.remove('hidden');
+          document.getElementById('res-schedules').textContent = json.schedulesCreated;
+          document.getElementById('res-bookings').textContent = `${json.bookingCount} đơn (${json.completedCount} hoàn thành)`;
+          document.getElementById('res-reviews').textContent = `${json.reviewsCount || 0} reviews (${json.repliesCount || 0} phản hồi CSKH)`;
+          document.getElementById('res-revenue').textContent = Number(json.totalRevenue).toLocaleString('vi-VN') + ' đ';
+          loadBatches();
+        } else {
+          appendLog('error', 'Lỗi: ' + (json.message || 'Không thành công'));
+        }
+      } catch (e) {
+        appendLog('error', 'Lỗi kết nối API: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    async function loadBatches() {
+      try {
+        const res = await fetch('/api/batches');
+        const json = await res.json();
+        const tbody = document.getElementById('batches-tbody');
+        const badge = document.getElementById('batch-count-badge');
+
+        if (json.success && json.data.length > 0) {
+          badge.textContent = json.data.length;
+          tbody.innerHTML = '';
+          json.data.forEach(b => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-800/40 transition';
+            tr.innerHTML = `
+              <td class="py-3 px-4 font-mono text-blue-400 font-semibold">${b.batchTag}</td>
+              <td class="py-3 px-4 font-medium text-slate-100">[${b.tourCode}] ${b.tourName}</td>
+              <td class="py-3 px-4">${b.scheduleCount} chuyến</td>
+              <td class="py-3 px-4 font-bold text-slate-200">${b.totalBookings} đơn <span class="text-emerald-400 font-normal">(${b.completedBookings} xong)</span></td>
+              <td class="py-3 px-4 font-bold text-emerald-400">${Number(b.totalRevenue).toLocaleString('vi-VN')} đ</td>
+              <td class="py-3 px-4 text-slate-400">${new Date(b.createdAt).toLocaleString('vi-VN')}</td>
+              <td class="py-3 px-4 text-right">
+                <button onclick="confirmRollback('${b.batchTag}')" class="px-2.5 py-1 rounded-md bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 transition text-[11px] font-semibold">
+                  🗑️ Xóa đợt này
+                </button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          badge.textContent = '0';
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="py-8 text-center text-slate-500">Chưa có đợt dữ liệu mẫu nào trong Database.</td>
+            </tr>
+          `;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function confirmRollback(tag) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa toàn bộ bookings và dữ liệu mẫu của đợt [${tag}]?\nThao tác này sẽ dọn sạch dữ liệu của đợt đó an toàn.`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/batches/${encodeURIComponent(tag)}`, { method: 'DELETE' });
+        const json = await res.json();
+        if (json.success) {
+          alert(json.message);
+          loadBatches();
+        } else {
+          alert('Lỗi: ' + json.message);
+        }
+      } catch (e) {
+        alert('Lỗi kết nối: ' + e.message);
+      }
+    }
+
+    let cachedUsers = [];
+
+    const TIER_BADGES = {
+      bronze: '<span class="px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-300 border border-amber-700/40">🥉 Đồng</span>',
+      silver: '<span class="px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-200 border border-slate-500/40">🥈 Bạc</span>',
+      gold: '<span class="px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">🥇 Vàng</span>',
+      platinum: '<span class="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">💎 Bạch kim</span>',
+      diamond: '<span class="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">👑 Kim cương</span>',
+    };
+
+    function renderBoxLogs(boxId, logs) {
+      const box = document.getElementById(boxId);
+      box.classList.remove('hidden');
+      box.innerHTML = '';
+      (logs || []).forEach(l => {
+        const line = document.createElement('div');
+        let cls = 'text-slate-300';
+        if (l.level === 'success') cls = 'text-emerald-400 font-semibold';
+        if (l.level === 'error') cls = 'text-rose-400 font-bold';
+        if (l.level === 'warn') cls = 'text-amber-400';
+        line.className = cls;
+        line.textContent = `[${l.timestamp || ''}] ${l.message}`;
+        box.appendChild(line);
+      });
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function loadUsers() {
+      try {
+        const res = await fetch('/api/users');
+        const json = await res.json();
+        if (!json.success) return;
+        cachedUsers = json.data || [];
+
+        const memSelect = document.getElementById('mem-user-select');
+        const admSelect = document.getElementById('adm-user-select');
+        const tbody = document.getElementById('mem-users-tbody');
+
+        memSelect.innerHTML = '<option value="">-- Nhập email mới bên dưới hoặc chọn user --</option>';
+        admSelect.innerHTML = '<option value="">-- Nhập email mới bên dưới hoặc chọn user --</option>';
+
+        cachedUsers.forEach(u => {
+          if (u.email) {
+            const label = `#${u.userId} ${u.fullName} (${u.email}) — ${u.tier.toUpperCase()}`;
+            const opt1 = document.createElement('option');
+            opt1.value = u.email;
+            opt1.textContent = label;
+            memSelect.appendChild(opt1);
+
+            const opt2 = document.createElement('option');
+            opt2.value = u.email;
+            opt2.textContent = `#${u.userId} ${u.fullName} (${u.email})${u.isStaff ? ' [ADMIN]' : ''}`;
+            admSelect.appendChild(opt2);
+          }
+        });
+
+        if (cachedUsers.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-500">Chưa có người dùng nào.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        cachedUsers.forEach(u => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-800/40 transition';
+          tr.innerHTML = `
+            <td class="py-2.5 px-4">
+              <div class="font-semibold text-slate-100">#${u.userId} ${u.fullName}</div>
+              ${u.isStaff ? '<span class="text-[10px] text-emerald-400 font-semibold">Admin</span>' : ''}
+            </td>
+            <td class="py-2.5 px-4 font-mono text-slate-300">${u.email || '—'}</td>
+            <td class="py-2.5 px-4">${TIER_BADGES[u.tier] || u.tier}</td>
+            <td class="py-2.5 px-4 font-semibold text-emerald-400">${Number(u.spending).toLocaleString('vi-VN')} đ</td>
+            <td class="py-2.5 px-4 text-right">
+              <button onclick="pickMemUser('${(u.email || '').replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-[11px] font-semibold">
+                Chọn
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function pickMemUser(email) {
+      document.getElementById('mem-user-select').value = email;
+      document.getElementById('mem-email').value = email;
+    }
+
+    function onSelectMemUser() {
+      const email = document.getElementById('mem-user-select').value;
+      if (email) document.getElementById('mem-email').value = email;
+    }
+
+    function onSelectAdminUser() {
+      const email = document.getElementById('adm-user-select').value;
+      if (email) document.getElementById('adm-email').value = email;
+    }
+
+    async function submitMembershipUpgrade() {
+      const btn = document.getElementById('btn-mem-upgrade');
+      const email = document.getElementById('mem-email').value.trim();
+      if (!email) {
+        alert('Vui lòng nhập hoặc chọn email tài khoản.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      const customSpendingRaw = document.getElementById('mem-spending').value.trim();
+      const payload = {
+        email,
+        targetTier: document.getElementById('mem-tier').value,
+        password: document.getElementById('mem-password').value.trim() || undefined,
+        fullName: document.getElementById('mem-fullname').value.trim() || undefined,
+        customSpending: customSpendingRaw !== '' ? Number(customSpendingRaw) : undefined,
+        createBookings: document.getElementById('mem-create-bookings').checked,
+        issueVouchers: document.getElementById('mem-issue-vouchers').checked,
+        resetSpending: document.getElementById('mem-reset-spending').checked,
+      };
+
+      try {
+        const res = await fetch('/api/membership/upgrade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json();
+        if (json.logs) renderBoxLogs('mem-log-box', json.logs);
+        if (json.success) {
+          loadUsers();
+        } else {
+          renderBoxLogs('mem-log-box', [{ level: 'error', message: json.message || 'Thất bại', timestamp: new Date().toLocaleTimeString('vi-VN') }]);
+        }
+      } catch (e) {
+        renderBoxLogs('mem-log-box', [{ level: 'error', message: e.message, timestamp: new Date().toLocaleTimeString('vi-VN') }]);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    async function loadAdmins() {
+      try {
+        const res = await fetch('/api/admins');
+        const json = await res.json();
+        const tbody = document.getElementById('adm-tbody');
+        const badge = document.getElementById('admin-count-badge');
+
+        if (json.success && json.data.length > 0) {
+          badge.textContent = json.data.length;
+          tbody.innerHTML = '';
+          json.data.forEach(a => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-800/40 transition';
+            tr.innerHTML = `
+              <td class="py-2.5 px-4 font-mono text-slate-400">#${a.userId}</td>
+              <td class="py-2.5 px-4 font-mono text-emerald-400 font-semibold">${a.email}</td>
+              <td class="py-2.5 px-4 text-slate-100 font-medium">${a.fullName}</td>
+              <td class="py-2.5 px-4 font-mono text-slate-300">${a.employeeCode}</td>
+              <td class="py-2.5 px-4 text-slate-300">${a.position}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          badge.textContent = '0';
+          tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-500">Chưa có tài khoản Admin nào.</td></tr>';
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function submitGrantAdmin() {
+      const btn = document.getElementById('btn-adm-grant');
+      const email = document.getElementById('adm-email').value.trim();
+      if (!email) {
+        alert('Vui lòng nhập hoặc chọn email tài khoản.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      const payload = {
+        email,
+        password: document.getElementById('adm-password').value.trim() || undefined,
+        fullName: document.getElementById('adm-fullname').value.trim() || undefined,
+      };
+
+      try {
+        const res = await fetch('/api/admins/grant', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json();
+        if (json.logs) renderBoxLogs('adm-log-box', json.logs);
+        if (json.success) {
+          loadAdmins();
+          loadUsers();
+        } else {
+          renderBoxLogs('adm-log-box', [{ level: 'error', message: json.message || 'Thất bại', timestamp: new Date().toLocaleTimeString('vi-VN') }]);
+        }
+      } catch (e) {
+        renderBoxLogs('adm-log-box', [{ level: 'error', message: e.message, timestamp: new Date().toLocaleTimeString('vi-VN') }]);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    init();
+    loadAdmins();
+  </script>
+</body>
+</html>
+

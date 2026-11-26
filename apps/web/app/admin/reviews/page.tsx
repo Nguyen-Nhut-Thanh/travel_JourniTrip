@@ -246,7 +246,7 @@ function AdminReviewsContent() {
     setCurrentPage(1);
   }, [activeStatus, ratingFilter, searchQuery, sortBy]);
 
-  const tourGroups = useMemo(() => groupReviewsByTour(filteredItems), [filteredItems]);
+  const tourGroups = useMemo(() => groupReviewsByTour(filteredItems, reviews), [filteredItems, reviews]);
   const totalPages = Math.max(1, Math.ceil(tourGroups.length / pageSize));
   const paginatedGroups = tourGroups.slice(
     (currentPage - 1) * pageSize,

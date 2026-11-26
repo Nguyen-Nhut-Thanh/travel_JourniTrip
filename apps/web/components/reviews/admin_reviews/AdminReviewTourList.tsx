@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Clock3, MessageSquare } from "lucide-react";
+import { ChevronDown, Clock3, MessageSquare, Star } from "lucide-react";
 import { AdminPagination } from "@/components/common/admin_shared/tables/AdminPagination";
 import { ImageWithFallback } from "@/components/common/dialogs_and_feedback/media/ImageWithFallback";
 import { getTourTypeLabel } from "@/lib/tours/admin/filters";
@@ -26,7 +26,7 @@ export function ReviewTourList({
   ...actions
 }: ReviewTourListProps) {
   const [expanded, setExpanded] = useState<Set<number>>(() => new Set());
-  const columns = "grid grid-cols-[minmax(280px,2.5fr)_minmax(100px,1fr)_minmax(95px,1fr)_minmax(125px,1fr)_minmax(110px,1fr)_minmax(170px,1.2fr)_36px] items-center gap-4";
+  const columns = "grid grid-cols-[minmax(280px,2.5fr)_minmax(100px,1fr)_minmax(95px,1fr)_minmax(125px,1fr)_minmax(110px,1fr)_minmax(110px,1fr)_minmax(170px,1.2fr)_36px] items-center gap-4";
 
   if (loading || !groups.length) {
     return <ReviewTable items={[]} loading={loading} {...actions} />;
@@ -35,17 +35,18 @@ export function ReviewTourList({
   return (
     <section className="ui-review-management-tourGroups min-w-0 overflow-hidden rounded-[14px] border border-[#e1edfc] bg-white shadow-2xs" aria-label="Đánh giá theo tour">
       <div className="overflow-x-auto">
-        <div className="min-w-[1100px]">
+        <div className="min-w-[1200px]">
           <div className={`${columns} border-b border-[#edf2fb] bg-slate-50/75 px-[18px] py-4 text-[11px] font-bold uppercase text-[#7187a9]`}>
             <span>Thông tin tour</span>
             <span>Loại tour</span>
             <span>Thời gian</span>
             <span>Giá cơ bản</span>
             <span>Trạng thái tour</span>
+            <span>Sao trung bình</span>
             <span>Đánh giá</span>
             <span className="sr-only">Mở danh sách đánh giá</span>
           </div>
-          {groups.map(({ tourId, name, code, tour, reviews }) => {
+          {groups.map(({ tourId, name, code, tour, reviews, averageRating }) => {
             const isExpanded = Boolean(searchTerm.trim()) || expanded.has(tourId);
             const pending = reviews.filter(review => review.status === 0).length;
             return (
@@ -76,6 +77,17 @@ export function ReviewTourList({
                   <span className="font-bold text-[#075bff]">{tour?.base_price != null ? formatVND(tour.base_price) : "—"}</span>
                   <span>
                     {tour?.status != null ? <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${tour.status === 1 ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}><span className="h-1.5 w-1.5 rounded-full bg-current" />{tour.status === 1 ? "Hoạt động" : "Tạm ẩn"}</span> : "—"}
+                  </span>
+                  <span
+                    title="Điểm trung bình từ các đánh giá đã duyệt"
+                    className="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold text-amber-600"
+                  >
+                    <Star size={15} aria-hidden="true" className="fill-amber-400 text-amber-400" />
+                    {averageRating != null ? (
+                      <span aria-label={`${averageRating.toFixed(1)} trên 5 sao`}>{averageRating.toFixed(1)}<span className="font-normal text-[#7387aa]">/5</span></span>
+                    ) : (
+                      <span className="text-[11px] font-normal text-[#7387aa]">Chưa có</span>
+                    )}
                   </span>
                   <span className="flex flex-col items-start gap-1">
                     <span className="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold text-[#075bff]"><MessageSquare size={15} />{reviews.length.toLocaleString("vi-VN")} đánh giá</span>

@@ -18,11 +18,13 @@
     "db:generate": "npm run prisma:generate --workspace=database",
     "db:push": "npm run prisma:push --workspace=database",
     "db:sync:membership": "tsx --tsconfig apps/api/tsconfig.json scripts/sync-membership-wallet.ts",
-    "db:import:provinces": "tsx scripts/import-data/import-provinces.ts",
-    "db:import:seasonal": "tsx scripts/import-data/import-seasonal-showcase.ts",
+    "db:import:provinces": "tsx scripts_data/import_data/import-provinces.ts",
+    "db:import:seasonal": "tsx scripts_data/import_data/import-seasonal-showcase.ts",
     "db:backfill:booking-metadata": "tsx scripts/backfill-booking-metadata.ts",
-    "grant-admin": "tsx scripts/grant-admin.ts",
-    "seed:diamond": "tsx scripts/seed-diamond-member.ts"
+    "grant-admin": "tsx scripts_data/import_data/grant-admin.ts",
+    "seed:diamond": "tsx scripts_data/import_data/seed-diamond-member.ts",
+    "seed:member": "tsx scripts_data/import_data/seed-member-tier.ts",
+    "data:studio": "tsx scripts_data/server.ts"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",

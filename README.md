@@ -39,3 +39,7 @@ Khởi động lại ứng dụng sau khi thay đổi `.env`. Với bản produc
 `apps/web/next-env.d.ts` là file khai báo kiểu do Next.js tạo, không phải file cấu hình môi trường.
 
 Chatbot dùng Python 3.11 trở lên, `OPENAI_API_KEY` và `DATABASE_URL` trong `.env` gốc. `npm run dev` chạy cả web, API và dịch vụ AI. Khi chạy từng ứng dụng, chạy thêm `npm run dev:ai` để NestJS chuyển yêu cầu chat vào FastAPI. Dùng `AI_INTERNAL_URL` nếu hai dịch vụ chạy khác máy. Có thể chạy `npm run ai:index` để tạo sẵn chỉ mục FAISS từ tour JourniTrip. Chatbot cũng tự làm mới chỉ mục trong nền và dùng dữ liệu PostgreSQL khi chỉ mục chưa sẵn sàng.
+
+
+npx prisma db push
+npx prisma migrate deploy
