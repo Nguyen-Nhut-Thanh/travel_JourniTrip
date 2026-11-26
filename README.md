@@ -1,19 +1,42 @@
+<div align="center">
+
 # JourniTrip
+## 1. Giới thiệu
 
-JourniTrip là nền tảng đặt tour du lịch, kết hợp website dành cho khách hàng, trang quản trị vận hành và dịch vụ AI hỗ trợ tư vấn. Dự án tổ chức theo mô hình monorepo, sử dụng npm Workspaces và Turborepo để quản lý các ứng dụng cùng thư viện dùng chung.
+**JourniTrip** là hệ thống website du lịch thông minh, kết hợp nền tảng thương mại điện tử du lịch với các công nghệ AI nhằm hỗ trợ khách hàng khám phá, lựa chọn và đặt tour phù hợp với nhu cầu cá nhân. Hệ thống đồng thời cung cấp công cụ quản trị phục vụ hoạt động kinh doanh và vận hành tour.
 
-## Chức năng chính
+Dự án được phát triển theo kiến trúc monorepo với npm Workspaces và Turborepo, bao gồm ba ứng dụng chính: Web, API nghiệp vụ và dịch vụ AI độc lập, cùng các thư viện dùng chung.
 
-- **Khám phá tour:** tìm kiếm, lọc tour, xem lịch trình, lịch khởi hành, giá, dịch vụ, điểm đón và đánh giá; lưu tour yêu thích.
-- **Đặt tour:** tạo booking, chọn dịch vụ bổ sung, áp dụng voucher, thanh toán qua VNPay và theo dõi đơn trong tài khoản.
-- **Tài khoản và hội viên:** đăng ký, đăng nhập, xác minh email, đăng nhập Google, quản lý hồ sơ, hạng thành viên và ví quyền lợi.
-- **Tư vấn và hỗ trợ:** chatbot AI, gợi ý và so sánh tour, tìm kiếm bằng hình ảnh, thử trang phục bằng AI; trò chuyện với nhân viên qua Socket.IO.
-- **Quản trị:** quản lý tour, lịch khởi hành, booking, khách hàng, nhân sự và phân công chuyến đi; quản lý địa điểm, danh mục dịch vụ, bài viết, banner, ưu đãi và thống kê.
-- **Dữ liệu phát triển:** nhập danh mục, sinh dữ liệu mẫu và cấp quyền quản trị bằng CLI hoặc Data Studio.
+## 2. Tính năng nổi bật
 
-Các chức năng tích hợp cần thông tin dịch vụ tương ứng trong cấu hình môi trường.
+### Khách hàng
 
-## Công nghệ
+- Tìm kiếm, lọc tour theo nhu cầu; xem lịch trình, lịch khởi hành, giá, điểm đón, dịch vụ và đánh giá.
+- Lưu tour yêu thích, đặt tour, lựa chọn dịch vụ bổ sung và áp dụng voucher.
+- Thanh toán trực tuyến qua VNPay và theo dõi đơn đặt tour.
+- Đăng ký, đăng nhập, xác minh email, đăng nhập Google, quản lý hồ sơ, hạng thành viên và ví quyền lợi.
+- Trao đổi trực tiếp với nhân viên thông qua Socket.IO.
+
+### Trí tuệ nhân tạo (AI)
+
+| Tính năng | Vai trò |
+| --- | --- |
+| AI Chatbot | Hỗ trợ tư vấn và giải đáp thắc mắc về tour du lịch. |
+| AI Recommendation | Gợi ý tour phù hợp với nhu cầu của khách hàng. |
+| AI Tour Comparison | Hỗ trợ phân tích và so sánh các lựa chọn tour. |
+| Visual Search | Hỗ trợ tìm kiếm bằng hình ảnh. |
+| AI Virtual Try-on | Cho phép thử trang phục bằng công nghệ tạo ảnh AI. |
+
+### Quản trị và vận hành
+
+- Quản lý tour, lịch khởi hành, đơn đặt tour và khách hàng.
+- Quản lý nhân sự, phân công chuyến đi.
+- Quản lý địa điểm, danh mục dịch vụ, bài viết, banner và chương trình ưu đãi.
+- Theo dõi thống kê phục vụ quản trị.
+
+> Các tính năng tích hợp yêu cầu cấu hình dịch vụ tương ứng trong môi trường chạy.
+
+## 3. Công nghệ sử dụng
 
 | Thành phần | Công nghệ |
 | --- | --- |
@@ -24,7 +47,23 @@ Các chức năng tích hợp cần thông tin dịch vụ tương ứng trong c
 | Tích hợp | Google OAuth, Google Maps, Cloudinary, SMTP, VNPay |
 | Quản lý monorepo | npm Workspaces, Turborepo |
 
-## Cấu trúc dự án
+## 4. Kiến trúc và cấu trúc dự án
+
+```mermaid
+flowchart LR
+    U[Khách hàng / Quản trị viên] --> W[Next.js Web]
+    W -->|HTTP / Socket.IO| A[NestJS API]
+    A -->|Prisma| D[(PostgreSQL)]
+    A --> F[FastAPI AI Service]
+    F --> L[LangChain / FAISS]
+    F --> M[OpenAI-compatible API]
+    A --> V[VNPay]
+    A --> C[Cloudinary / SMTP]
+```
+
+*Sơ đồ tổng quan các thành phần, minh họa từ mô tả kiến trúc của dự án.*
+
+### Cấu trúc thư mục
 
 ```text
 .
@@ -35,40 +74,34 @@ Các chức năng tích hợp cần thông tin dịch vụ tương ứng trong c
 ├── packages/
 │   ├── database/            # Prisma schema, migration và client dùng chung
 │   └── shared/              # Kiểu dữ liệu và hợp đồng dùng chung
-├── scripts_data/
-│   ├── cli/                 # Lệnh import, seed và cấp quyền
-│   ├── data/                # Dữ liệu JSON phục vụ nhập danh mục
-│   ├── services/            # Logic dùng chung cho CLI và Data Studio
-│   ├── public/              # Giao diện Data Studio
-│   └── server.ts            # Máy chủ Data Studio
 ├── .env.example             # Mẫu cấu hình môi trường
 ├── package.json             # Workspaces và các lệnh tại thư mục gốc
 └── turbo.json               # Cấu hình tác vụ Turborepo
 ```
 
-## Yêu cầu môi trường
+## 5. Yêu cầu hệ thống
 
 - Node.js 22 LTS hoặc mới hơn.
 - npm 11.5.2 theo trường `packageManager` trong `package.json`.
 - Python 3.11 trở lên, có `pip` và `venv`, để chạy dịch vụ AI.
 - PostgreSQL đang chạy và một database dành cho dự án.
 
-Các lệnh dưới đây chạy tại thư mục gốc repository. Ví dụ khởi tạo dùng PowerShell.
+Tất cả lệnh trong hướng dẫn được thực hiện tại thư mục gốc repository, sử dụng PowerShell.
 
-## Cài đặt lần đầu
+## 6. Hướng dẫn cài đặt và khởi chạy
 
-### 1. Cài dependency và tạo cấu hình
+### Bước 1 — Cài đặt thư viện và tạo cấu hình
 
 ```powershell
 npm install
-Copy-Item .env.example .env
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
 Nếu đã có `.env`, giữ lại cấu hình hiện tại. Chỉnh tối thiểu `DATABASE_URL` để kết nối PostgreSQL và thay `JWT_SECRET` bằng secret riêng. Cập nhật các URL nếu không dùng địa chỉ mặc định.
 
-Web, API, Prisma, dịch vụ AI và công cụ nhập dữ liệu dùng chung `.env` ở gốc. Không cần tạo `.env` hoặc `.env.local` trong từng workspace. Biến đã đặt trong shell hoặc môi trường triển khai được ưu tiên hơn giá trị trong file.
+Web, API, Prisma và dịch vụ AI dùng chung `.env` ở gốc. Không cần tạo `.env` hoặc `.env.local` trong từng workspace. Biến đã đặt trong shell hoặc môi trường triển khai được ưu tiên hơn giá trị trong file.
 
-### 2. Khởi tạo database phát triển mới
+### Bước 2 — Khởi tạo cơ sở dữ liệu phát triển
 
 Tạo một database trống trong PostgreSQL, cập nhật `DATABASE_URL`, rồi chạy:
 
@@ -83,7 +116,7 @@ npm run build --workspace=database
 
 **Với database đã có dữ liệu:** kiểm tra schema, lịch sử migration và các bước chuyển đổi dữ liệu trước khi cập nhật. Các file SQL nằm trong `packages/database/prisma/migrations/`. Không dùng `db:push` thay cho migration có bước backfill dữ liệu; sao lưu trước khi thay đổi cấu trúc database đang sử dụng.
 
-### 3. Cài môi trường AI
+### Bước 3 — Thiết lập dịch vụ AI
 
 ```powershell
 npm run setup --workspace=ai
@@ -96,9 +129,9 @@ $env:AI_PYTHON = "C:\duong-dan\python.exe"
 npm run setup --workspace=ai
 ```
 
-Điền `OPENAI_API_KEY`, `OPENAI_BASE_URL` và các model phù hợp với nhà cung cấp bạn sử dụng. Thay các giá trị mẫu trong `.env.example` bằng cấu hình thực tế.
+Điền `OPENAI_API_KEY`, `OPENAI_BASE_URL` và các model phù hợp với nhà cung cấp bạn sử dụng. Điền giá trị thực tế vào `.env` tại thư mục gốc, giữ `.env.example` làm mẫu cấu hình.
 
-### 4. Chạy ứng dụng
+### Bước 4 — Khởi chạy hệ thống
 
 ```powershell
 npm run dev
@@ -119,11 +152,10 @@ npm run dev:ai
 | API nghiệp vụ | http://localhost:4000 |
 | Kiểm tra dịch vụ AI | http://localhost:8000/health |
 | Tài liệu FastAPI | http://localhost:8000/docs |
-| Data Studio, khi chạy riêng | http://localhost:3500 |
 
 Web chuyển các yêu cầu HTTP `/api/*` sang NestJS qua `API_INTERNAL_URL`. Kết nối Socket.IO sử dụng địa chỉ API công khai đã cấu hình cho trình duyệt.
 
-## Cấu hình các dịch vụ
+## 7. Cấu hình biến môi trường
 
 Xem cấu hình cơ bản tại [`.env.example`](.env.example).
 
@@ -152,41 +184,7 @@ Các biến có tiền tố `NEXT_PUBLIC_` được đưa vào trình duyệt, c
 
 VNPay mặc định dùng sandbox. Đăng ký URL IPN dạng `<FRONTEND_PUBLIC_URL>/api/payment/vnpay-ipn` với VNPay và cấu hình URL trả về tương ứng.
 
-## Dữ liệu ban đầu và tài khoản quản trị
-
-Sau khi database sẵn sàng, nhập các danh mục cần dùng:
-
-```powershell
-npm run db:import:provinces
-npm run seed:partners
-npm run seed:hotels
-npm run seed:transports
-npm run seed:attractions
-```
-
-Các lệnh này nhập danh mục nền; dùng Data Studio để sinh thêm tour, lịch khởi hành, khách hàng và booking mẫu:
-
-```powershell
-npm run data:studio
-```
-
-Mở http://localhost:3500 và chọn thao tác cần thực hiện. Công cụ ghi vào database trong `DATABASE_URL`, nên dùng database phát triển riêng.
-
-Cấp quyền quản trị cho tài khoản đã đăng ký:
-
-```powershell
-npm run grant-admin -- user@example.com
-```
-
-Để xem cú pháp tạo tài khoản quản trị mới và các tùy chọn khác:
-
-```powershell
-npm run grant-admin -- --help
-```
-
-Xem chi tiết tại [hướng dẫn Data Studio và import](scripts_data/README.md) và [hướng dẫn dữ liệu bổ sung](scripts_data/import_data/README.md).
-
-## Các lệnh thường dùng
+## 8. Danh sách lệnh phát triển
 
 | Lệnh | Mục đích |
 | --- | --- |
@@ -197,13 +195,10 @@ Xem chi tiết tại [hướng dẫn Data Studio và import](scripts_data/README
 | `npm run db:push` | Đồng bộ schema cho database phát triển |
 | `npm run ai:index` | Tạo chỉ mục FAISS từ dữ liệu tour |
 | `npm run test --workspace=ai` | Chạy bộ kiểm thử Python của dịch vụ AI |
-| `npm run data:studio` | Mở công cụ quản lý dữ liệu phát triển |
-| `npm run db:import:seasonal` | Nhập dữ liệu giới thiệu theo mùa |
-| `npm run seed:costumes` | Tạo dữ liệu trang phục cho tour |
 
 Trước khi kiểm tra TypeScript trên máy mới, chạy `db:generate` và build `shared`, `database` theo hướng dẫn cài đặt. Bộ kiểm thử Python cần môi trường AI đã được cài.
 
-## Chạy bản đã build
+## 9. Build và chạy ứng dụng
 
 ```powershell
 npm run build
@@ -223,13 +218,3 @@ npm run start --workspace=ai
 ```
 
 `npm run build` build các workspace TypeScript/Next.js; dependency Python vẫn được cài bằng bước setup AI. Dừng các tiến trình dev trước khi dùng lại cùng cổng.
-
-## Xử lý lỗi thường gặp
-
-- **Không kết nối được PostgreSQL:** kiểm tra dịch vụ PostgreSQL, database đã tạo, tài khoản và `DATABASE_URL`.
-- **Thiếu Prisma Client hoặc kiểu dữ liệu chưa cập nhật:** chạy `npm run db:generate`, rồi build lại `database` và `shared`. Nếu gặp `EPERM` trên Windows, dừng các tiến trình đang giữ Prisma engine trước khi sinh lại client.
-- **Không tìm thấy module `shared` hoặc `database`:** chạy hai lệnh build package ở bước cài đặt trước khi chạy riêng API.
-- **AI báo thiếu dependency:** chạy `npm run setup --workspace=ai`; kiểm tra phiên bản Python và đường dẫn `AI_PYTHON` nếu có.
-- **Chatbot hoặc so sánh tour không phản hồi:** kiểm tra tiến trình AI, khóa/model của nhà cung cấp, `AI_INTERNAL_URL`, `AI_SERVICE_URL` và token nội bộ tương ứng.
-- **Web không gọi được API hoặc chat không kết nối:** kiểm tra API cổng 4000, `API_INTERNAL_URL`, các biến API công khai và `CORS_ORIGINS`.
-- **Turbopack gặp lỗi khi phát triển:** thử `npm run dev:webpack --workspace=web`.
