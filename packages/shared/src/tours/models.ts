@@ -196,6 +196,7 @@ export type PublicTourDetail = {
     tour_images: TourImage[];
     tour_destinations: TourDestinationItem[];
     tour_schedules: TourSchedule[];
+    tour_costumes?: TourCostume[];
     reviews: TourReview[];
     tour_policies?: TourPolicy[];
     rating_avg?: number | string | null;
@@ -211,4 +212,31 @@ export type VideoItem = {
     title: string;
     thumbnail: string;
     videoUrl: string;
+};
+
+export type TourCostume = {
+    costume_id: number;
+    tour_id: number;
+    name: string;
+    category: string;
+    gender: 'male' | 'female' | 'unisex' | string;
+    description: string | null;
+    image_url: string;
+    prompt_keywords?: string | null;
+    rental_price?: number | string | null;
+    is_active?: boolean;
+};
+
+export type TryOnRequestPayload = {
+    user_image: string;
+    costume_id: number;
+    preserve_background?: boolean;
+    destination_backdrop?: string | null;
+};
+
+export type TryOnResponsePayload = {
+    success: boolean;
+    result_image_url: string;
+    costume_id: number;
+    message?: string;
 };

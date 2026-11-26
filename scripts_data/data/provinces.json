@@ -1,0 +1,206 @@
+[
+  {
+    "code": "01",
+    "name": "Thành phố Hà Nội",
+    "type": "Thành phố Trung ương",
+    "description": "Thủ đô ngàn năm văn hiến với 36 phố phường, Hồ Gươm cổ kính và nền văn hóa ẩm thực tinh tế bậc nhất Việt Nam."
+  },
+  {
+    "code": "04",
+    "name": "Tỉnh Cao Bằng",
+    "type": "Tỉnh",
+    "description": "Non nước hữu tình nơi địa đầu Đông Bắc, nổi tiếng với Thác Bản Giốc hùng vĩ và Công viên địa chất toàn cầu UNESCO."
+  },
+  {
+    "code": "08",
+    "name": "Tỉnh Tuyên Quang",
+    "type": "Tỉnh",
+    "description": "Cội nguồn cách mạng, lễ hội Thành Tuyên rực rỡ sắc màu và cảnh quan sơn thủy hữu tình hồ Na Hang."
+  },
+  {
+    "code": "11",
+    "name": "Tỉnh Điện Biên",
+    "type": "Tỉnh",
+    "description": "Mảnh đất lịch sử lẫy lừng Điện Biên Phủ, hoa ban nở trắng núi rừng Tây Bắc và đèo Pha Đin hùng vĩ."
+  },
+  {
+    "code": "12",
+    "name": "Tỉnh Lai Châu",
+    "type": "Tỉnh",
+    "description": "Vương quốc của những đỉnh núi mây mù cao ngất trời, đèo Ô Quy Hồ tráng lệ và các bản làng nguyên sơ."
+  },
+  {
+    "code": "14",
+    "name": "Tỉnh Sơn La",
+    "type": "Tỉnh",
+    "description": "Cao nguyên Mộc Châu bốn mùa hoa nở, đồi chè xanh mướt ngút ngàn và công trình Thủy điện Sơn La kỳ vĩ."
+  },
+  {
+    "code": "15",
+    "name": "Tỉnh Lào Cai",
+    "type": "Tỉnh",
+    "description": "Thị trấn trong sương Sa Pa thơ mộng, đỉnh Fansipan nóc nhà Đông Dương và những thửa ruộng bậc thang kỳ vĩ."
+  },
+  {
+    "code": "19",
+    "name": "Tỉnh Thái Nguyên",
+    "type": "Tỉnh",
+    "description": "Thủ phủ trà xanh Tân Cương trứ danh, di tích lịch sử ATK Định Hóa và hồ Núi Cốc huyền thoại."
+  },
+  {
+    "code": "20",
+    "name": "Tỉnh Lạng Sơn",
+    "type": "Tỉnh",
+    "description": "Xứ Lạng biên ải với ải Chi Lăng, động Tam Thanh, núi Nàng Tô Thị và các chợ cửa khẩu sầm uất."
+  },
+  {
+    "code": "22",
+    "name": "Tỉnh Quảng Ninh",
+    "type": "Tỉnh",
+    "description": "Kỳ quan thiên nhiên thế giới Vịnh Hạ Long, quần đảo Cô Tô ngọc bích và thánh địa thiền phái Trúc Lâm Yên Tử."
+  },
+  {
+    "code": "24",
+    "name": "Tỉnh Bắc Ninh",
+    "type": "Tỉnh",
+    "description": "Cái nôi văn hóa Kinh Bắc cổ kính, miền quê của những làn điệu Dân ca Quan họ ngọt ngào và đền chùa linh thiêng."
+  },
+  {
+    "code": "25",
+    "name": "Tỉnh Phú Thọ",
+    "type": "Tỉnh",
+    "description": "Miền đất Tổ cội nguồn dân tộc Việt Nam, nơi tọa lạc Đền Hùng linh thiêng và đồi chè Long Cốc tựa chốn bồng lai."
+  },
+  {
+    "code": "31",
+    "name": "Thành phố Hải Phòng",
+    "type": "Thành phố Trung ương",
+    "description": "Thành phố cảng hoa phượng đỏ năng động, cửa ngõ biển lớn với quần đảo Cát Bà và vịnh Lan Hạ tuyệt mỹ."
+  },
+  {
+    "code": "33",
+    "name": "Tỉnh Hưng Yên",
+    "type": "Tỉnh",
+    "description": "Vùng đất 'Thứ nhất Kinh kỳ, thứ nhì Phố Hiến', nổi tiếng với nhãn lồng tiến vua và nét đẹp đồng bằng sông Hồng thanh bình."
+  },
+  {
+    "code": "37",
+    "name": "Tỉnh Ninh Bình",
+    "type": "Tỉnh",
+    "description": "Quần thể danh thắng Tràng An di sản kép thế giới, Tam Cốc Bích Động và cố đô Hoa Lư ngàn năm trầm mặc."
+  },
+  {
+    "code": "38",
+    "name": "Tỉnh Thanh Hóa",
+    "type": "Tỉnh",
+    "description": "Mảnh đất địa linh nhân kiệt với bãi biển Sầm Sơn sôi động, di sản Thành Nhà Hồ và khu bảo tồn Pù Luông xanh ngát."
+  },
+  {
+    "code": "40",
+    "name": "Tỉnh Nghệ An",
+    "type": "Tỉnh",
+    "description": "Quê hương Chủ tịch Hồ Chí Minh, bãi biển Cửa Lò thơ mộng và Vườn quốc gia Pù Mát đa dạng sinh học."
+  },
+  {
+    "code": "42",
+    "name": "Tỉnh Hà Tĩnh",
+    "type": "Tỉnh",
+    "description": "Miền quê núi Hồng sông La gắn liền với Đại thi hào Nguyễn Du, bãi biển Thiên Cầm trong xanh và chùa Hương Tích cổ tự."
+  },
+  {
+    "code": "44",
+    "name": "Tỉnh Quảng Trị",
+    "type": "Tỉnh",
+    "description": "Vùng đất lửa lịch sử anh hùng với Di tích Thành Cổ, Cầu Hiền Lương - Sông Bến Hải và Địa đạo Vịnh Mốc."
+  },
+  {
+    "code": "46",
+    "name": "Thành phố Huế",
+    "type": "Thành phố Trung ương",
+    "description": "Cố đô trầm mặc cổ kính bên dòng sông Hương, Quần thể di tích Cố đô Huế và Nhã nhạc cung đình di sản thế giới."
+  },
+  {
+    "code": "48",
+    "name": "Thành phố Đà Nẵng",
+    "type": "Thành phố Trung ương",
+    "description": "Thành phố đáng sống bên bờ biển Mỹ Khê, Bà Nà Hills, Cầu Vàng nổi tiếng toàn cầu và bán đảo Sơn Trà hoang sơ."
+  },
+  {
+    "code": "51",
+    "name": "Tỉnh Quảng Ngãi",
+    "type": "Tỉnh",
+    "description": "Miền duyên hải với thiên đường biển đảo Lý Sơn núi lửa triệu năm và bãi biển Sa Huỳnh yên bình."
+  },
+  {
+    "code": "52",
+    "name": "Tỉnh Gia Lai",
+    "type": "Tỉnh",
+    "description": "Trái tim Bắc Tây Nguyên với Biển Hồ Tơ Nưng huyền thoại, đồi thông trăm tuổi và không gian văn hóa cồng chiêng."
+  },
+  {
+    "code": "56",
+    "name": "Tỉnh Khánh Hòa",
+    "type": "Tỉnh",
+    "description": "Xứ trầm biển yến với Vịnh Nha Trang một trong những vịnh đẹp nhất thế giới và chuỗi đảo nghỉ dưỡng sang trọng."
+  },
+  {
+    "code": "66",
+    "name": "Tỉnh Đắk Lắk",
+    "type": "Tỉnh",
+    "description": "Thủ phủ cà phê Buôn Ma Thuột bạt ngàn, thác Dray Nur hùng vĩ và nét đẹp văn hóa nhà dài Ê-đê bên hồ Lắk."
+  },
+  {
+    "code": "68",
+    "name": "Tỉnh Lâm Đồng",
+    "type": "Tỉnh",
+    "description": "Xứ sở ngàn hoa Đà Lạt mộng mơ, rừng thông reo bạt ngàn, khí hậu cao nguyên mát mẻ và hồ Tuyền Lâm thơ mộng."
+  },
+  {
+    "code": "75",
+    "name": "Tỉnh Đồng Nai",
+    "type": "Tỉnh",
+    "description": "Vùng đất công nghiệp sôi động với Vườn quốc gia Cát Tiên dự trữ sinh quyển thế giới và khu du lịch Bửu Long."
+  },
+  {
+    "code": "79",
+    "name": "Thành phố Hồ Chí Minh",
+    "type": "Thành phố Trung ương",
+    "description": "Đô thị kinh tế năng động sầm uất bậc nhất cả nước, hòa quyện giữa nét hiện đại thời thượng và chiều sâu lịch sử trăm năm."
+  },
+  {
+    "code": "80",
+    "name": "Tỉnh Tây Ninh",
+    "type": "Tỉnh",
+    "description": "Miền đất tâm linh Núi Bà Đen nóc nhà Nam Bộ, Tòa Thánh Cao Đài độc đáo và ẩm thực bánh tráng phơi sương trứ danh."
+  },
+  {
+    "code": "82",
+    "name": "Tỉnh Đồng Tháp",
+    "type": "Tỉnh",
+    "description": "Xứ sở sen hồng Tháp Mười, vườn quốc gia Tràm Chim với sếu đầu đỏ quý hiếm và làng hoa Sa Đéc rực rỡ sắc màu."
+  },
+  {
+    "code": "86",
+    "name": "Tỉnh Vĩnh Long",
+    "type": "Tỉnh",
+    "description": "Miền quê sông nước miệt vườn cây trái trĩu quả quanh năm, cù lao An Bình thanh bình và làng gốm Mang Thít đỏ gạch."
+  },
+  {
+    "code": "91",
+    "name": "Tỉnh An Giang",
+    "type": "Tỉnh",
+    "description": "Vùng đất Thất Sơn huyền bí, Rừng tràm Trà Sư xanh ngắt, Miếu Bà Chúa Xứ Núi Sam linh thiêng và nét văn hóa Chăm độc đáo."
+  },
+  {
+    "code": "92",
+    "name": "Thành phố Cần Thơ",
+    "type": "Thành phố Trung ương",
+    "description": "Thủ phủ miền Tây 'gạo trắng nước trong', chợ nổi Cái Răng tấp nập và bến Ninh Kiều thơ mộng soi bóng sông Hậu."
+  },
+  {
+    "code": "96",
+    "name": "Tỉnh Cà Mau",
+    "type": "Tỉnh",
+    "description": "Mảnh đất địa đầu cực Nam Tổ quốc, Vườn quốc gia Mũi Cà Mau rừng đước bạt ngàn và điểm ngắm mặt trời mọc - lặn trên biển."
+  }
+]

@@ -1,0 +1,130 @@
+[
+  {
+    "name": "Xe du lịch 45 chỗ",
+    "transport_type": "car",
+    "capacity": 45,
+    "provider_name": "Taxi & Vận tải Mai Linh",
+    "description": "Giảm xóc bầu hơi, điều hòa, khoang hành lý rộng.",
+    "status": 1
+  },
+  {
+    "name": "Xe du lịch 29 chỗ",
+    "transport_type": "car",
+    "capacity": 29,
+    "provider_name": "Taxi & Vận tải Mai Linh",
+    "description": "Ghế ngả, micro và hệ thống âm thanh.",
+    "status": 1
+  },
+  {
+    "name": "Xe du lịch 16 chỗ",
+    "transport_type": "car",
+    "capacity": 16,
+    "provider_name": "Taxi & Vận tải Mai Linh",
+    "description": "Di chuyển linh hoạt, điều hòa hai dàn lạnh.",
+    "status": 1
+  },
+  {
+    "name": "Xe du lịch 7 chỗ",
+    "transport_type": "car",
+    "capacity": 7,
+    "provider_name": "Taxi & Vận tải Mai Linh",
+    "description": "Phù hợp gia đình và nhóm nhỏ.",
+    "status": 1
+  },
+  {
+    "name": "Limousine VIP 9 chỗ",
+    "transport_type": "car",
+    "capacity": 9,
+    "provider_name": "Xe khách Thành Bưởi",
+    "description": "Ghế massage, cổng sạc, Wi-Fi và tủ lạnh mini.",
+    "status": 1
+  },
+  {
+    "name": "Limousine VIP 19 chỗ",
+    "transport_type": "car",
+    "capacity": 19,
+    "provider_name": "Xe khách Thành Bưởi",
+    "description": "Ghế thương gia, khoang rộng, trần sao LED.",
+    "status": 1
+  },
+  {
+    "name": "Xe giường nằm 36 chỗ",
+    "transport_type": "car",
+    "capacity": 36,
+    "provider_name": "Phương Trang - FUTA Bus Lines",
+    "description": "Giường nằm, chăn gối và cổng sạc USB.",
+    "status": 1
+  },
+  {
+    "name": "Xe cabin VIP 22 chỗ",
+    "transport_type": "car",
+    "capacity": 22,
+    "provider_name": "Phương Trang - FUTA Bus Lines",
+    "description": "Cabin riêng, màn hình giải trí và cổng sạc.",
+    "status": 1
+  },
+  {
+    "name": "Máy bay khứ hồi phổ thông",
+    "transport_type": "flight",
+    "capacity": 180,
+    "provider_name": "Vietnam Airlines",
+    "description": "Hành lý xách tay 12 kg, ký gửi 23 kg.",
+    "status": 1
+  },
+  {
+    "name": "Máy bay khứ hồi thương gia",
+    "transport_type": "flight",
+    "capacity": 28,
+    "provider_name": "Vietnam Airlines",
+    "description": "Check-in ưu tiên, phòng chờ, ghế ngả và suất ăn.",
+    "status": 1
+  },
+  {
+    "name": "Máy bay nội địa",
+    "transport_type": "flight",
+    "capacity": 220,
+    "provider_name": "Vietjet Air",
+    "description": "Chuyến bay nội địa kết nối các điểm du lịch.",
+    "status": 1
+  },
+  {
+    "name": "Tàu hỏa giường nằm khoang 4",
+    "transport_type": "train",
+    "capacity": 240,
+    "provider_name": "Tổng công ty Đường sắt Việt Nam (VNR)",
+    "description": "Khoang 4 giường, điều hòa và cửa sổ ngắm cảnh.",
+    "status": 1
+  },
+  {
+    "name": "Tàu hỏa ghế mềm",
+    "transport_type": "train",
+    "capacity": 160,
+    "provider_name": "Tổng công ty Đường sắt Việt Nam (VNR)",
+    "description": "Ghế mềm, điều hòa, cửa kính ngắm cảnh.",
+    "status": 1
+  },
+  {
+    "name": "Du thuyền tham quan",
+    "transport_type": "boat",
+    "capacity": 60,
+    "provider_name": "Paradise Vietnam",
+    "description": "Boong ngắm cảnh, áo phao, tham quan vịnh và biển.",
+    "status": 1
+  },
+  {
+    "name": "Du thuyền ăn tối",
+    "transport_type": "boat",
+    "capacity": 150,
+    "provider_name": "Saigon Princess",
+    "description": "Ngắm cảnh, phục vụ bữa tối và âm nhạc.",
+    "status": 1
+  },
+  {
+    "name": "Tàu cao tốc ra đảo",
+    "transport_type": "boat",
+    "capacity": 35,
+    "provider_name": "Victoria Mekong Cruises",
+    "description": "Di chuyển ra đảo, phục vụ tour biển.",
+    "status": 1
+  }
+]

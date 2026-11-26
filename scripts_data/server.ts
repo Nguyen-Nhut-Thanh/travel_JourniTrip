@@ -9,6 +9,28 @@ import {
   upgradeMemberTier,
 } from './services/membership-upgrader';
 import { listAdmins, grantAdminRole } from './services/admin-manager';
+import {
+  getLocationStats,
+  importLocations,
+} from './services/location-importer';
+import {
+  getSupplementaryStats,
+  importSeasonalShowcaseService,
+  seedTourCostumesService,
+} from './services/showcase-costume-importer';
+import {
+  getPartnerStats,
+  importPartners,
+} from './services/partner-importer';
+import {
+  getCatalogStats,
+  importHotels,
+  importTransports,
+} from './services/catalog-importer';
+import {
+  getAttractionStats,
+  importAttractions,
+} from './services/attraction-importer';
 
 config({ path: resolve(__dirname, '../.env'), quiet: true });
 
@@ -111,6 +133,175 @@ app.post('/api/admins/grant', async (req: Request, res: Response) => {
   }
 });
 
+// API: Thống kê & Import địa điểm (34 tỉnh thành)
+app.get('/api/locations/stats', async (_req: Request, res: Response) => {
+  try {
+    const stats = await getLocationStats();
+    res.json({ success: true, data: stats });
+  } catch (error: any) {
+    console.error('Error fetching location stats:', error);
+    res.status(500).json({ success: false, message: error.message || 'Lỗi khi lấy thống kê địa điểm' });
+  }
+});
+
+app.post('/api/locations/import', async (req: Request, res: Response) => {
+  try {
+    const { dryRun, source, customFilePath } = req.body;
+    const result = await importLocations({
+      dryRun: Boolean(dryRun),
+      source,
+      customFilePath,
+    });
+    res.json(result);
+  } catch (error: any) {
+    console.error('Error importing locations:', error);
+    res.status(400).json({ success: false, message: error.message || 'Lỗi khi import địa điểm' });
+  }
+});
+
+// API: Thống kê & Import Đối tác / Nhà cung cấp (Providers / Partners)
+app.get('/api/partners/stats', async (_req: Request, res: Response) => {
+  try {
+    const stats = await getPartnerStats();
+    res.json({ success: true, data: stats });
+  } catch (error: any) {
+    console.error('Error fetching partner stats:', error);
+    res.status(500).json({ success: false, message: error.message || 'Lỗi khi lấy thống kê đối tác' });
+  }
+});
+
+app.post('/api/partners/import', async (req: Request, res: Response) => {
+  try {
+    const { dryRun, statusMode, customFilePath } = req.body;
+    const result = await importPartners({
+      dryRun: Boolean(dryRun),
+      statusMode,
+      customFilePath,
+    });
+    res.json(result);
+  } catch (error: any) {
+    console.error('Error importing partners:', error);
+    res.status(400).json({ success: false, message: error.message || 'Lỗi khi import đối tác' });
+  }
+});
+
+// API: Thống kê & Import Khách sạn & Phương tiện (Hotels & Transports)
+app.get('/api/catalog/stats', async (_req: Request, res: Response) => {
+  try {
+    const stats = await getCatalogStats();
+    res.json({ success: true, data: stats });
+  } catch (error: any) {
+    console.error('Error fetching catalog stats:', error);
+    res.status(500).json({ success: false, message: error.message || 'Lỗi khi lấy thống kê danh mục dịch vụ' });
+  }
+});
+
+app.post('/api/hotels/import', async (req: Request, res: Response) => {
+  try {
+    const { dryRun, cleanPrevious, customFilePath } = req.body;
+    const result = await importHotels({
+      dryRun: Boolean(dryRun),
+      cleanPrevious: cleanPrevious !== undefined ? Boolean(cleanPrevious) : true,
+      customFilePath,
+    });
+    res.json(result);
+  } catch (error: any) {
+    console.error('Error importing hotels:', error);
+    res.status(400).json({ success: false, message: error.message || 'Lỗi khi import khách sạn' });
+  }
+});
+
+app.post('/api/transports/import', async (req: Request, res: Response) => {
+  try {
+    const { dryRun, cleanPrevious, customFilePath } = req.body;
+    const result = await importTransports({
+      dryRun: Boolean(dryRun),
+      cleanPrevious: cleanPrevious !== undefined ? Boolean(cleanPrevious) : true,
+      customFilePath,
+    });
+    res.json(result);
+  } catch (error: any) {
+    console.error('Error importing transports:', error);
+    res.status(400).json({ success: false, message: error.message || 'Lỗi khi import phương tiện' });
+  }
+});
+
+// API: Thống kê & Import Điểm tham quan (Attractions - Level 6)
+app.get('/api/attractions/stats', async (_req: Request, res: Response) => {
+  try {
+    const stats = await getAttractionStats();
+    res.json({ success: true, data: stats });
+  } catch (error: any) {
+    console.error('Error fetching attraction stats:', error);
+    res.status(500).json({ success: false, message: error.message || 'Lỗi khi lấy thống kê điểm tham quan' });
+  }
+});
+
+app.post('/api/attractions/import', async (req: Request, res: Response) => {
+  try {
+    const { dryRun, cleanPrevious, customFilePath } = req.body;
+    const result = await importAttractions({
+      dryRun: Boolean(dryRun),
+      cleanPrevious: Boolean(cleanPrevious),
+      customFilePath,
+    });
+    res.json(result);
+  } catch (error: any) {
+    console.error('Error importing attractions:', error);
+    res.status(400).json({ success: false, message: error.message || 'Lỗi khi import điểm tham quan' });
+  }
+});
+
+// API: Thống kê & Import dữ liệu bổ trợ (Showcase & Tour Costumes & Partners & Catalog & Attractions)
+app.get('/api/imports/overview', async (_req: Request, res: Response) => {
+  try {
+    const [locations, supplementary, partners, catalog, attractions] = await Promise.all([
+      getLocationStats(),
+      getSupplementaryStats(),
+      getPartnerStats(),
+      getCatalogStats(),
+      getAttractionStats(),
+    ]);
+    res.json({
+      success: true,
+      data: {
+        locations,
+        supplementary,
+        partners,
+        catalog,
+        attractions,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error fetching imports overview:', error);
+    res.status(500).json({ success: false, message: error.message || 'Lỗi khi lấy tổng quan import' });
+  }
+});
+
+app.post('/api/imports/seasonal-showcase', async (_req: Request, res: Response) => {
+  try {
+    const result = await importSeasonalShowcaseService();
+    res.json(result);
+  } catch (error: any) {
+    console.error('Error importing seasonal showcase:', error);
+    res.status(400).json({ success: false, message: error.message || 'Lỗi khi import seasonal showcase' });
+  }
+});
+
+app.post('/api/imports/tour-costumes', async (req: Request, res: Response) => {
+  try {
+    const { maxTours, costumesPerTour } = req.body || {};
+    const result = await seedTourCostumesService({
+      maxTours: maxTours ? Number(maxTours) : undefined,
+      costumesPerTour: costumesPerTour ? Number(costumesPerTour) : undefined,
+    });
+    res.json(result);
+  } catch (error: any) {
+    console.error('Error seeding tour costumes:', error);
+    res.status(400).json({ success: false, message: error.message || 'Lỗi khi nạp trang phục tour' });
+  }
+});
+
 // Fallback trang chủ
 app.use((_req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -121,6 +312,6 @@ app.listen(PORT, () => {
   console.log(' 🚀 JOURNITRIP MOCK DATA STUDIO ĐÃ KHỞI ĐỘNG!');
   console.log(` 🌐 Giao diện điều khiển: http://localhost:${PORT}`);
   console.log(' 💾 Database: Kết nối PostgreSQL trực tiếp');
-  console.log(' 📊 Tính năng: Sinh dữ liệu, Nâng hạng hội viên, Cấp quyền Admin');
+  console.log(' 📊 Tính năng: Sinh dữ liệu, Nâng hạng hội viên, Cấp quyền Admin, Import Địa điểm');
   console.log('===============================================================\n');
 });

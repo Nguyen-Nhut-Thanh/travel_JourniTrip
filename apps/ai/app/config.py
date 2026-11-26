@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     # Keep the existing internal names for RAG/index compatibility.
     AI_CHAT_MODEL: str = Field(default="gpt-6-luna", validation_alias=AliasChoices("OPENAI_CHAT_MODEL", "AI_CHAT_MODEL"))
     AI_EMBEDDING_MODEL: str = Field(default="text-embedding-3-small", validation_alias=AliasChoices("OPENAI_EMBEDDING_MODEL", "AI_EMBEDDING_MODEL"))
+    AI_TRYON_MODEL: str = Field(default="gpt-image-2.6-sunburst", validation_alias=AliasChoices("OPENAI_TRYON_MODEL", "AI_TRYON_MODEL"))
     AI_INDEX_DIR: Path = APP_DIR / "data" / "faiss_index"
 
     model_config = SettingsConfigDict(env_file=ROOT / ".env", env_file_encoding="utf-8-sig", extra="ignore")

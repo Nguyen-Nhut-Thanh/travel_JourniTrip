@@ -1,0 +1,177 @@
+[
+  {
+    "name": "Vietnam Airlines",
+    "type": "airline",
+    "description": "Hãng hàng không quốc gia Việt Nam.",
+    "contact_info": "1900 1100 • telesales@vietnamairlines.com • 200 Nguyễn Sơn, Long Biên, Hà Nội",
+    "status": 1
+  },
+  {
+    "name": "Vietjet Air",
+    "type": "airline",
+    "description": "Hãng hàng không tư nhân.",
+    "contact_info": "1900 1886 • 19001886@vietjetair.com • 302 Kim Mã, Ba Đình, Hà Nội",
+    "status": 1
+  },
+  {
+    "name": "Bamboo Airways",
+    "type": "airline",
+    "description": "Hãng hàng không Tre Việt.",
+    "contact_info": "1900 1166 • 19001166@bambooairways.com • FLC Landmark Tower, Nam Từ Liêm, Hà Nội",
+    "status": 1
+  },
+  {
+    "name": "Phương Trang - FUTA Bus Lines",
+    "type": "car",
+    "description": "Vận tải hành khách liên tỉnh.",
+    "contact_info": "1900 6067 • hotro@futa.vn • 80 Trần Hưng Đạo, Q.1, TP.HCM",
+    "status": 1
+  },
+  {
+    "name": "Taxi & Vận tải Mai Linh",
+    "type": "car",
+    "description": "Dịch vụ taxi và xe du lịch.",
+    "contact_info": "1055 • info@mailinh.vn • 64-68 Hai Bà Trưng, Q.1, TP.HCM",
+    "status": 1
+  },
+  {
+    "name": "Xe khách Thành Bưởi",
+    "type": "car",
+    "description": "Xe khách và limousine liên tỉnh.",
+    "contact_info": "1900 6079 • chamsockhachhang@thanhbuoi.com.vn • 266 Lê Hồng Phong, Q.5, TP.HCM",
+    "status": 1
+  },
+  {
+    "name": "Tổng công ty Đường sắt Việt Nam (VNR)",
+    "type": "train",
+    "description": "Vận tải hành khách và hàng hóa đường sắt.",
+    "contact_info": "1900 1520 • dsvn.vn • 118 Lê Duẩn, Hoàn Kiếm, Hà Nội",
+    "status": 1
+  },
+  {
+    "name": "Paradise Vietnam",
+    "type": "boat",
+    "description": "Du thuyền 5 sao tại Hạ Long và Lan Hạ.",
+    "contact_info": "0906 099 606 • info@paradisevietnam.com • Đảo Tuần Châu, Hạ Long, Quảng Ninh",
+    "status": 1
+  },
+  {
+    "name": "Heritage Cruises",
+    "type": "boat",
+    "description": "Du thuyền phong cách di sản Bắc Bộ.",
+    "contact_info": "0888 403 663 • info@heritagecruises.com • Cảng Quốc tế Tuần Châu, Hạ Long",
+    "status": 1
+  },
+  {
+    "name": "Saigon Princess",
+    "type": "boat",
+    "description": "Du thuyền nhà hàng 5 sao trên sông Sài Gòn.",
+    "contact_info": "088 890 1068 • sales@saigonprincess.com.vn • Cảng Nhà Rồng, 05 Nguyễn Tất Thành, Q.4, TP.HCM",
+    "status": 1
+  },
+  {
+    "name": "Victoria Mekong Cruises",
+    "type": "boat",
+    "description": "Du thuyền sinh thái 4 sao trên sông Mekong.",
+    "contact_info": "1800 599 955 • resa@victoriamekong.com • Cảng Cần Thơ",
+    "status": 1
+  },
+  {
+    "name": "Vinpearl",
+    "type": "hotel",
+    "description": "Khách sạn, resort và spa 5 sao.",
+    "contact_info": "1900 23 23 89 • callcenter@vinpearl.com • Đảo Hòn Tre, Nha Trang, Khánh Hòa",
+    "status": 1
+  },
+  {
+    "name": "Mường Thanh Hospitality",
+    "type": "hotel",
+    "description": "Chuỗi khách sạn Việt Nam.",
+    "contact_info": "1900 1833 • reservation@muongthanh.vn • CC2 Bắc Linh Đàm, Hoàng Mai, Hà Nội",
+    "status": 1
+  },
+  {
+    "name": "Saigontourist Group",
+    "type": "hotel",
+    "description": "Dịch vụ lữ hành, lưu trú và ẩm thực.",
+    "contact_info": "1900 1808 • info@saigontourist.com.vn • 23 Lê Thánh Tôn, Q.1, TP.HCM",
+    "status": 1
+  },
+  {
+    "name": "TTC Hospitality",
+    "type": "hotel",
+    "description": "Khách sạn, resort, hội nghị và vui chơi.",
+    "contact_info": "1900 558855 • info@ttchospitality.vn • 253 Hoàng Văn Thụ, Tân Bình, TP.HCM",
+    "status": 1
+  },
+  {
+    "name": "FLC Hotels & Resorts",
+    "type": "hotel",
+    "description": "Khách sạn, resort và sân golf 5 sao.",
+    "contact_info": "1900 5454 44 • resa@flc.vn • FLC Twin Towers, 265 Cầu Giấy, Hà Nội",
+    "status": 1
+  },
+  {
+    "name": "Fusion Hotel Group",
+    "type": "hotel",
+    "description": "Khách sạn và resort chăm sóc sức khỏe.",
+    "contact_info": "028 3910 1000 • info@fusionhotelgroup.com • 12 Trương Định, Q.3, TP.HCM",
+    "status": 1
+  },
+  {
+    "name": "Accor",
+    "type": "hotel",
+    "description": "Tập đoàn quản lý khách sạn quốc tế.",
+    "contact_info": "028 3823 4999 • all.accor.com • TP.HCM và Hà Nội",
+    "status": 1
+  },
+  {
+    "name": "Marriott International",
+    "type": "hotel",
+    "description": "Tập đoàn khách sạn cao cấp quốc tế.",
+    "contact_info": "024 3833 5588 • marriott.com • Hà Nội và TP.HCM",
+    "status": 1
+  },
+  {
+    "name": "Sun World",
+    "type": "other",
+    "description": "Công viên giải trí và cáp treo.",
+    "contact_info": "1800 1000 • sunworld.vn • Sun City, 13 Hai Bà Trưng, Hoàn Kiếm, Hà Nội",
+    "status": 1
+  },
+  {
+    "name": "VinWonders",
+    "type": "other",
+    "description": "Công viên chủ đề và safari.",
+    "contact_info": "1900 6677 • wecare@vinwonders.com • Vinhomes Riverside, Long Biên, Hà Nội",
+    "status": 1
+  },
+  {
+    "name": "Bảo hiểm Bảo Việt",
+    "type": "other",
+    "description": "Bảo hiểm du lịch và sức khỏe.",
+    "contact_info": "1900 55 88 99 • baovietonline@baoviet.com.vn • 08 Lê Thái Tổ, Hoàn Kiếm, Hà Nội",
+    "status": 1
+  },
+  {
+    "name": "Bảo hiểm PVI",
+    "type": "other",
+    "description": "Bảo hiểm du lịch nội địa và quốc tế.",
+    "contact_info": "1900 54 54 58 • contact@pvi.com.vn • Tòa nhà PVI, 01 Phạm Văn Bạch, Cầu Giấy, Hà Nội",
+    "status": 1
+  },
+  {
+    "name": "Klook",
+    "type": "other",
+    "description": "Vé tham quan, trải nghiệm và SIM du lịch.",
+    "contact_info": "+84 28 4458 2368 • klook.com • Tháp Bitexco, Q.1, TP.HCM",
+    "status": 1
+  },
+  {
+    "name": "Nhà hàng Hoàng Tâm",
+    "type": "other",
+    "description": "Nhà hàng ẩm thực Nam Bộ.",
+    "contact_info": "1900 633 499 • hoangtamrestaurant@gmail.com • 86 Nguyễn Thái Học, Q.1, TP.HCM",
+    "status": 1
+  }
+]

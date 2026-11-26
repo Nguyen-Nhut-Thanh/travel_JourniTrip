@@ -65,6 +65,10 @@
         <span>🛡️ Cấp quyền Admin</span>
         <span id="admin-count-badge" class="px-1.5 py-0.2 text-[10px] rounded-full bg-slate-800 text-slate-300">0</span>
       </button>
+      <button id="tab-btn-import" onclick="switchTab('import')" class="py-3 px-1 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+        <span>🗺️ Dữ liệu nền & Import</span>
+        <span id="loc-status-badge" class="px-1.5 py-0.2 text-[10px] rounded-full bg-slate-800 text-slate-300">0/34 tỉnh</span>
+      </button>
     </div>
   </div>
 
@@ -501,6 +505,740 @@
       </div>
     </div>
 
+    <!-- VIEW 5: IMPORTER TAB -->
+    <div id="view-import" class="space-y-6 hidden">
+      <!-- Location Importer Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Location Form & Controls (7 cols) -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-6 backdrop-blur">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl font-bold border border-blue-500/30">
+                  🗺️
+                </div>
+                <div>
+                  <h2 class="text-base font-bold text-white">Import 34 Tỉnh / Thành phố Việt Nam (Địa điểm)</h2>
+                  <p class="text-xs text-slate-400">Đồng bộ Quốc gia (Việt Nam) → 3 Vùng miền (Bắc, Trung, Nam) → 34 Tỉnh/Thành</p>
+                </div>
+              </div>
+              <button onclick="loadLocationStats()" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
+                <span>🔄 Tải lại</span>
+              </button>
+            </div>
+
+            <!-- Current DB Status Indicator -->
+            <div id="loc-status-alert" class="p-4 rounded-xl border border-slate-800 bg-slate-950/80 flex items-start gap-3">
+              <div class="text-lg">⏳</div>
+              <div class="text-xs space-y-1">
+                <div class="font-semibold text-slate-200">Đang kiểm tra dữ liệu địa điểm trong CSDL...</div>
+                <div class="text-slate-400">Vui lòng chờ trong giây lát.</div>
+              </div>
+            </div>
+
+            <!-- Source selector -->
+            <div class="space-y-3">
+              <label class="block text-xs font-semibold text-slate-300">Nguồn dữ liệu tỉnh / thành:</label>
+              <div class="grid grid-cols-1 gap-2.5">
+                <label class="flex items-start gap-3 p-3 rounded-xl border border-blue-500/30 bg-blue-500/5 cursor-pointer hover:bg-blue-500/10 transition">
+                  <input type="radio" name="loc-source" value="local" checked class="mt-0.5 text-blue-500 focus:ring-0" onchange="toggleCustomPathInput()">
+                  <div>
+                    <div class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                      <span>📁 Bộ dữ liệu cục bộ chuẩn tích hợp sẵn</span>
+                      <span class="text-[10px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300 font-semibold">Khuyên dùng</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Tải siêu nhanh từ file <code class="text-blue-300">scripts_data/data/provinces.json</code> (không phụ thuộc mạng Internet).</div>
+                  </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/40 cursor-pointer hover:bg-slate-800/40 transition">
+                  <input type="radio" name="loc-source" value="remote" class="mt-0.5 text-blue-500 focus:ring-0" onchange="toggleCustomPathInput()">
+                  <div>
+                    <div class="text-xs font-bold text-slate-200">🌐 Tải trực tuyến từ GitHub VN Region API</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Tải từ API <code class="text-slate-400">huynhminhvangit.github.io/vn-region-api</code> (cần kết nối mạng).</div>
+                  </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/40 cursor-pointer hover:bg-slate-800/40 transition">
+                  <input type="radio" name="loc-source" value="custom" class="mt-0.5 text-blue-500 focus:ring-0" onchange="toggleCustomPathInput()">
+                  <div>
+                    <div class="text-xs font-bold text-slate-200">📄 File JSON tùy chỉnh</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Chỉ định đường dẫn file JSON trên máy cục bộ.</div>
+                  </div>
+                </label>
+              </div>
+
+              <div id="loc-custom-path-wrapper" class="hidden pt-1">
+                <input type="text" id="loc-custom-path" placeholder="Ví dụ: ./scripts_data/data/provinces.json" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition font-mono">
+              </div>
+            </div>
+
+            <!-- Dry Run Checkbox -->
+            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950/40 border border-slate-800/80">
+              <label for="loc-dryrun-checkbox" class="text-xs text-slate-300 cursor-pointer select-none">
+                <span class="font-semibold text-slate-200">Chế độ Chạy thử (Dry Run)</span>
+                <span class="block text-[11px] text-slate-400">Kiểm tra tính hợp lệ và cấu trúc 34 tỉnh/thành nhưng không ghi vào CSDL.</span>
+              </label>
+              <input type="checkbox" id="loc-dryrun-checkbox" class="w-4 h-4 rounded text-blue-600 focus:ring-0 cursor-pointer">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-3 pt-2">
+              <button id="btn-loc-import" onclick="submitLocationImport()" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-blue-500/20 transition transform active:scale-[0.99] flex items-center justify-center gap-2">
+                <span>🚀 BẮT ĐẦU IMPORT 34 TỈNH/THÀNH VÀO DATABASE</span>
+              </button>
+            </div>
+
+            <!-- Location Logs -->
+            <div id="loc-log-box" class="console-scroll hidden p-4 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono space-y-1.5 max-h-56 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- Right: Location Stats Cards & Guide (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-5 backdrop-blur">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <span>📊 Thống kê Địa điểm Hiện có</span>
+            </h3>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Tổng số địa điểm</div>
+                <div id="stat-total-loc" class="text-2xl font-black text-white mt-1">0</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Bao gồm mọi cấp độ</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Tỉnh / Thành phố</div>
+                <div id="stat-provinces" class="text-2xl font-black text-blue-400 mt-1">0/34</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Cấp độ 5 (Province)</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Vùng / Miền</div>
+                <div id="stat-regions" class="text-2xl font-black text-emerald-400 mt-1">0/3</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Bắc, Trung, Nam</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Quốc gia</div>
+                <div id="stat-country" class="text-2xl font-black text-indigo-400 mt-1">Chưa có</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Việt Nam (VN)</div>
+              </div>
+            </div>
+
+            <!-- Regional breakdown pills -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+              <div class="text-xs font-semibold text-slate-300">Cấu trúc bộ 34 tỉnh/thành:</div>
+              <ul class="text-xs space-y-1.5 text-slate-400">
+                <li class="flex items-center justify-between">
+                  <span>• Miền Bắc:</span>
+                  <span class="font-mono text-slate-200">15 tỉnh / thành</span>
+                </li>
+                <li class="flex items-center justify-between">
+                  <span>• Miền Trung & Tây Nguyên:</span>
+                  <span class="font-mono text-slate-200">11 tỉnh / thành</span>
+                </li>
+                <li class="flex items-center justify-between">
+                  <span>• Miền Nam:</span>
+                  <span class="font-mono text-slate-200">8 tỉnh / thành</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="text-[11px] text-slate-500 leading-relaxed border-t border-slate-800 pt-3">
+              💡 <strong>Lưu ý:</strong> Quá trình import sử dụng thuật toán upsert an toàn: giữ nguyên ID và không làm mất các quan hệ hoặc hình ảnh địa điểm đã liên kết trước đó.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attractions Importer Section (Level 6) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left: Attraction Form & Controls (7 cols) -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-6 backdrop-blur">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl font-bold border border-emerald-500/30">
+                  🎪
+                </div>
+                <div>
+                  <h2 class="text-base font-bold text-white">Import Điểm tham quan 34 Tỉnh thành (Attractions)</h2>
+                  <p class="text-xs text-slate-400">81 danh lam thắng cảnh, di tích lịch sử, bãi biển & điểm check-in (Cấp 6 - thuộc Tỉnh)</p>
+                </div>
+              </div>
+              <button onclick="loadAttractionStats()" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
+                <span>🔄 Tải lại</span>
+              </button>
+            </div>
+
+            <!-- Current DB Status Indicator -->
+            <div id="attr-status-alert" class="p-4 rounded-xl border border-slate-800 bg-slate-950/80 flex items-start gap-3">
+              <div class="text-lg">⏳</div>
+              <div class="text-xs space-y-1">
+                <div class="font-semibold text-slate-200">Đang kiểm tra dữ liệu điểm tham quan trong CSDL...</div>
+                <div class="text-slate-400">Vui lòng chờ trong giây lát.</div>
+              </div>
+            </div>
+
+            <!-- Source selector -->
+            <div class="space-y-3">
+              <label class="block text-xs font-semibold text-slate-300">Nguồn dữ liệu điểm tham quan:</label>
+              <div class="grid grid-cols-1 gap-2.5">
+                <label class="flex items-start gap-3 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 cursor-pointer hover:bg-emerald-500/10 transition">
+                  <input type="radio" name="attr-source" value="local" checked class="mt-0.5 text-emerald-500 focus:ring-0" onchange="toggleAttrCustomPath()">
+                  <div>
+                    <div class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                      <span>🎪 Bộ 81 điểm tham quan chuẩn 34 tỉnh thành (Local JSON)</span>
+                      <span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-semibold">Tích hợp sẵn</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Nạp từ <code class="text-emerald-300">scripts_data/data/attractions.json</code> đầy đủ mô tả, điểm nhấn, ẩm thực và thẻ tags.</div>
+                  </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/40 cursor-pointer hover:bg-slate-800/40 transition">
+                  <input type="radio" name="attr-source" value="custom" class="mt-0.5 text-emerald-500 focus:ring-0" onchange="toggleAttrCustomPath()">
+                  <div>
+                    <div class="text-xs font-bold text-slate-200">📄 File JSON tùy chỉnh</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Nhập đường dẫn file JSON chứa mảng điểm tham quan trên máy.</div>
+                  </div>
+                </label>
+              </div>
+
+              <div id="attr-custom-path-wrapper" class="hidden pt-1">
+                <input type="text" id="attr-custom-path" placeholder="Ví dụ: ./scripts_data/data/attractions.json" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition font-mono">
+              </div>
+            </div>
+
+            <!-- Options -->
+            <div class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/40 space-y-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                <input type="checkbox" id="attr-dryrun-checkbox" class="rounded border-slate-700 text-emerald-500 focus:ring-0">
+                <span>Chạy thử nghiệm (Dry Run - kiểm tra dữ liệu và mapping tỉnh thành, không ghi CSDL)</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                <input type="checkbox" id="attr-clean-checkbox" class="rounded border-slate-700 text-emerald-500 focus:ring-0">
+                <span>Dọn dẹp điểm tham quan cũ chưa gán vào tour trước khi nạp lại</span>
+              </label>
+            </div>
+
+            <!-- Action Button -->
+            <button id="btn-attr-import" onclick="submitAttractionImport()" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+              <span>🚀 BẮT ĐẦU IMPORT ĐIỂM THAM QUAN</span>
+            </button>
+
+            <!-- Console Log Box -->
+            <div id="attr-log-box" class="console-scroll hidden p-4 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono space-y-1.5 max-h-56 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- Right: Attraction Stats (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-5 backdrop-blur flex flex-col justify-between">
+            <div class="border-b border-slate-800 pb-4">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>📊 Thống kê Điểm tham quan</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Dữ liệu ghi nhận từ bảng <code class="text-emerald-300">locations (level_id = 6)</code> & <code class="text-emerald-300">destinations_detail</code></p>
+            </div>
+
+            <!-- Stats Counters -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Tổng điểm tham quan</div>
+                <div id="stat-attr-total" class="text-2xl font-black text-emerald-400 mt-1">0</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">level_id = 6 (Attractions)</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Điểm nổi bật (Featured)</div>
+                <div id="stat-attr-featured" class="text-2xl font-black text-amber-400 mt-1">0</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">is_featured = true</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 col-span-2">
+                <div class="text-[11px] text-slate-400">Độ phủ tỉnh thành</div>
+                <div class="flex items-baseline gap-2 mt-1">
+                  <span id="stat-attr-provinces" class="text-2xl font-black text-blue-400">0</span>
+                  <span class="text-xs text-slate-400">/ 34 tỉnh/thành phố</span>
+                </div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Mỗi tỉnh sở hữu từ 2-4 danh thắng tiêu biểu</div>
+              </div>
+            </div>
+
+            <div class="text-[11px] text-slate-500 leading-relaxed border-t border-slate-800 pt-3">
+              💡 <strong>Ứng dụng:</strong> Các điểm tham quan này dùng để gán vào lịch trình tour từng ngày (<code class="text-slate-400">tour_schedule_attractions</code>) và phục vụ thuật toán AI gợi ý điểm đến theo sở thích tại trang quản trị <a href="http://localhost:3000/admin/locations" target="_blank" class="text-emerald-400 underline font-semibold">/admin/locations</a>.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Partner / Providers Importer Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left: Partner Form & Controls (7 cols) -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-6 backdrop-blur">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl font-bold border border-amber-500/30">
+                  🤝
+                </div>
+                <div>
+                  <h2 class="text-base font-bold text-white">Import Đối tác & Nhà cung cấp (Providers / Partners)</h2>
+                  <p class="text-xs text-slate-400">Du thuyền, Chuỗi khách sạn, Hàng không, Xe khách, Khu vui chơi & Bảo hiểm</p>
+                </div>
+              </div>
+              <button onclick="loadPartnerStats()" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
+                <span>🔄 Tải lại</span>
+              </button>
+            </div>
+
+            <!-- Current DB Status Indicator -->
+            <div id="partner-status-alert" class="p-4 rounded-xl border border-slate-800 bg-slate-950/80 flex items-start gap-3">
+              <div class="text-lg">⏳</div>
+              <div class="text-xs space-y-1">
+                <div class="font-semibold text-slate-200">Đang kiểm tra dữ liệu đối tác trong CSDL...</div>
+                <div class="text-slate-400">Vui lòng chờ trong giây lát.</div>
+              </div>
+            </div>
+
+            <!-- Source selector -->
+            <div class="space-y-3">
+              <label class="block text-xs font-semibold text-slate-300">Nguồn dữ liệu đối tác:</label>
+              <div class="grid grid-cols-1 gap-2.5">
+                <label class="flex items-start gap-3 p-3 rounded-xl border border-amber-500/30 bg-amber-500/5 cursor-pointer hover:bg-amber-500/10 transition">
+                  <input type="radio" name="partner-source" value="local" checked class="mt-0.5 text-amber-500 focus:ring-0" onchange="togglePartnerCustomPath()">
+                  <div>
+                    <div class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                      <span>📁 Bộ 25 đối tác chuẩn hóa (Local JSON)</span>
+                      <span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-semibold">Tích hợp sẵn</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Nạp từ <code class="text-amber-300">scripts_data/data/partners.json</code> gồm đầy đủ Du thuyền, Khách sạn, Hàng không, Ô tô, Bảo hiểm...</div>
+                  </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/40 cursor-pointer hover:bg-slate-800/40 transition">
+                  <input type="radio" name="partner-source" value="custom" class="mt-0.5 text-amber-500 focus:ring-0" onchange="togglePartnerCustomPath()">
+                  <div>
+                    <div class="text-xs font-bold text-slate-200">📄 File JSON tùy chỉnh</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Nhập đường dẫn file JSON chứa mảng đối tác trên máy.</div>
+                  </div>
+                </label>
+              </div>
+
+              <div id="partner-custom-path-wrapper" class="hidden pt-1">
+                <input type="text" id="partner-custom-path" placeholder="Ví dụ: ./scripts_data/data/partners.json" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 transition font-mono">
+              </div>
+            </div>
+
+            <!-- Options: Active status & Dry Run -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950/40 border border-slate-800/80">
+                <label for="partner-active-checkbox" class="text-xs text-slate-300 cursor-pointer select-none">
+                  <span class="font-semibold text-slate-200">Đang hợp tác (Active)</span>
+                  <span class="block text-[11px] text-slate-400">Thiết lập status: 1 để dùng được ngay cho tour.</span>
+                </label>
+                <input type="checkbox" id="partner-active-checkbox" checked class="w-4 h-4 rounded text-amber-500 focus:ring-0 cursor-pointer">
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950/40 border border-slate-800/80">
+                <label for="partner-dryrun-checkbox" class="text-xs text-slate-300 cursor-pointer select-none">
+                  <span class="font-semibold text-slate-200">Chạy thử (Dry Run)</span>
+                  <span class="block text-[11px] text-slate-400">Kiểm tra hợp lệ mà không ghi vào CSDL.</span>
+                </label>
+                <input type="checkbox" id="partner-dryrun-checkbox" class="w-4 h-4 rounded text-amber-500 focus:ring-0 cursor-pointer">
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="space-y-3 pt-2">
+              <button id="btn-partner-import" onclick="submitPartnerImport()" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-sm shadow-xl shadow-amber-500/20 transition transform active:scale-[0.99] flex items-center justify-center gap-2">
+                <span>🚀 BẮT ĐẦU IMPORT ĐỐI TÁC VÀO DATABASE</span>
+              </button>
+            </div>
+
+            <!-- Partner Logs Box -->
+            <div id="partner-log-box" class="console-scroll hidden p-4 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono space-y-1.5 max-h-56 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- Right: Partner Stats Cards (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-5 backdrop-blur">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>📊 Thống kê Đối tác Hiện có</span>
+              </h3>
+              <a href="http://localhost:3000/admin/services" target="_blank" class="text-[11px] text-blue-400 hover:underline flex items-center gap-1">
+                <span>Trang quản trị đối tác</span>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+              </a>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Tổng đối tác</div>
+                <div id="stat-partner-total" class="text-2xl font-black text-white mt-1">0</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Trong bảng providers</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Đang hợp tác</div>
+                <div id="stat-partner-active" class="text-2xl font-black text-emerald-400 mt-1">0</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">status = 1 (Active)</div>
+              </div>
+            </div>
+
+            <!-- Categories breakdown -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+              <div class="text-xs font-semibold text-slate-300">Phân loại đối tác theo lĩnh vực:</div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="text-slate-400 text-[11px]">🚢 Du thuyền (boat)</div>
+                  <div id="stat-partner-boat" class="text-base font-bold text-slate-200 mt-0.5">0</div>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="text-slate-400 text-[11px]">🏨 Khách sạn (hotel)</div>
+                  <div id="stat-partner-hotel" class="text-base font-bold text-slate-200 mt-0.5">0</div>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="text-slate-400 text-[11px]">✈️ Hàng không (airline)</div>
+                  <div id="stat-partner-airline" class="text-base font-bold text-slate-200 mt-0.5">0</div>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="text-slate-400 text-[11px]">🚌 Ô tô / Xe khách (car)</div>
+                  <div id="stat-partner-car" class="text-base font-bold text-slate-200 mt-0.5">0</div>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="text-slate-400 text-[11px]">🚆 Đường sắt (train)</div>
+                  <div id="stat-partner-train" class="text-base font-bold text-slate-200 mt-0.5">0</div>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="text-slate-400 text-[11px]">🎡 Dịch vụ khác (other)</div>
+                  <div id="stat-partner-other" class="text-base font-bold text-slate-200 mt-0.5">0</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-[11px] text-slate-500 leading-relaxed border-t border-slate-800 pt-3">
+              💡 <strong>Lưu ý:</strong> Bảng <code class="text-amber-300">providers</code> được liên kết trực tiếp với bảng phương tiện vận chuyển (<code class="text-slate-400">transports</code>) và phân bổ trong lịch trình tour.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hotel / Room Types Importer Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left: Hotel Form & Controls (7 cols) -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-6 backdrop-blur">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl font-bold border border-indigo-500/30">
+                  🏨
+                </div>
+                <div>
+                  <h2 class="text-base font-bold text-white">Import Khách sạn & Phòng nghỉ (Hotels & Rooms)</h2>
+                  <p class="text-xs text-slate-400">15 hạng khách sạn tiêu chuẩn 3-5 sao, resort & homestay dùng chung linh hoạt cho mọi tour</p>
+                </div>
+              </div>
+              <button onclick="loadCatalogStats()" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
+                <span>🔄 Tải lại</span>
+              </button>
+            </div>
+
+            <!-- Current DB Status Indicator -->
+            <div id="hotel-status-alert" class="p-4 rounded-xl border border-slate-800 bg-slate-950/80 flex items-start gap-3">
+              <div class="text-lg">⏳</div>
+              <div class="text-xs space-y-1">
+                <div class="font-semibold text-slate-200">Đang kiểm tra dữ liệu khách sạn trong CSDL...</div>
+                <div class="text-slate-400">Vui lòng chờ trong giây lát.</div>
+              </div>
+            </div>
+
+            <!-- Source selector -->
+            <div class="space-y-3">
+              <label class="block text-xs font-semibold text-slate-300">Nguồn dữ liệu khách sạn:</label>
+              <div class="grid grid-cols-1 gap-2.5">
+                <label class="flex items-start gap-3 p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/5 cursor-pointer hover:bg-indigo-500/10 transition">
+                  <input type="radio" name="hotel-source" value="local" checked class="mt-0.5 text-indigo-500 focus:ring-0" onchange="toggleHotelCustomPath()">
+                  <div>
+                    <div class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                      <span>🏨 Bộ 15 khách sạn cao cấp & Loại phòng (Local JSON)</span>
+                      <span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-semibold">Tích hợp sẵn</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Nạp từ <code class="text-indigo-300">scripts_data/data/hotels.json</code> tự động map với các tỉnh thành đã import.</div>
+                  </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/40 cursor-pointer hover:bg-slate-800/40 transition">
+                  <input type="radio" name="hotel-source" value="custom" class="mt-0.5 text-indigo-500 focus:ring-0" onchange="toggleHotelCustomPath()">
+                  <div>
+                    <div class="text-xs font-bold text-slate-200">📄 File JSON tùy chỉnh</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Nhập đường dẫn file JSON chứa mảng khách sạn trên máy.</div>
+                  </div>
+                </label>
+              </div>
+
+              <div id="hotel-custom-path-wrapper" class="hidden pt-1">
+                <input type="text" id="hotel-custom-path" placeholder="Ví dụ: ./scripts_data/data/hotels.json" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition font-mono">
+              </div>
+            </div>
+
+            <!-- Options -->
+            <div class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/40 space-y-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                <input type="checkbox" id="hotel-dryrun-checkbox" class="rounded border-slate-700 text-indigo-500 focus:ring-0">
+                <span>Chạy thử nghiệm (Dry Run - kiểm tra dữ liệu và mapping địa phương, không ghi CSDL)</span>
+              </label>
+            </div>
+
+            <!-- Action Button -->
+            <button id="btn-hotel-import" onclick="submitHotelImport()" class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2">
+              <span>🚀 BẮT ĐẦU IMPORT KHÁCH SẠN & PHÒNG</span>
+            </button>
+
+            <!-- Console Log Box -->
+            <div id="hotel-log-box" class="console-scroll hidden p-4 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono space-y-1.5 max-h-56 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- Right: Hotel Stats (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-5 backdrop-blur flex flex-col justify-between">
+            <div class="border-b border-slate-800 pb-4">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>📊 Thống kê Khách sạn & Phòng</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Dữ liệu thực tế ghi nhận từ bảng <code class="text-indigo-300">hotels</code> & <code class="text-indigo-300">hotel_room_types</code></p>
+            </div>
+
+            <!-- Stats Counters -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Tổng khách sạn</div>
+                <div id="stat-hotel-total" class="text-2xl font-black text-indigo-400 mt-1">0</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Cơ sở lưu trú</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Đang hoạt động</div>
+                <div id="stat-hotel-active" class="text-2xl font-black text-emerald-400 mt-1">0</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">status = 1 (Active)</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Tổng loại phòng</div>
+                <div id="stat-room-total" class="text-2xl font-black text-amber-400 mt-1">0</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Room Types cấu hình</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Phòng mở bán</div>
+                <div id="stat-room-active" class="text-2xl font-black text-emerald-400 mt-1">0</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">status = 1 (Active)</div>
+              </div>
+            </div>
+
+            <!-- Star breakdown -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+              <div class="text-xs font-semibold text-slate-300">Phân bố khách sạn theo chuẩn sao:</div>
+              <div class="grid grid-cols-3 gap-2 text-xs">
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="text-amber-400 text-[11px]">⭐⭐⭐⭐⭐ 5 sao</div>
+                  <div id="stat-hotel-star5" class="text-base font-bold text-slate-200 mt-0.5">0</div>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="text-amber-400 text-[11px]">⭐⭐⭐⭐ 4 sao</div>
+                  <div id="stat-hotel-star4" class="text-base font-bold text-slate-200 mt-0.5">0</div>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="text-amber-400 text-[11px]">⭐⭐⭐ 3 sao</div>
+                  <div id="stat-hotel-star3" class="text-base font-bold text-slate-200 mt-0.5">0</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-[11px] text-slate-500 leading-relaxed border-t border-slate-800 pt-3">
+              💡 <strong>Quản trị:</strong> Xem danh sách và chỉnh sửa phòng trực tiếp tại <a href="http://localhost:3000/admin/services" target="_blank" class="text-indigo-400 underline font-semibold">/admin/services (Tab Khách sạn)</a>.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transports Importer Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left: Transport Form & Controls (7 cols) -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-6 backdrop-blur">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xl font-bold border border-cyan-500/30">
+                  ✈️
+                </div>
+                <div>
+                  <h2 class="text-base font-bold text-white">Import Phương tiện Vận chuyển (Transports)</h2>
+                  <p class="text-xs text-slate-400">16 loại phương tiện tiêu chuẩn (xe 7-45 chỗ, limousine, giường nằm, máy bay, tàu hỏa, du thuyền)</p>
+                </div>
+              </div>
+              <button onclick="loadCatalogStats()" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
+                <span>🔄 Tải lại</span>
+              </button>
+            </div>
+
+            <!-- Current DB Status Indicator -->
+            <div id="transport-status-alert" class="p-4 rounded-xl border border-slate-800 bg-slate-950/80 flex items-start gap-3">
+              <div class="text-lg">⏳</div>
+              <div class="text-xs space-y-1">
+                <div class="font-semibold text-slate-200">Đang kiểm tra dữ liệu phương tiện trong CSDL...</div>
+                <div class="text-slate-400">Vui lòng chờ trong giây lát.</div>
+              </div>
+            </div>
+
+            <!-- Source selector -->
+            <div class="space-y-3">
+              <label class="block text-xs font-semibold text-slate-300">Nguồn dữ liệu phương tiện:</label>
+              <div class="grid grid-cols-1 gap-2.5">
+                <label class="flex items-start gap-3 p-3 rounded-xl border border-cyan-500/30 bg-cyan-500/5 cursor-pointer hover:bg-cyan-500/10 transition">
+                  <input type="radio" name="transport-source" value="local" checked class="mt-0.5 text-cyan-500 focus:ring-0" onchange="toggleTransportCustomPath()">
+                  <div>
+                    <div class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                      <span>🚌 Bộ 16 phương tiện vận chuyển chuẩn (Local JSON)</span>
+                      <span class="text-[10px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-semibold">Tích hợp sẵn</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Nạp từ <code class="text-cyan-300">scripts_data/data/transports.json</code> liên kết tự động với các đối tác đã nạp.</div>
+                  </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/40 cursor-pointer hover:bg-slate-800/40 transition">
+                  <input type="radio" name="transport-source" value="custom" class="mt-0.5 text-cyan-500 focus:ring-0" onchange="toggleTransportCustomPath()">
+                  <div>
+                    <div class="text-xs font-bold text-slate-200">📄 File JSON tùy chỉnh</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Nhập đường dẫn file JSON chứa mảng phương tiện trên máy.</div>
+                  </div>
+                </label>
+              </div>
+
+              <div id="transport-custom-path-wrapper" class="hidden pt-1">
+                <input type="text" id="transport-custom-path" placeholder="Ví dụ: ./scripts_data/data/transports.json" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 transition font-mono">
+              </div>
+            </div>
+
+            <!-- Options -->
+            <div class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/40 space-y-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                <input type="checkbox" id="transport-dryrun-checkbox" class="rounded border-slate-700 text-cyan-500 focus:ring-0">
+                <span>Chạy thử nghiệm (Dry Run - kiểm tra dữ liệu và mapping nhà cung cấp, không ghi CSDL)</span>
+              </label>
+            </div>
+
+            <!-- Action Button -->
+            <button id="btn-transport-import" onclick="submitTransportImport()" class="w-full py-3 px-4 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition shadow-lg shadow-cyan-600/20 flex items-center justify-center gap-2">
+              <span>🚀 BẮT ĐẦU IMPORT PHƯƠNG TIỆN</span>
+            </button>
+
+            <!-- Console Log Box -->
+            <div id="transport-log-box" class="console-scroll hidden p-4 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono space-y-1.5 max-h-56 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- Right: Transport Stats (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-5 backdrop-blur flex flex-col justify-between">
+            <div class="border-b border-slate-800 pb-4">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>📊 Thống kê Phương tiện</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Dữ liệu ghi nhận từ bảng <code class="text-cyan-300">transports</code></p>
+            </div>
+
+            <!-- Stats Counters -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Tổng phương tiện</div>
+                <div id="stat-transport-total" class="text-2xl font-black text-cyan-400 mt-1">0</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Phương tiện phục vụ tour</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-[11px] text-slate-400">Đang hoạt động</div>
+                <div id="stat-transport-active" class="text-2xl font-black text-emerald-400 mt-1">0</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">status = 1 (Active)</div>
+              </div>
+            </div>
+
+            <!-- Categories breakdown -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+              <div class="text-xs font-semibold text-slate-300">Phân loại phương tiện vận chuyển:</div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="text-slate-400 text-[11px]">✈️ Máy bay (flight)</div>
+                  <div id="stat-transport-flight" class="text-base font-bold text-slate-200 mt-0.5">0</div>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="text-slate-400 text-[11px]">🚌 Ô tô / Xe khách (car)</div>
+                  <div id="stat-transport-car" class="text-base font-bold text-slate-200 mt-0.5">0</div>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="text-slate-400 text-[11px]">🚆 Đường sắt (train)</div>
+                  <div id="stat-transport-train" class="text-base font-bold text-slate-200 mt-0.5">0</div>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div class="text-slate-400 text-[11px]">🚢 Tàu thủy / Du thuyền (boat)</div>
+                  <div id="stat-transport-boat" class="text-base font-bold text-slate-200 mt-0.5">0</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-[11px] text-slate-500 leading-relaxed border-t border-slate-800 pt-3">
+              💡 <strong>Quản trị:</strong> Xem danh sách phương tiện tại <a href="http://localhost:3000/admin/services" target="_blank" class="text-cyan-400 underline font-semibold">/admin/services (Tab Phương tiện)</a>.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Supplementary Data Imports Section (Showcase & Costumes) -->
+      <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-6 backdrop-blur">
+        <div class="border-b border-slate-800 pb-4">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <span>📦 Dữ liệu Bổ trợ & Trang trí (Showcase & Costumes)</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Nạp nhanh các bộ dữ liệu trải nghiệm dành cho giao diện người dùng (Hero Banner, Trang phục AI)</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Card 1: Seasonal Showcase -->
+          <div class="p-5 rounded-xl border border-slate-800 bg-slate-950/60 flex flex-col justify-between space-y-4">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">🌟 Seasonal Showcase</span>
+                <span id="supp-showcase-badge" class="px-2 py-0.5 text-[10px] font-semibold rounded bg-slate-800 text-slate-300">0 bản ghi</span>
+              </div>
+              <h4 class="text-sm font-bold text-white">Tân Cương · Kỳ cảnh Mùa đông</h4>
+              <p class="text-xs text-slate-400">
+                Nạp 11 hình ảnh kỳ cảnh mùa đông Tân Cương, mô tả chi tiết & liên kết tour cho slider nổi bật tại trang chủ.
+              </p>
+            </div>
+            <button id="btn-supp-showcase" onclick="submitSeasonalShowcase()" class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-lg shadow-amber-500/10 flex items-center justify-center gap-2">
+              <span>❄️ Nạp Seasonal Showcase</span>
+            </button>
+          </div>
+
+          <!-- Card 2: Tour Costumes -->
+          <div class="p-5 rounded-xl border border-slate-800 bg-slate-950/60 flex flex-col justify-between space-y-4">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-purple-400 uppercase tracking-wider">👗 Trang phục Tour</span>
+                <span id="supp-costume-badge" class="px-2 py-0.5 text-[10px] font-semibold rounded bg-slate-800 text-slate-300">0 bản ghi</span>
+              </div>
+              <h4 class="text-sm font-bold text-white">Trang phục Dân tộc & Cổ phục Việt Nam</h4>
+              <p class="text-xs text-slate-400">
+                Gắn 5 mẫu trang phục (H'Mông Hoa, H'Mông Đen, Áo dài Nhật Bình, Áo dài truyền thống, Áo bà ba) vào các tour có sẵn để thử nghiệm tính năng AI thử đồ.
+              </p>
+            </div>
+            <button id="btn-supp-costumes" onclick="submitTourCostumes()" class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition shadow-lg shadow-purple-500/10 flex items-center justify-center gap-2">
+              <span>👘 Nạp Trang phục cho Tour</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Supplementary Logs -->
+        <div id="supp-log-box" class="console-scroll hidden p-4 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono space-y-1.5 max-h-48 overflow-y-auto"></div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Footer -->
@@ -599,7 +1337,7 @@
     }
 
     function switchTab(tab) {
-      const tabs = ['generator', 'batches', 'membership', 'admin'];
+      const tabs = ['generator', 'batches', 'membership', 'admin', 'import'];
       tabs.forEach(t => {
         const view = document.getElementById(`view-${t}`);
         const btn = document.getElementById(`tab-btn-${t}`);
@@ -614,6 +1352,7 @@
       if (tab === 'batches') loadBatches();
       if (tab === 'membership') loadUsers();
       if (tab === 'admin') { loadAdmins(); loadUsers(); }
+      if (tab === 'import') loadImportOverview();
     }
 
     function appendLog(level, msg) {
@@ -777,9 +1516,10 @@
       (logs || []).forEach(l => {
         const line = document.createElement('div');
         let cls = 'text-slate-300';
-        if (l.level === 'success') cls = 'text-emerald-400 font-semibold';
-        if (l.level === 'error') cls = 'text-rose-400 font-bold';
-        if (l.level === 'warn') cls = 'text-amber-400';
+        const lvl = l.level || l.type;
+        if (lvl === 'success') cls = 'text-emerald-400 font-semibold';
+        if (lvl === 'error') cls = 'text-rose-400 font-bold';
+        if (lvl === 'warn' || lvl === 'warning') cls = 'text-amber-400';
         line.className = cls;
         line.textContent = `[${l.timestamp || ''}] ${l.message}`;
         box.appendChild(line);
@@ -975,8 +1715,660 @@
       }
     }
 
+    function toggleCustomPathInput() {
+      const selected = document.querySelector('input[name="loc-source"]:checked')?.value;
+      const wrapper = document.getElementById('loc-custom-path-wrapper');
+      if (selected === 'custom') {
+        wrapper.classList.remove('hidden');
+      } else {
+        wrapper.classList.add('hidden');
+      }
+    }
+
+    async function loadLocationStats() {
+      try {
+        const res = await fetch('/api/locations/stats');
+        const json = await res.json();
+        if (!json.success) return;
+        const s = json.data;
+
+        // Cập nhật thẻ thống kê
+        const elTotal = document.getElementById('stat-total-loc');
+        const elProv = document.getElementById('stat-provinces');
+        const elReg = document.getElementById('stat-regions');
+        const elCountry = document.getElementById('stat-country');
+
+        if (elTotal) elTotal.textContent = s.totalLocations;
+        if (elProv) elProv.textContent = `${s.provinceCount}/${s.targetProvinceCount}`;
+        if (elReg) elReg.textContent = `${s.regionCount}/3`;
+        if (elCountry) elCountry.textContent = s.isVietnamPresent ? 'Việt Nam (VN)' : 'Chưa có';
+
+        // Cập nhật badge trên thanh tab
+        const badge = document.getElementById('loc-status-badge');
+        if (badge) {
+          if (s.provinceCount >= s.targetProvinceCount && s.isVietnamPresent && s.regionCount >= 3) {
+            badge.textContent = '34 tỉnh (Đủ)';
+            badge.className = 'px-1.5 py-0.2 text-[10px] rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30';
+          } else {
+            badge.textContent = `${s.provinceCount}/34 tỉnh`;
+            badge.className = 'px-1.5 py-0.2 text-[10px] rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30';
+          }
+        }
+
+        // Cập nhật banner cảnh báo
+        const alertBox = document.getElementById('loc-status-alert');
+        if (alertBox) {
+          if (s.provinceCount >= s.targetProvinceCount && s.isVietnamPresent && s.regionCount >= 3) {
+            alertBox.className = 'p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-start gap-3';
+            alertBox.innerHTML = `
+              <div class="text-lg">✅</div>
+              <div class="text-xs space-y-1">
+                <div class="font-bold text-emerald-300">Dữ liệu địa điểm đã sẵn sàng (${s.provinceCount}/${s.targetProvinceCount} tỉnh thành & 3 miền)!</div>
+                <div class="text-slate-300">Hệ thống đã có đầy đủ cấu trúc địa lý Việt Nam. Bạn có thể import lại bất kỳ lúc nào để cập nhật (không bị trùng lặp).</div>
+              </div>
+            `;
+          } else {
+            alertBox.className = 'p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-start gap-3';
+            alertBox.innerHTML = `
+              <div class="text-lg">⚠️</div>
+              <div class="text-xs space-y-1">
+                <div class="font-bold text-amber-300">Cơ sở dữ liệu chưa đủ 34 tỉnh/thành (Hiện có: ${s.provinceCount}/${s.targetProvinceCount})!</div>
+                <div class="text-slate-300">Nhấn nút "BẮT ĐẦU IMPORT" bên dưới để nạp tự động Quốc gia Việt Nam, 3 Vùng miền và toàn bộ 34 tỉnh/thành.</div>
+              </div>
+            `;
+          }
+        }
+      } catch (e) {
+        console.error('Lỗi khi tải thống kê địa điểm:', e);
+      }
+    }
+
+    async function loadImportOverview() {
+      await Promise.all([
+        loadLocationStats(),
+        loadAttractionStats(),
+        loadPartnerStats(),
+        loadCatalogStats(),
+      ]);
+      try {
+        const res = await fetch('/api/imports/overview');
+        const json = await res.json();
+        if (json.success && json.data.supplementary) {
+          const supp = json.data.supplementary;
+          const elShowcase = document.getElementById('supp-showcase-badge');
+          const elCostume = document.getElementById('supp-costume-badge');
+          if (elShowcase) elShowcase.textContent = `${supp.showcaseCount} bản ghi`;
+          if (elCostume) elCostume.textContent = `${supp.costumeCount} bản ghi`;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function submitLocationImport() {
+      const btn = document.getElementById('btn-loc-import');
+      const dryRun = Boolean(document.getElementById('loc-dryrun-checkbox')?.checked);
+      const source = document.querySelector('input[name="loc-source"]:checked')?.value || 'local';
+      const customFilePath = document.getElementById('loc-custom-path')?.value.trim() || undefined;
+
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      renderBoxLogs('loc-log-box', [{
+        level: 'info',
+        message: `Đang gửi yêu cầu ${dryRun ? 'chạy thử (Dry Run)' : 'import'} địa điểm tới máy chủ...`,
+        timestamp: new Date().toLocaleTimeString('vi-VN')
+      }]);
+
+      try {
+        const res = await fetch('/api/locations/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dryRun, source, customFilePath }),
+        });
+        const json = await res.json();
+
+        if (json.logs) {
+          renderBoxLogs('loc-log-box', json.logs);
+        }
+
+        if (json.success) {
+          loadLocationStats();
+          try {
+            const metaRes = await fetch('/api/metadata');
+            const metaJson = await metaRes.json();
+            if (metaJson.success) {
+              metadata = metaJson.data;
+              renderMetadata();
+            }
+          } catch {}
+        } else {
+          renderBoxLogs('loc-log-box', [{
+            level: 'error',
+            message: json.message || 'Import thất bại.',
+            timestamp: new Date().toLocaleTimeString('vi-VN')
+          }]);
+        }
+      } catch (e) {
+        renderBoxLogs('loc-log-box', [{
+          level: 'error',
+          message: 'Lỗi kết nối: ' + e.message,
+          timestamp: new Date().toLocaleTimeString('vi-VN')
+        }]);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    async function submitSeasonalShowcase() {
+      const btn = document.getElementById('btn-supp-showcase');
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      renderBoxLogs('supp-log-box', [{
+        level: 'info',
+        message: 'Đang tiến hành import Seasonal Showcase Tân Cương...',
+        timestamp: new Date().toLocaleTimeString('vi-VN')
+      }]);
+
+      try {
+        const res = await fetch('/api/imports/seasonal-showcase', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const json = await res.json();
+        if (json.logs) renderBoxLogs('supp-log-box', json.logs);
+        if (json.success) {
+          loadImportOverview();
+        } else {
+          renderBoxLogs('supp-log-box', [{
+            level: 'error',
+            message: json.message || 'Thất bại',
+            timestamp: new Date().toLocaleTimeString('vi-VN')
+          }]);
+        }
+      } catch (e) {
+        renderBoxLogs('supp-log-box', [{
+          level: 'error',
+          message: e.message,
+          timestamp: new Date().toLocaleTimeString('vi-VN')
+        }]);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    async function submitTourCostumes() {
+      const btn = document.getElementById('btn-supp-costumes');
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      renderBoxLogs('supp-log-box', [{
+        level: 'info',
+        message: 'Đang tiến hành seed trang phục cho các tour có sẵn...',
+        timestamp: new Date().toLocaleTimeString('vi-VN')
+      }]);
+
+      try {
+        const res = await fetch('/api/imports/tour-costumes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ maxTours: 10, costumesPerTour: 3 }),
+        });
+        const json = await res.json();
+        if (json.logs) renderBoxLogs('supp-log-box', json.logs);
+        if (json.success) {
+          loadImportOverview();
+        } else {
+          renderBoxLogs('supp-log-box', [{
+            level: 'warn',
+            message: json.message || 'Chưa hoàn tất',
+            timestamp: new Date().toLocaleTimeString('vi-VN')
+          }]);
+        }
+      } catch (e) {
+        renderBoxLogs('supp-log-box', [{
+          level: 'error',
+          message: e.message,
+          timestamp: new Date().toLocaleTimeString('vi-VN')
+        }]);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    function togglePartnerCustomPath() {
+      const selected = document.querySelector('input[name="partner-source"]:checked')?.value;
+      const wrapper = document.getElementById('partner-custom-path-wrapper');
+      if (selected === 'custom') {
+        wrapper?.classList.remove('hidden');
+      } else {
+        wrapper?.classList.add('hidden');
+      }
+    }
+
+    async function loadPartnerStats() {
+      try {
+        const res = await fetch('/api/partners/stats');
+        const json = await res.json();
+        if (!json.success) return;
+        const s = json.data;
+
+        // Cập nhật thẻ thống kê
+        const elTotal = document.getElementById('stat-partner-total');
+        const elActive = document.getElementById('stat-partner-active');
+        const elBoat = document.getElementById('stat-partner-boat');
+        const elHotel = document.getElementById('stat-partner-hotel');
+        const elAirline = document.getElementById('stat-partner-airline');
+        const elCar = document.getElementById('stat-partner-car');
+        const elTrain = document.getElementById('stat-partner-train');
+        const elOther = document.getElementById('stat-partner-other');
+
+        if (elTotal) elTotal.textContent = s.totalCount;
+        if (elActive) elActive.textContent = s.activeCount;
+        if (elBoat) elBoat.textContent = s.byType.boat || 0;
+        if (elHotel) elHotel.textContent = s.byType.hotel || 0;
+        if (elAirline) elAirline.textContent = s.byType.airline || 0;
+        if (elCar) elCar.textContent = s.byType.car || 0;
+        if (elTrain) elTrain.textContent = s.byType.train || 0;
+        if (elOther) elOther.textContent = s.byType.other || 0;
+
+        // Cập nhật banner cảnh báo
+        const alertBox = document.getElementById('partner-status-alert');
+        if (alertBox) {
+          if (s.totalCount > 0) {
+            alertBox.className = 'p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-start gap-3';
+            alertBox.innerHTML = `
+              <div class="text-lg">✅</div>
+              <div class="text-xs space-y-1">
+                <div class="font-bold text-emerald-300">Đã có ${s.totalCount} đối tác trong CSDL (${s.activeCount} đang hợp tác)!</div>
+                <div class="text-slate-300">Dữ liệu đối tác đã sẵn sàng phục vụ phân bổ phương tiện và quản lý dịch vụ tại <a href="http://localhost:3000/admin/services" target="_blank" class="text-blue-400 underline">/admin/services</a>. Bạn có thể import lại để cập nhật thêm.</div>
+              </div>
+            `;
+          } else {
+            alertBox.className = 'p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-start gap-3';
+            alertBox.innerHTML = `
+              <div class="text-lg">⚠️</div>
+              <div class="text-xs space-y-1">
+                <div class="font-bold text-amber-300">Chưa có đối tác / nhà cung cấp nào trong cơ sở dữ liệu!</div>
+                <div class="text-slate-300">Bấm nút "BẮT ĐẦU IMPORT" bên dưới để nạp 25 đối tác mẫu (Vinpearl, Paradise Vietnam, Sun World, Bảo Việt, Phương Trang...).</div>
+              </div>
+            `;
+          }
+        }
+      } catch (e) {
+        console.error('Lỗi khi tải thống kê đối tác:', e);
+      }
+    }
+
+    async function submitPartnerImport() {
+      const btn = document.getElementById('btn-partner-import');
+      const dryRun = Boolean(document.getElementById('partner-dryrun-checkbox')?.checked);
+      const isActiveChecked = Boolean(document.getElementById('partner-active-checkbox')?.checked);
+      const source = document.querySelector('input[name="partner-source"]:checked')?.value || 'local';
+      const customFilePath = document.getElementById('partner-custom-path')?.value.trim() || undefined;
+
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      renderBoxLogs('partner-log-box', [{
+        level: 'info',
+        message: `Đang gửi yêu cầu ${dryRun ? 'chạy thử (Dry Run)' : 'import'} đối tác tới máy chủ...`,
+        timestamp: new Date().toLocaleTimeString('vi-VN')
+      }]);
+
+      try {
+        const res = await fetch('/api/partners/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dryRun,
+            statusMode: isActiveChecked ? 'active' : 'inactive',
+            customFilePath: source === 'custom' ? customFilePath : undefined,
+          }),
+        });
+        const json = await res.json();
+
+        if (json.logs) {
+          renderBoxLogs('partner-log-box', json.logs);
+        }
+
+        if (json.success) {
+          loadPartnerStats();
+        } else {
+          renderBoxLogs('partner-log-box', [{
+            level: 'error',
+            message: json.message || 'Import đối tác thất bại.',
+            timestamp: new Date().toLocaleTimeString('vi-VN')
+          }]);
+        }
+      } catch (e) {
+        renderBoxLogs('partner-log-box', [{
+          level: 'error',
+          message: 'Lỗi kết nối: ' + e.message,
+          timestamp: new Date().toLocaleTimeString('vi-VN')
+        }]);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    function toggleHotelCustomPath() {
+      const isCustom = document.querySelector('input[name="hotel-source"]:checked')?.value === 'custom';
+      const wrapper = document.getElementById('hotel-custom-path-wrapper');
+      if (wrapper) wrapper.classList.toggle('hidden', !isCustom);
+    }
+
+    function toggleTransportCustomPath() {
+      const isCustom = document.querySelector('input[name="transport-source"]:checked')?.value === 'custom';
+      const wrapper = document.getElementById('transport-custom-path-wrapper');
+      if (wrapper) wrapper.classList.toggle('hidden', !isCustom);
+    }
+
+    async function loadCatalogStats() {
+      try {
+        const res = await fetch('/api/catalog/stats');
+        const json = await res.json();
+        if (!json.success) return;
+        const s = json.data;
+
+        // Cập nhật thẻ thống kê khách sạn & phòng
+        const elHotelTotal = document.getElementById('stat-hotel-total');
+        const elHotelActive = document.getElementById('stat-hotel-active');
+        const elRoomTotal = document.getElementById('stat-room-total');
+        const elRoomActive = document.getElementById('stat-room-active');
+        const elStar5 = document.getElementById('stat-hotel-star5');
+        const elStar4 = document.getElementById('stat-hotel-star4');
+        const elStar3 = document.getElementById('stat-hotel-star3');
+
+        if (elHotelTotal) elHotelTotal.textContent = s.hotels.totalCount;
+        if (elHotelActive) elHotelActive.textContent = s.hotels.activeCount;
+        if (elRoomTotal) elRoomTotal.textContent = s.rooms.totalCount;
+        if (elRoomActive) elRoomActive.textContent = s.rooms.activeCount;
+        if (elStar5) elStar5.textContent = s.hotels.byStar[5] || 0;
+        if (elStar4) elStar4.textContent = s.hotels.byStar[4] || 0;
+        if (elStar3) elStar3.textContent = s.hotels.byStar[3] || 0;
+
+        // Cập nhật banner cảnh báo khách sạn
+        const hotelAlert = document.getElementById('hotel-status-alert');
+        if (hotelAlert) {
+          if (s.hotels.totalCount > 0) {
+            hotelAlert.className = 'p-4 rounded-xl border border-indigo-500/30 bg-indigo-500/10 flex items-start gap-3';
+            hotelAlert.innerHTML = `
+              <div class="text-lg">✅</div>
+              <div class="text-xs space-y-1">
+                <div class="font-bold text-indigo-300">Đã có ${s.hotels.totalCount} khách sạn và ${s.rooms.totalCount} loại phòng trong CSDL!</div>
+                <div class="text-slate-300">Dữ liệu sẵn sàng phục vụ tạo tour và kiểm tra tại <a href="http://localhost:3000/admin/services" target="_blank" class="text-indigo-400 underline">/admin/services</a>.</div>
+              </div>
+            `;
+          } else {
+            hotelAlert.className = 'p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-start gap-3';
+            hotelAlert.innerHTML = `
+              <div class="text-lg">⚠️</div>
+              <div class="text-xs space-y-1">
+                <div class="font-bold text-amber-300">Chưa có khách sạn nào trong cơ sở dữ liệu!</div>
+                <div class="text-slate-300">Bấm "BẮT ĐẦU IMPORT" bên dưới để nạp 15 khách sạn cao cấp kèm cấu hình giá phòng.</div>
+              </div>
+            `;
+          }
+        }
+
+        // Cập nhật thẻ thống kê phương tiện
+        const elTransTotal = document.getElementById('stat-transport-total');
+        const elTransActive = document.getElementById('stat-transport-active');
+        const elTransFlight = document.getElementById('stat-transport-flight');
+        const elTransCar = document.getElementById('stat-transport-car');
+        const elTransTrain = document.getElementById('stat-transport-train');
+        const elTransBoat = document.getElementById('stat-transport-boat');
+
+        if (elTransTotal) elTransTotal.textContent = s.transports.totalCount;
+        if (elTransActive) elTransActive.textContent = s.transports.activeCount;
+        if (elTransFlight) elTransFlight.textContent = s.transports.byType.flight || 0;
+        if (elTransCar) elTransCar.textContent = s.transports.byType.car || 0;
+        if (elTransTrain) elTransTrain.textContent = s.transports.byType.train || 0;
+        if (elTransBoat) elTransBoat.textContent = s.transports.byType.boat || 0;
+
+        // Cập nhật banner cảnh báo phương tiện
+        const transAlert = document.getElementById('transport-status-alert');
+        if (transAlert) {
+          if (s.transports.totalCount > 0) {
+            transAlert.className = 'p-4 rounded-xl border border-cyan-500/30 bg-cyan-500/10 flex items-start gap-3';
+            transAlert.innerHTML = `
+              <div class="text-lg">✅</div>
+              <div class="text-xs space-y-1">
+                <div class="font-bold text-cyan-300">Đã có ${s.transports.totalCount} phương tiện (${s.transports.byType.flight || 0} bay, ${s.transports.byType.car || 0} xe, ${s.transports.byType.train || 0} tàu hỏa, ${s.transports.byType.boat || 0} tàu thủy)!</div>
+                <div class="text-slate-300">Dữ liệu sẵn sàng phục vụ gán phương tiện tour tại <a href="http://localhost:3000/admin/services" target="_blank" class="text-cyan-400 underline">/admin/services</a>.</div>
+              </div>
+            `;
+          } else {
+            transAlert.className = 'p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-start gap-3';
+            transAlert.innerHTML = `
+              <div class="text-lg">⚠️</div>
+              <div class="text-xs space-y-1">
+                <div class="font-bold text-amber-300">Chưa có phương tiện nào trong cơ sở dữ liệu!</div>
+                <div class="text-slate-300">Bấm "BẮT ĐẦU IMPORT" bên dưới để nạp 16 phương tiện mẫu.</div>
+              </div>
+            `;
+          }
+        }
+      } catch (e) {
+        console.error('Lỗi khi tải thống kê catalog:', e);
+      }
+    }
+
+    async function submitHotelImport() {
+      const btn = document.getElementById('btn-hotel-import');
+      const dryRun = Boolean(document.getElementById('hotel-dryrun-checkbox')?.checked);
+      const source = document.querySelector('input[name="hotel-source"]:checked')?.value || 'local';
+      const customFilePath = document.getElementById('hotel-custom-path')?.value.trim() || undefined;
+
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      renderBoxLogs('hotel-log-box', [{
+        level: 'info',
+        message: `Đang gửi yêu cầu ${dryRun ? 'chạy thử (Dry Run)' : 'import'} khách sạn tới máy chủ...`,
+        timestamp: new Date().toLocaleTimeString('vi-VN')
+      }]);
+
+      try {
+        const res = await fetch('/api/hotels/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dryRun,
+            customFilePath: source === 'custom' ? customFilePath : undefined,
+          }),
+        });
+        const json = await res.json();
+
+        if (json.logs) {
+          renderBoxLogs('hotel-log-box', json.logs);
+        }
+
+        if (json.success) {
+          loadCatalogStats();
+        } else {
+          renderBoxLogs('hotel-log-box', [{
+            level: 'error',
+            message: json.message || 'Import khách sạn thất bại.',
+            timestamp: new Date().toLocaleTimeString('vi-VN')
+          }]);
+        }
+      } catch (e) {
+        renderBoxLogs('hotel-log-box', [{
+          level: 'error',
+          message: 'Lỗi kết nối: ' + e.message,
+          timestamp: new Date().toLocaleTimeString('vi-VN')
+        }]);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    async function submitTransportImport() {
+      const btn = document.getElementById('btn-transport-import');
+      const dryRun = Boolean(document.getElementById('transport-dryrun-checkbox')?.checked);
+      const source = document.querySelector('input[name="transport-source"]:checked')?.value || 'local';
+      const customFilePath = document.getElementById('transport-custom-path')?.value.trim() || undefined;
+
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      renderBoxLogs('transport-log-box', [{
+        level: 'info',
+        message: `Đang gửi yêu cầu ${dryRun ? 'chạy thử (Dry Run)' : 'import'} phương tiện tới máy chủ...`,
+        timestamp: new Date().toLocaleTimeString('vi-VN')
+      }]);
+
+      try {
+        const res = await fetch('/api/transports/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dryRun,
+            customFilePath: source === 'custom' ? customFilePath : undefined,
+          }),
+        });
+        const json = await res.json();
+
+        if (json.logs) {
+          renderBoxLogs('transport-log-box', json.logs);
+        }
+
+        if (json.success) {
+          loadCatalogStats();
+        } else {
+          renderBoxLogs('transport-log-box', [{
+            level: 'error',
+            message: json.message || 'Import phương tiện thất bại.',
+            timestamp: new Date().toLocaleTimeString('vi-VN')
+          }]);
+        }
+      } catch (e) {
+        renderBoxLogs('transport-log-box', [{
+          level: 'error',
+          message: 'Lỗi kết nối: ' + e.message,
+          timestamp: new Date().toLocaleTimeString('vi-VN')
+        }]);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    function toggleAttrCustomPath() {
+      const isCustom = document.querySelector('input[name="attr-source"]:checked')?.value === 'custom';
+      const wrapper = document.getElementById('attr-custom-path-wrapper');
+      if (wrapper) wrapper.classList.toggle('hidden', !isCustom);
+    }
+
+    async function loadAttractionStats() {
+      try {
+        const res = await fetch('/api/attractions/stats');
+        const json = await res.json();
+        if (!json.success) return;
+        const s = json.data;
+
+        const elTotal = document.getElementById('stat-attr-total');
+        const elFeatured = document.getElementById('stat-attr-featured');
+        const elProvinces = document.getElementById('stat-attr-provinces');
+
+        if (elTotal) elTotal.textContent = s.totalCount;
+        if (elFeatured) elFeatured.textContent = s.featuredCount;
+        if (elProvinces) elProvinces.textContent = s.provincesCount;
+
+        const alertBox = document.getElementById('attr-status-alert');
+        if (alertBox) {
+          if (s.totalCount > 0) {
+            alertBox.className = 'p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-start gap-3';
+            alertBox.innerHTML = `
+              <div class="text-lg">✅</div>
+              <div class="text-xs space-y-1">
+                <div class="font-bold text-emerald-300">Đã có ${s.totalCount} điểm tham quan trong CSDL (phủ ${s.provincesCount}/34 tỉnh thành)!</div>
+                <div class="text-slate-300">Sẵn sàng phục vụ thiết kế lịch trình tour và AI gợi ý điểm đến tại <a href="http://localhost:3000/admin/locations" target="_blank" class="text-emerald-400 underline font-semibold">/admin/locations</a>.</div>
+              </div>
+            `;
+          } else {
+            alertBox.className = 'p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-start gap-3';
+            alertBox.innerHTML = `
+              <div class="text-lg">⚠️</div>
+              <div class="text-xs space-y-1">
+                <div class="font-bold text-amber-300">Chưa có điểm tham quan (cấp 6) nào trong cơ sở dữ liệu!</div>
+                <div class="text-slate-300">Bấm "BẮT ĐẦU IMPORT" bên dưới để nạp 81 điểm tham quan chuẩn cho toàn bộ 34 tỉnh thành.</div>
+              </div>
+            `;
+          }
+        }
+      } catch (e) {
+        console.error('Lỗi khi tải thống kê điểm tham quan:', e);
+      }
+    }
+
+    async function submitAttractionImport() {
+      const btn = document.getElementById('btn-attr-import');
+      const dryRun = Boolean(document.getElementById('attr-dryrun-checkbox')?.checked);
+      const cleanPrevious = Boolean(document.getElementById('attr-clean-checkbox')?.checked);
+      const source = document.querySelector('input[name="attr-source"]:checked')?.value || 'local';
+      const customFilePath = document.getElementById('attr-custom-path')?.value.trim() || undefined;
+
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      renderBoxLogs('attr-log-box', [{
+        level: 'info',
+        message: `Đang gửi yêu cầu ${dryRun ? 'chạy thử (Dry Run)' : 'import'} điểm tham quan tới máy chủ...`,
+        timestamp: new Date().toLocaleTimeString('vi-VN')
+      }]);
+
+      try {
+        const res = await fetch('/api/attractions/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dryRun,
+            cleanPrevious,
+            customFilePath: source === 'custom' ? customFilePath : undefined,
+          }),
+        });
+        const json = await res.json();
+
+        if (json.logs) {
+          renderBoxLogs('attr-log-box', json.logs);
+        }
+
+        if (json.success) {
+          loadAttractionStats();
+        } else {
+          renderBoxLogs('attr-log-box', [{
+            level: 'error',
+            message: json.message || 'Import điểm tham quan thất bại.',
+            timestamp: new Date().toLocaleTimeString('vi-VN')
+          }]);
+        }
+      } catch (e) {
+        renderBoxLogs('attr-log-box', [{
+          level: 'error',
+          message: 'Lỗi kết nối: ' + e.message,
+          timestamp: new Date().toLocaleTimeString('vi-VN')
+        }]);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
     init();
     loadAdmins();
+    loadLocationStats();
+    loadAttractionStats();
+    loadPartnerStats();
+    loadCatalogStats();
   </script>
 </body>
 </html>

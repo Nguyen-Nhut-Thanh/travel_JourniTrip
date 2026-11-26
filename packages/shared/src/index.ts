@@ -136,7 +136,7 @@ export type { TourReviewsSectionProps } from "./reviews/props";
 export type { BudgetOption, UseSearchBarBudgetOption, UseSearchBarCalendarDay } from "./search/models";
 export type { PublicListParams, PublicToursFilters, PublicToursQuery, PublicToursResponse } from "./tours/contracts";
 export type { RouteStop, TourDestinationLite, TourWithMapData } from "./tours/map";
-export type { ItineraryActivity, PublicTourCard, PublicTourDetail, TourDestinationItem, TourImage, TourItinerary, TourLocation, TourPolicy, TourReview, TourSchedule, TourScheduleHotel, TourSchedulePrice, VideoItem } from "./tours/models";
+export type { ItineraryActivity, PublicTourCard, PublicTourDetail, TourCostume, TryOnRequestPayload, TryOnResponsePayload, TourDestinationItem, TourImage, TourItinerary, TourLocation, TourPolicy, TourReview, TourSchedule, TourScheduleHotel, TourSchedulePrice, VideoItem } from "./tours/models";
 export { TOUR_POLICY_DEFINITIONS } from "./tours/policies";
 export type { TourPolicyContentMap, TourPolicyKey } from "./tours/policies";
 export type { TourBookingCardProps, TourCardProps, TourDepartureCalendarProps, TourDetailHeroProps, TourEmptyStateProps, TourFilterSidebarProps, TourHighlightsListProps, TourItineraryTimelineProps, TourSmartMapProps, TourSortControlProps, TourVideoHighlightsProps } from "./tours/props";

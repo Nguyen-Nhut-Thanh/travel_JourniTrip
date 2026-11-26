@@ -26,3 +26,22 @@ export async function getPublicTourDetail(
     cache: "no-store",
   });
 }
+
+export async function submitVirtualTryOn(payload: {
+  userImage: string;
+  costumeId: number;
+  preserveBackground?: boolean;
+  destinationBackdrop?: string;
+}): Promise<{
+  success: boolean;
+  resultImageUrl: string;
+  costumeId: number;
+  costumeName: string;
+  message: string;
+}> {
+  return publicFetch("/ai/virtual-tryon", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}

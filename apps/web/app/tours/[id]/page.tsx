@@ -12,6 +12,7 @@ import TourRecommendedList from "@/components/tour_detail/recommendations/UserTo
 import TourReviewsSection from "@/components/reviews/customer_reviews/UserTourReviewsSection";
 import { TourReviewsModal } from "@/components/reviews/customer_reviews/UserTourReviewsModal";
 import TourVideoHighlights from "@/components/tour_detail/itinerary_and_experience/UserTourVideoHighlights";
+import UserTourCostumesSection from "@/components/tour_detail/costumes/UserTourCostumesSection";
 import { getPublicTourDetail } from "@/lib/tours/client/api";
 import { resolvePickupPoint } from '@/lib/booking/client/departure';
 import { Loader2 } from "lucide-react";
@@ -181,6 +182,9 @@ export default function TourDetailPage({
 
             {/* 4. Tiện ích nổi bật (Amenities) */}
             <TourAmenities key={`amenities-${tourId}`} amenities={tour.tour_amenities || []} />
+
+            {/* 4.5. Trang phục địa phương & Thử đồ AI (nếu có) */}
+            <UserTourCostumesSection costumes={tour.tour_costumes} tourName={tour.name} />
 
             {/* 5. Điểm nổi bật của chương trình (Tour Highlights) */}
             <TourHighlightsList />

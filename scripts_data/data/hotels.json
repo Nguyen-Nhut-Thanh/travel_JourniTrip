@@ -1,0 +1,407 @@
+[
+  {
+    "name": "Khách sạn 3 sao",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 3,
+    "address": "Trung tâm điểm đến",
+    "phone": "1900 6868",
+    "email": "hotel3star-center@tourhotel.vn",
+    "description": "Điều hòa, truyền hình cáp, nước nóng, Wi-Fi.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Standard (2 khách)",
+        "base_price": 600000,
+        "extra_price": 150000,
+        "breakfast_included": true,
+        "description": "1 giường đôi hoặc 2 giường đơn, có bữa sáng."
+      },
+      {
+        "name": "Family (3–4 khách)",
+        "base_price": 950000,
+        "extra_price": 200000,
+        "breakfast_included": true,
+        "description": "2 giường đôi, phù hợp gia đình và nhóm bạn."
+      }
+    ]
+  },
+  {
+    "name": "Khách sạn 3 sao gần biển",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 3,
+    "address": "Gần biển hoặc điểm tham quan",
+    "phone": "1900 6868",
+    "email": "hotel3star-beach@tourhotel.vn",
+    "description": "Vị trí thuận tiện, tầm nhìn thoáng, buffet sáng.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Superior (2 khách)",
+        "base_price": 750000,
+        "extra_price": 180000,
+        "breakfast_included": true,
+        "description": "Cửa sổ lớn, bàn làm việc, minibar."
+      },
+      {
+        "name": "Deluxe ban công",
+        "base_price": 900000,
+        "extra_price": 200000,
+        "breakfast_included": true,
+        "description": "Ban công riêng, nội thất gỗ."
+      }
+    ]
+  },
+  {
+    "name": "Khách sạn 4 sao trung tâm",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 4,
+    "address": "Trung tâm thành phố",
+    "phone": "1900 6868",
+    "email": "hotel4star-city@tourhotel.vn",
+    "description": "Hồ bơi tầng thượng, gym, sảnh khách, buffet sáng.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Deluxe City View (2 khách)",
+        "base_price": 1200000,
+        "extra_price": 300000,
+        "breakfast_included": true,
+        "description": "32 m², hướng thành phố, bồn tắm."
+      },
+      {
+        "name": "Executive Premier (2 khách)",
+        "base_price": 1650000,
+        "extra_price": 400000,
+        "breakfast_included": true,
+        "description": "Tầng cao, khu làm việc, trà chiều miễn phí."
+      }
+    ]
+  },
+  {
+    "name": "Khách sạn Boutique 4 sao",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 4,
+    "address": "Phố cổ hoặc khu di sản",
+    "phone": "1900 6868",
+    "email": "hotel4star-boutique@tourhotel.vn",
+    "description": "Phong cách cổ điển, đậm nét văn hóa địa phương.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Boutique Deluxe (2 khách)",
+        "base_price": 1350000,
+        "extra_price": 350000,
+        "breakfast_included": true,
+        "description": "Nội thất gỗ, tiện nghi hiện đại."
+      },
+      {
+        "name": "Junior Suite (2 khách)",
+        "base_price": 1900000,
+        "extra_price": 450000,
+        "breakfast_included": true,
+        "description": "Phòng khách liền phòng ngủ, ban công cổ điển."
+      }
+    ]
+  },
+  {
+    "name": "Resort 4 sao ven biển/sông",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 4,
+    "address": "Ven biển hoặc ven sông",
+    "phone": "1900 6868",
+    "email": "resort4star-beach@tourhotel.vn",
+    "description": "Sân vườn nhiệt đới, hồ bơi ngoài trời.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Bungalow hướng vườn",
+        "base_price": 1500000,
+        "extra_price": 350000,
+        "breakfast_included": true,
+        "description": "Bungalow mái ngói, hiên riêng."
+      },
+      {
+        "name": "Waterfront View",
+        "base_price": 2100000,
+        "extra_price": 450000,
+        "breakfast_included": true,
+        "description": "Ban công hướng biển hoặc sông."
+      }
+    ]
+  },
+  {
+    "name": "Khách sạn 5 sao",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 5,
+    "address": "Trung tâm điểm đến",
+    "phone": "1900 6868",
+    "email": "hotel5star-luxury@tourhotel.vn",
+    "description": "Nhà hàng Á – Âu, spa, lễ tân 24/7.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Grand Deluxe (2 khách)",
+        "base_price": 2400000,
+        "extra_price": 500000,
+        "breakfast_included": true,
+        "description": "40 m², giường King, phòng tắm đá cẩm thạch."
+      },
+      {
+        "name": "Club Suite",
+        "base_price": 3800000,
+        "extra_price": 700000,
+        "breakfast_included": true,
+        "description": "Phòng khách riêng, quyền sử dụng Executive Lounge."
+      }
+    ]
+  },
+  {
+    "name": "Resort 5 sao ven biển",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 5,
+    "address": "Khu nghỉ dưỡng ven biển",
+    "phone": "1900 6868",
+    "email": "resort5star-beach@tourhotel.vn",
+    "description": "Bãi biển riêng, hồ bơi vô cực, dịch vụ chăm sóc sức khỏe.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Ocean View Deluxe",
+        "base_price": 2900000,
+        "extra_price": 600000,
+        "breakfast_included": true,
+        "description": "Gần biển, ban công hướng đại dương."
+      },
+      {
+        "name": "Villa hướng biển",
+        "base_price": 5500000,
+        "extra_price": 1000000,
+        "breakfast_included": true,
+        "description": "Hồ bơi riêng, sân tắm nắng, quản gia."
+      }
+    ]
+  },
+  {
+    "name": "Eco-Resort 4 sao",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 4,
+    "address": "Cao nguyên hoặc đồi núi",
+    "phone": "1900 6868",
+    "email": "ecoresort-mountain@tourhotel.vn",
+    "description": "Nghỉ dưỡng giữa núi rừng, ngắm mây và sương.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Bungalow gỗ (2 khách)",
+        "base_price": 1300000,
+        "extra_price": 300000,
+        "breakfast_included": true,
+        "description": "Lò sưởi, ban công hướng thung lũng."
+      },
+      {
+        "name": "Panorama View (2–3 khách)",
+        "base_price": 1850000,
+        "extra_price": 400000,
+        "breakfast_included": true,
+        "description": "Kính 180°, hướng thung lũng và ruộng bậc thang."
+      }
+    ]
+  },
+  {
+    "name": "Homestay cộng đồng",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 3,
+    "address": "Bản làng hoặc khu du lịch cộng đồng",
+    "phone": "1900 6868",
+    "email": "homestay-community@tourhotel.vn",
+    "description": "Ẩm thực địa phương, lửa trại, trải nghiệm văn hóa.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Phòng riêng (2 khách)",
+        "base_price": 450000,
+        "extra_price": 100000,
+        "breakfast_included": true,
+        "description": "Trang trí thổ cẩm, vệ sinh khép kín."
+      },
+      {
+        "name": "Nhà sàn tập thể",
+        "base_price": 250000,
+        "extra_price": 80000,
+        "breakfast_included": true,
+        "description": "Đệm ngủ trên sàn gỗ, phù hợp nhóm."
+      }
+    ]
+  },
+  {
+    "name": "Condotel 3 sao",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 3,
+    "address": "Khu căn hộ du lịch trung tâm",
+    "phone": "1900 6868",
+    "email": "condotel-center@tourhotel.vn",
+    "description": "Căn hộ có bếp, phòng khách, máy giặt và ban công.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Studio (2 khách)",
+        "base_price": 850000,
+        "extra_price": 200000,
+        "breakfast_included": true,
+        "description": "45 m², 1 phòng ngủ, bếp mini, sofa."
+      },
+      {
+        "name": "Family (4 khách)",
+        "base_price": 1450000,
+        "extra_price": 300000,
+        "breakfast_included": true,
+        "description": "75 m², 2 phòng ngủ, 2 phòng tắm, phòng khách."
+      }
+    ]
+  },
+  {
+    "name": "Khách sạn 3 sao tối giản",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 3,
+    "address": "Khu vực giao thông thuận tiện",
+    "phone": "1900 6868",
+    "email": "budget3star@tourhotel.vn",
+    "description": "Thiết kế tối giản, đầy đủ tiện nghi cơ bản.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Cozy Standard (2 khách)",
+        "base_price": 550000,
+        "extra_price": 120000,
+        "breakfast_included": true,
+        "description": "Cách âm tốt, buồng tắm đứng."
+      },
+      {
+        "name": "Smart Double (2 khách)",
+        "base_price": 700000,
+        "extra_price": 150000,
+        "breakfast_included": true,
+        "description": "Đèn thông minh, TV internet, góc làm việc."
+      }
+    ]
+  },
+  {
+    "name": "Khách sạn Onsen 4 sao",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 4,
+    "address": "Khu du lịch suối khoáng nóng",
+    "phone": "1900 6868",
+    "email": "wellness-onsen@tourhotel.vn",
+    "description": "Tắm khoáng nóng, xông hơi thảo dược.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Onsen Deluxe",
+        "base_price": 1800000,
+        "extra_price": 400000,
+        "breakfast_included": true,
+        "description": "Bồn khoáng riêng, phong cách Nhật Bản."
+      },
+      {
+        "name": "Family Wellness (4 khách)",
+        "base_price": 2700000,
+        "extra_price": 500000,
+        "breakfast_included": true,
+        "description": "Không gian gia đình, vé tắm khoáng không giới hạn."
+      }
+    ]
+  },
+  {
+    "name": "Khách sạn thương gia 4 sao",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 4,
+    "address": "Trung tâm thương mại hoặc hành chính",
+    "phone": "1900 6868",
+    "email": "business-hotel4star@tourhotel.vn",
+    "description": "Phục vụ MICE, Wi-Fi tốc độ cao, hội nghị và tiệc.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Business Executive (2 khách)",
+        "base_price": 1400000,
+        "extra_price": 350000,
+        "breakfast_included": true,
+        "description": "Bàn làm việc, ghế công thái học, máy pha cà phê."
+      },
+      {
+        "name": "Corner Suite (2 khách)",
+        "base_price": 2100000,
+        "extra_price": 450000,
+        "breakfast_included": true,
+        "description": "Hai mặt kính, sofa, bồn sục Jacuzzi."
+      }
+    ]
+  },
+  {
+    "name": "Khách sạn di sản 5 sao",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 5,
+    "address": "Trung tâm văn hóa lịch sử",
+    "phone": "1900 6868",
+    "email": "heritage-hotel5star@tourhotel.vn",
+    "description": "Kiến trúc cổ, giao thoa Á – Âu.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Heritage Classic (2 khách)",
+        "base_price": 2600000,
+        "extra_price": 550000,
+        "breakfast_included": true,
+        "description": "Sàn gỗ, quạt trần, điều hòa."
+      },
+      {
+        "name": "Colonial Suite",
+        "base_price": 4200000,
+        "extra_price": 800000,
+        "breakfast_included": true,
+        "description": "Ban công lớn hướng công viên hoặc quảng trường."
+      }
+    ]
+  },
+  {
+    "name": "Glamping 3 sao",
+    "location_slug": "viet-nam",
+    "location_name": "Việt Nam",
+    "star_rating": 3,
+    "address": "Khu sinh thái ven hồ hoặc đồi thông",
+    "phone": "1900 6868",
+    "email": "glamping-nature@tourhotel.vn",
+    "description": "Lều tiện nghi, điều hòa di động, BBQ ngoài trời.",
+    "status": 1,
+    "rooms": [
+      {
+        "name": "Lều đôi (2 khách)",
+        "base_price": 850000,
+        "extra_price": 200000,
+        "breakfast_included": true,
+        "description": "Lều mái vòm, đệm, quạt, bàn trà."
+      },
+      {
+        "name": "Lều gia đình (4 khách)",
+        "base_price": 1500000,
+        "extra_price": 300000,
+        "breakfast_included": true,
+        "description": "Lều rộng, bàn ghế cắm trại, đèn trang trí."
+      }
+    ]
+  }
+]
