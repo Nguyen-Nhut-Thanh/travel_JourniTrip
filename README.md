@@ -1,13 +1,11 @@
-<div align="center">
-
 # JourniTrip
-## 1. Giới thiệu
+1. Giới thiệu
 
 **JourniTrip** là hệ thống website du lịch thông minh, kết hợp nền tảng thương mại điện tử du lịch với các công nghệ AI nhằm hỗ trợ khách hàng khám phá, lựa chọn và đặt tour phù hợp với nhu cầu cá nhân. Hệ thống đồng thời cung cấp công cụ quản trị phục vụ hoạt động kinh doanh và vận hành tour.
 
 Dự án được phát triển theo kiến trúc monorepo với npm Workspaces và Turborepo, bao gồm ba ứng dụng chính: Web, API nghiệp vụ và dịch vụ AI độc lập, cùng các thư viện dùng chung.
 
-## 2. Tính năng nổi bật
+2. Tính năng nổi bật
 
 ### Khách hàng
 
