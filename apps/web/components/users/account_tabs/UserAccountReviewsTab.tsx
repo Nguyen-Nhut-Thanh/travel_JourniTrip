@@ -67,7 +67,7 @@ export function AccountReviewsTab() {
   const approved = reviews.filter((review) => review.status === 1);
   const visible = approvedOnly ? approved : reviews;
   return (
-    <div className="w-full min-w-0 space-y-6">
+    <div className="w-full min-w-0 space-y-4">
       <AccountPageBanner
         title="Bài đánh giá"
         description="Những đánh giá bạn đã viết về các tour"
@@ -107,27 +107,27 @@ export function AccountReviewsTab() {
           </button>
         </div>
       ) : !visible.length ? (
-        <div className="rounded-2xl border border-slate-100 bg-white p-12 text-center">
+        <div className="rounded-[14px] border border-[#e1edfc] bg-white p-12 text-center shadow-sm">
           <Star className="mx-auto mb-3 h-10 w-10 text-amber-300" />
-          <p className="font-semibold text-slate-700">
+          <p className="font-bold text-[#0b1747]">
             {approvedOnly
               ? "Chưa có bài đánh giá được duyệt"
               : "Bạn chưa có bài đánh giá nào"}
           </p>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-[#7387aa]">
             {approvedOnly
               ? "Bài đánh giá sẽ xuất hiện tại đây sau khi được duyệt."
               : "Chia sẻ cảm nhận của bạn sau mỗi chuyến đi."}
           </p>
           <Link
             href="/account/bookings"
-            className="mt-5 inline-block text-sm font-semibold text-blue-600"
+            className="mt-5 inline-block rounded-[12px] bg-[#075bff] px-5 py-2.5 text-xs font-[650] text-white shadow-sm transition hover:bg-[#064ddd]"
           >
             Xem lịch sử đặt tour
           </Link>
         </div>
       ) : (
-        <div className="divide-y divide-slate-100 rounded-2xl border border-slate-100 bg-white px-4 sm:px-5">
+        <div className="divide-y divide-[#edf2fb] rounded-[14px] border border-[#e1edfc] bg-white px-4 sm:px-5 shadow-sm">
           {visible.map((review) => (
             <article
               key={review.review_id}
@@ -297,9 +297,9 @@ export function AccountReviewsTab() {
           }}
           labelledBy="edit-review-title"
         >
-          <section className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+          <section className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[14px] border border-[#e1edfc] bg-white p-6 shadow-xl">
             <div className="flex items-center justify-between">
-              <h2 id="edit-review-title" className="text-lg font-bold">
+              <h2 id="edit-review-title" className="text-lg font-bold text-[#0b1747]">
                 Chỉnh sửa đánh giá
               </h2>
               <button
@@ -310,10 +310,10 @@ export function AccountReviewsTab() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <p className="mt-1 text-sm text-slate-500">{editing.tour_name}</p>
+            <p className="mt-1 text-sm text-[#7387aa]">{editing.tour_name}</p>
             <form onSubmit={save} className="mt-5 space-y-4">
               <fieldset>
-                <legend className="mb-2 text-sm font-semibold">
+                <legend className="mb-2 text-sm font-semibold text-slate-700">
                   Mức độ hài lòng
                 </legend>
                 <div className="flex gap-2">
@@ -333,7 +333,7 @@ export function AccountReviewsTab() {
                   ))}
                 </div>
               </fieldset>
-              <label className="block text-sm font-semibold">
+              <label className="block text-sm font-semibold text-slate-700">
                 Nhận xét
                 <textarea
                   autoFocus
@@ -343,10 +343,10 @@ export function AccountReviewsTab() {
                   value={comment}
                   onChange={(event) => setComment(event.target.value)}
                   rows={5}
-                  className="mt-2 block w-full rounded-lg border border-slate-200 p-3 font-normal focus:border-blue-400 focus:outline-none"
+                  className="mt-2 block w-full rounded-lg border border-[#dce7f7] p-3 font-normal focus:border-[#075bff] focus:outline-none"
                 />
               </label>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-[#7387aa]">
                 Sau khi lưu, đánh giá sẽ được gửi lại để duyệt.
               </p>
               {editError && (
@@ -359,13 +359,13 @@ export function AccountReviewsTab() {
                   type="button"
                   disabled={saving}
                   onClick={() => setEditing(null)}
-                  className="rounded-lg px-4 py-2 text-sm text-slate-500"
+                  className="rounded-lg px-4 py-2 text-sm text-slate-500 hover:text-slate-700"
                 >
                   Hủy
                 </button>
                 <button
                   disabled={saving || !comment.trim()}
-                  className="flex items-center gap-2 rounded-lg bg-[#2094d3] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-[12px] bg-[#075bff] px-5 py-2.5 text-sm font-[650] text-white shadow-sm transition hover:bg-[#064ddd] disabled:opacity-50"
                 >
                   {saving && <Loader2 className="h-4 w-4 animate-spin" />}Lưu
                   đánh giá

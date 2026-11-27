@@ -91,19 +91,19 @@ export interface LocationStats {
 
 export async function getLocationStats(): Promise<LocationStats> {
   const [totalLocations, countryCount, regionCount, provinceCount] = await Promise.all([
-    prisma.locations.count(),
-    prisma.locations.count({ where: { location_type: 'country' } }),
-    prisma.locations.count({ where: { location_type: 'subcountry_region' } }),
-    prisma.locations.count({ where: { location_type: 'province_state' } }),
+    prisma.locations.count({ where: { country_code: 'VN' } }),
+    prisma.locations.count({ where: { location_type: 'country', country_code: 'VN' } }),
+    prisma.locations.count({ where: { location_type: 'subcountry_region', country_code: 'VN' } }),
+    prisma.locations.count({ where: { location_type: 'province_state', country_code: 'VN' } }),
   ]);
 
   const vietnam = await prisma.locations.findFirst({
-    where: { slug: 'viet-nam' },
+    where: { slug: 'viet-nam', country_code: 'VN' },
     select: { location_id: true },
   });
 
   const regionsFound = await prisma.locations.findMany({
-    where: { location_type: 'subcountry_region' },
+    where: { location_type: 'subcountry_region', country_code: 'VN' },
     select: { name: true },
   });
 

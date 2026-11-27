@@ -52,16 +52,21 @@ export function Popover({
         : useBelow ? box.bottom + padding : Math.max(padding, box.top - height - padding)}px`;
       panel.style.opacity = "1";
     };
+    const onScroll = (event: Event) => {
+      // Scrolling the panel or its option lists does not move the anchor.
+      if (event.target instanceof Node && panel.contains(event.target)) return;
+      update();
+    };
     update();
     const observer = new ResizeObserver(update);
     observer.observe(panel);
     if (anchorRef.current) observer.observe(anchorRef.current);
     window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
+    window.addEventListener("scroll", onScroll, true);
     return () => {
       observer.disconnect();
       window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("scroll", onScroll, true);
       panel.hidePopover();
     };
   }, [anchorRef, matchAnchorWidth, width, align, fitViewport]);

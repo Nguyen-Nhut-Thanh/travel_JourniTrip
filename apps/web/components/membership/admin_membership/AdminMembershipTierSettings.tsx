@@ -48,44 +48,44 @@ export function MembershipTierSettings({ tiers, disabled, onSelect, onChange, in
               const value = field.suffix === "đ" ? Number(event.target.value.replace(/\D/g, "")) : Number(event.target.value);
               if (Number.isFinite(value) && value >= 0 && value <= field.max) onChange(tier.id, field.key, value);
             }}
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 pr-8 text-xs font-semibold text-slate-800 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-50 disabled:opacity-50"
+            className="w-full rounded-lg border border-[#dce7f7] bg-white px-3 py-2 pr-8 text-xs font-semibold text-[#0b1747] outline-none focus:border-[#075bff] focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
           />
           <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-slate-400">{field.suffix}</span>
         </div>
       </label>)}
-      <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 sm:self-end">
-        <input type="checkbox" disabled={disabled} checked={tier.priorityReservation} onChange={event => onChange(tier.id, "priorityReservation", event.target.checked)} className="size-4 accent-cyan-600" />
+      <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-[#dce7f7] bg-white px-3 py-2.5 text-xs font-medium text-slate-700 sm:self-end">
+        <input type="checkbox" disabled={disabled} checked={tier.priorityReservation} onChange={event => onChange(tier.id, "priorityReservation", event.target.checked)} className="size-4 accent-[#075bff]" />
         <span>Ưu tiên xử lý giữ chỗ<span className="mt-0.5 block text-[10px] font-normal text-slate-400">Đánh dấu cho nhân viên hỗ trợ</span></span>
       </label>
     </div>;
   }
 
-  return <section className="membership-tier-settings min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/20 sm:p-5">
-    <header className="border-b border-slate-100 pb-4">
-      <h2 className="flex items-center gap-2 text-sm font-bold text-slate-900"><SlidersHorizontal size={17} className="text-cyan-600" />Quy tắc thăng hạng & quyền lợi</h2>
-      <p className="mt-1.5 text-xs leading-5 text-slate-500">Chọn một hạng để xem và chỉnh sửa quyền lợi.</p>
+  return <section className="membership-tier-settings min-w-0 rounded-[14px] border border-[#e1edfc] bg-white p-5 shadow-sm">
+    <header className="border-b border-[#edf2fb] pb-4">
+      <h2 className="flex items-center gap-2 text-sm font-bold text-[#0b1747]"><SlidersHorizontal size={17} className="text-[#075bff]" />Quy tắc thăng hạng &amp; quyền lợi</h2>
+      <p className="mt-1 text-xs text-[#7387aa]">Chọn một hạng để xem và chỉnh sửa quyền lợi.</p>
     </header>
     <div className="mt-4 space-y-3">
       {tiers.filter(tier => tier.id !== "bronze").map(tier => {
         const open = expanded === tier.id;
-        return <article key={tier.id} data-membership-tier={tier.id} data-expanded={open} className={`overflow-hidden rounded-xl border transition-colors ${open ? "border-cyan-200 bg-cyan-50/35" : "border-slate-200 bg-white"}`}>
+        return <article key={tier.id} data-membership-tier={tier.id} data-expanded={open} className={`overflow-hidden rounded-xl border transition-colors ${open ? "border-[#b9d7fb] bg-[#f8fbff]" : "border-[#e1edfc] bg-white"}`}>
           <h3>
-            <button type="button" id={`tier-trigger-${tier.id}`} aria-expanded={open} aria-controls={`tier-panel-${tier.id}`} onClick={() => toggle(tier.id)} className="membership-tier-trigger flex w-full items-center justify-between gap-3 p-4 text-left outline-none hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-400">
+            <button type="button" id={`tier-trigger-${tier.id}`} aria-expanded={open} aria-controls={`tier-panel-${tier.id}`} onClick={() => toggle(tier.id)} className="membership-tier-trigger flex w-full items-center justify-between gap-3 p-4 text-left outline-none hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#075bff]">
               <span className="flex min-w-0 items-center gap-3">
                 <span className={`size-2.5 shrink-0 rounded-full ${tierStyles[tier.id].dot}`} />
-                <span><span className="block text-sm font-bold text-slate-900">{tier.name}</span><span className="mt-1 block text-[11px] font-normal text-slate-400">Từ {formatVND(tier.threshold)} / kỳ</span></span>
+                <span><span className="block text-sm font-bold text-[#0b1747]">{tier.name}</span><span className="mt-1 block text-[11px] font-normal text-[#7387aa]">Từ {formatVND(tier.threshold)} / kỳ</span></span>
               </span>
               <span className="flex shrink-0 items-center gap-3"><span className={`membership-tier-badge rounded-md border px-2 py-0.5 text-[10px] font-semibold ${tierStyles[tier.id].badge}`}>{tierStyles[tier.id].english}</span><ChevronDown size={17} aria-hidden className={`text-slate-400 transition-transform motion-reduce:transition-none ${open ? "rotate-180" : ""}`} /></span>
             </button>
           </h3>
           <div id={`tier-panel-${tier.id}`} role="region" aria-labelledby={`tier-trigger-${tier.id}`} hidden={!open}>
-            {open && <div className="border-t border-cyan-100 p-4">{renderFields(tier)}</div>}
+            {open && <div className="border-t border-[#edf2fb] p-4">{renderFields(tier)}</div>}
           </div>
         </article>;
       })}
     </div>
-    {member && <div className="mt-4 border-t border-slate-100 pt-3">
-      <button type="button" id="tier-trigger-bronze" aria-expanded={expanded === "bronze"} aria-controls="tier-panel-bronze" onClick={() => toggle("bronze")} className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-2 text-left text-xs font-medium text-slate-500 hover:text-cyan-700 focus-visible:outline-2 focus-visible:outline-cyan-400">
+    {member && <div className="mt-4 border-t border-[#edf2fb] pt-3">
+      <button type="button" id="tier-trigger-bronze" aria-expanded={expanded === "bronze"} aria-controls="tier-panel-bronze" onClick={() => toggle("bronze")} className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-2 text-left text-xs font-medium text-slate-500 hover:text-[#075bff] focus-visible:outline-2 focus-visible:outline-[#075bff]">
         Quyền lợi Member cơ bản<ChevronDown size={15} aria-hidden className={`transition-transform motion-reduce:transition-none ${expanded === "bronze" ? "rotate-180" : ""}`} />
       </button>
       <div id="tier-panel-bronze" role="region" aria-labelledby="tier-trigger-bronze" hidden={expanded !== "bronze"}>

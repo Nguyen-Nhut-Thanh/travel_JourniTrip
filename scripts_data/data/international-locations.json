@@ -1,0 +1,2222 @@
+{
+  "schema_version": "1.0.0",
+  "name": "Địa điểm và điểm tham quan nước ngoài",
+  "language": "vi",
+  "updated_at": "2026-11-27",
+  "description": "Bộ dữ liệu khởi tạo danh mục tour nước ngoài theo cây cấp 3–6 của địa điểm Việt Nam. Danh sách tuyển chọn, không phải toàn bộ đơn vị hành chính hay điểm tham quan.",
+  "geographic_levels": [
+    {
+      "level_id": 3,
+      "name": "Country",
+      "description": "Quốc gia / điểm đến theo mã ISO 3166-1 alpha-2",
+      "location_type": "country"
+    },
+    {
+      "level_id": 4,
+      "name": "Subcountry Region",
+      "description": "Vùng địa lý / vùng du lịch",
+      "location_type": "subcountry_region"
+    },
+    {
+      "level_id": 5,
+      "name": "Province / State",
+      "description": "Tỉnh / bang / thành phố / khu vực điểm đến tương đương trong ứng dụng",
+      "location_type": "province_state"
+    },
+    {
+      "level_id": 6,
+      "name": "Attraction",
+      "description": "Điểm tham quan",
+      "location_type": "attraction"
+    }
+  ],
+  "import_notes": [
+    "locations chứa cấp 3–5, cha đứng trước con. Tra parent_slug để lấy location_id rồi ghi parent_id. Quốc gia có parent_slug = null; không dùng slug làm parent_id.",
+    "attractions giữ các trường của scripts_data/data/attractions.json và bổ sung country_code. province_slug tham chiếu location cấp 5 trong cùng file.",
+    "Khi nhập attractions: location_type = attraction, level_id = 6, parent_id lấy từ province_slug; description ánh xạ sang locations.note, image_url sang locations.featured_image. highlights, best_time, cuisine, tags ánh xạ sang destinations_detail.",
+    "Giữ country_code ở mọi cấp. Slug của vùng, tỉnh/thành và điểm tham quan có tiền tố mã quốc gia viết thường để tránh trùng toàn cục.",
+    "Dùng npm run db:import:international -- --dry-run để kiểm tra offline; bỏ --dry-run để nạp trọn bộ cây địa điểm và điểm tham quan. Có thể dùng --file <path> cho file cùng cấu trúc. Import theo slug, giữ ID khi chạy lại và ghi trong một transaction. Không dùng lệnh import-provinces hoặc seed-attractions cho file này.",
+    "Cấp 4 là vùng phân nhóm tour, không đồng nhất với cấp hành chính của mọi nước. Cấp 5 dùng tỉnh, bang, đô thị hoặc địa hạt tương đương. Singapore dùng khu vực du lịch Marina Bay, Sentosa, Changi vì không có tỉnh/bang như Việt Nam.",
+    "Vương quốc Anh dùng mã GB; England, Scotland, Wales ánh xạ vào cấp 4 của ứng dụng. Mã TW dùng để phân loại điểm đến du lịch Đài Loan trong danh mục.",
+    "best_time là gợi ý mùa phổ biến do biên soạn, không phải lịch mở cửa, dự báo hoặc cam kết thời tiết. cuisine là món phổ biến của địa phương, không khẳng định bán ngay tại điểm tham quan.",
+    "image_url để null vì chưa tuyển chọn và xác minh ảnh đúng địa điểm, quyền sử dụng. Không dùng ảnh ngẫu nhiên thay cho ảnh địa điểm.",
+    "source_urls là nguồn tham khảo du lịch chính thức ở cấp quốc gia/điểm đến, không phải trích dẫn từng trường. Mô tả tiếng Việt được biên soạn cho bộ dữ liệu."
+  ],
+  "sources": [
+    {
+      "country_code": "JP",
+      "source_urls": [
+        "https://www.japan.travel/en/gc/itineraries/long-plan/",
+        "https://www.japan.travel/en/in/itineraries/golden-route/",
+        "https://www.gotokyo.org/en/see-and-do/attractions/"
+      ]
+    },
+    {
+      "country_code": "KR",
+      "source_urls": [
+        "https://english.visitkorea.or.kr/svc/contents/contentsView.do?dataSetId=12&menuSn=745&vcontsId=1595359",
+        "https://english1.visitkorea.or.kr/enu/TRV/TV_ENG_Must100.jsp"
+      ]
+    },
+    {
+      "country_code": "CN",
+      "source_urls": [
+        "https://english.beijing.gov.cn/travellinginbeijing/attractions/",
+        "https://english.beijing.gov.cn/specials/centralaxis/landmarksalongthecentralaxis/index.html",
+        "https://english.shanghai.gov.cn/",
+        "https://www.sc.gov.cn/"
+      ]
+    },
+    {
+      "country_code": "TW",
+      "source_urls": [
+        "https://eng.taiwan.net.tw/",
+        "https://eng.taiwan.net.tw/m1.aspx?sNo=0002114",
+        "https://eng.taiwan.net.tw/m1.aspx?sNo=0042417"
+      ]
+    },
+    {
+      "country_code": "SG",
+      "source_urls": [
+        "https://www.visitsingapore.com/neighbourhood/featured-neighbourhood/marina-bay/",
+        "https://www.visitsingapore.com/see-do-singapore/recreation-leisure/viewpoints/merlion-park/",
+        "https://www.sentosa.com.sg/",
+        "https://www.changiairport.com/"
+      ]
+    },
+    {
+      "country_code": "FR",
+      "source_urls": [
+        "https://www.france.fr/fr/destination/paris/",
+        "https://www.france.fr/fr/destination/nice/",
+        "https://www.france.fr/fr/liste-theme/culture-et-patrimoine/"
+      ]
+    },
+    {
+      "country_code": "CA",
+      "source_urls": [
+        "https://travel.destinationcanada.com/en-ca/things-to-do/top-10-attractions-ontario",
+        "https://travel.destinationcanada.com/en-ca/places-to-go/alberta",
+        "https://travel.destinationcanada.com/en-au/things-to-do/top-10-attractions-alberta",
+        "https://travel.destinationcanada.com/"
+      ]
+    },
+    {
+      "country_code": "TH",
+      "source_urls": [
+        "https://www.tourismthailand.org/Destinations/Provinces/Bangkok/219",
+        "https://www.tourismthailand.org/Attraction/the-grand-palace",
+        "https://www.tourismthailand.org/Attraction/wat-arun-ratchawararam-ratchawaramahawihan"
+      ]
+    },
+    {
+      "country_code": "MY",
+      "source_urls": [
+        "https://www.malaysia.travel/",
+        "https://storage.ebrochures.malaysia.travel/storage/IDB_PDF_MTG_EN.pdf",
+        "https://storage.ebrochures.malaysia.travel/storage/IDB_PDF_DIP_EN.pdf"
+      ]
+    },
+    {
+      "country_code": "ID",
+      "source_urls": [
+        "https://www.indonesia.travel/",
+        "https://www.indonesia.travel/id/id/destination/bali-nusa-tenggara/bali/tanah-lot",
+        "https://www.indonesia.travel/content/dam/indtravelrevamp/en/campaign/itbberlin2024/pack/mp1.pdf"
+      ]
+    },
+    {
+      "country_code": "IT",
+      "source_urls": [
+        "https://www.italia.it/",
+        "https://www.italia.it/en/lazio/things-to-do/rome-itinerary-from-the-colosseum-to-san-giovanni-in-laterano"
+      ]
+    },
+    {
+      "country_code": "CH",
+      "source_urls": [
+        "https://www.myswitzerland.com/",
+        "https://www.myswitzerland.com/en-us/experiences/chapel-bridge/"
+      ]
+    },
+    {
+      "country_code": "AU",
+      "source_urls": [
+        "https://www.australia.com/en/trips-and-itineraries/best-road-trips-australia.html",
+        "https://www.australia.com/en/places/cairns-and-surrounds/what-to-do-at-great-barrier-reef.html",
+        "https://www.australia.com/en/stories/nature-and-national-parks-natural-landmarks-in-australia.html"
+      ]
+    },
+    {
+      "country_code": "US",
+      "source_urls": [
+        "https://www.visittheusa.com/",
+        "https://www.nps.gov/stli/",
+        "https://www.nps.gov/yose/",
+        "https://www.nps.gov/grca/"
+      ]
+    },
+    {
+      "country_code": "GB",
+      "source_urls": [
+        "https://www.visitbritain.com/en/destinations/england/london",
+        "https://www.visitbritain.com/en/destinations/scotland/edinburgh",
+        "https://www.visitwales.com/attraction/garden/portmeirion-556551"
+      ]
+    }
+  ],
+  "locations": [
+    {
+      "name": "Nhật Bản",
+      "slug": "nhat-ban",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "JP",
+      "note": "Điểm đến Đông Á với đền chùa, đô thị hiện đại và ẩm thực theo mùa."
+    },
+    {
+      "name": "Kanto",
+      "slug": "jp-kanto",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "nhat-ban",
+      "country_code": "JP",
+      "note": "Vùng phía đông Honshu, có Tokyo."
+    },
+    {
+      "name": "Tokyo",
+      "slug": "jp-tokyo",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "jp-kanto",
+      "country_code": "JP",
+      "note": "Đô thị kết hợp khu phố truyền thống và công trình hiện đại."
+    },
+    {
+      "name": "Kansai",
+      "slug": "jp-kansai",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "nhat-ban",
+      "country_code": "JP",
+      "note": "Vùng phía tây Honshu, có Kyoto và Osaka."
+    },
+    {
+      "name": "Kyoto",
+      "slug": "jp-kyoto",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "jp-kansai",
+      "country_code": "JP",
+      "note": "Cố đô với đền chùa, phố cổ và vườn Nhật."
+    },
+    {
+      "name": "Osaka",
+      "slug": "jp-osaka",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "jp-kansai",
+      "country_code": "JP",
+      "note": "Điểm đến đô thị và ẩm thực với Dotonbori và các di tích lịch sử."
+    },
+    {
+      "name": "Hàn Quốc",
+      "slug": "han-quoc",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "KR",
+      "note": "Điểm đến kết hợp cung điện, thành phố biển và đảo núi lửa."
+    },
+    {
+      "name": "Vùng thủ đô Hàn Quốc",
+      "slug": "kr-vung-thu-do",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "han-quoc",
+      "country_code": "KR",
+      "note": "Nhóm điểm đến quanh Seoul ở tây bắc."
+    },
+    {
+      "name": "Seoul",
+      "slug": "kr-seoul",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "kr-vung-thu-do",
+      "country_code": "KR",
+      "note": "Thủ đô với cung điện Joseon, làng hanok và các khu phố văn hóa."
+    },
+    {
+      "name": "Đông Nam Hàn Quốc",
+      "slug": "kr-dong-nam",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "han-quoc",
+      "country_code": "KR",
+      "note": "Vùng ven biển đông nam, có Busan."
+    },
+    {
+      "name": "Busan",
+      "slug": "kr-busan",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "kr-dong-nam",
+      "country_code": "KR",
+      "note": "Thành phố cảng với bãi biển và khu dân cư ven đồi."
+    },
+    {
+      "name": "Vùng đảo Jeju",
+      "slug": "kr-dao-jeju",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "han-quoc",
+      "country_code": "KR",
+      "note": "Nhóm điểm đến đảo núi lửa Jeju."
+    },
+    {
+      "name": "Jeju",
+      "slug": "kr-jeju",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "kr-dao-jeju",
+      "country_code": "KR",
+      "note": "Tỉnh đảo có núi lửa, thác nước và văn hóa cộng đồng ven biển."
+    },
+    {
+      "name": "Trung Quốc",
+      "slug": "trung-quoc",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "CN",
+      "note": "Điểm đến có di sản cung điện, đô thị ven sông và cảnh quan núi hồ."
+    },
+    {
+      "name": "Hoa Bắc",
+      "slug": "cn-hoa-bac",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "trung-quoc",
+      "country_code": "CN",
+      "note": "Vùng phía bắc, có Bắc Kinh."
+    },
+    {
+      "name": "Bắc Kinh",
+      "slug": "cn-bac-kinh",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "cn-hoa-bac",
+      "country_code": "CN",
+      "note": "Đô thị trực thuộc trung ương có cung điện và các đoạn Vạn Lý Trường Thành."
+    },
+    {
+      "name": "Hoa Đông",
+      "slug": "cn-hoa-dong",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "trung-quoc",
+      "country_code": "CN",
+      "note": "Vùng phía đông, có Thượng Hải."
+    },
+    {
+      "name": "Thượng Hải",
+      "slug": "cn-thuong-hai",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "cn-hoa-dong",
+      "country_code": "CN",
+      "note": "Đô thị bên sông Hoàng Phố với kiến trúc lịch sử và hiện đại."
+    },
+    {
+      "name": "Tây Nam Trung Quốc",
+      "slug": "cn-tay-nam",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "trung-quoc",
+      "country_code": "CN",
+      "note": "Vùng nội địa có Tứ Xuyên và cảnh quan núi cao."
+    },
+    {
+      "name": "Tứ Xuyên",
+      "slug": "cn-tu-xuyen",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "cn-tay-nam",
+      "country_code": "CN",
+      "note": "Tỉnh phía tây nam có Thành Đô, cảnh quan núi hồ và ẩm thực đặc trưng."
+    },
+    {
+      "name": "Đài Loan",
+      "slug": "dai-loan",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "TW",
+      "note": "Điểm đến Đông Á với đô thị, núi hồ, phố cổ và văn hóa chợ đêm."
+    },
+    {
+      "name": "Miền Bắc Đài Loan",
+      "slug": "tw-mien-bac",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "dai-loan",
+      "country_code": "TW",
+      "note": "Vùng có Đài Bắc, Tân Bắc và bờ biển phía bắc."
+    },
+    {
+      "name": "Đài Bắc",
+      "slug": "tw-dai-bac",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "tw-mien-bac",
+      "country_code": "TW",
+      "note": "Đô thị phía bắc có công trình biểu tượng, bảo tàng và chợ đêm."
+    },
+    {
+      "name": "Tân Bắc",
+      "slug": "tw-tan-bac",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "tw-mien-bac",
+      "country_code": "TW",
+      "note": "Đô thị bao quanh Đài Bắc, có phố núi và cảnh quan bờ biển."
+    },
+    {
+      "name": "Miền Trung Đài Loan",
+      "slug": "tw-mien-trung",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "dai-loan",
+      "country_code": "TW",
+      "note": "Vùng có Nam Đầu, các khu núi và hồ nội địa."
+    },
+    {
+      "name": "Nam Đầu",
+      "slug": "tw-nam-dau",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "tw-mien-trung",
+      "country_code": "TW",
+      "note": "Huyện nội địa có hồ Nhật Nguyệt và vùng núi Thanh Cảnh."
+    },
+    {
+      "name": "Singapore",
+      "slug": "singapore",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "SG",
+      "note": "Đảo quốc có vườn đô thị, khu vui chơi trên đảo và không gian đa văn hóa."
+    },
+    {
+      "name": "Trung tâm Singapore",
+      "slug": "sg-trung-tam",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "singapore",
+      "country_code": "SG",
+      "note": "Nhóm điểm đến trung tâm và các đảo phía nam, dùng để phân nhóm tour."
+    },
+    {
+      "name": "Khu vực Marina Bay",
+      "slug": "sg-marina-bay",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "sg-trung-tam",
+      "country_code": "SG",
+      "note": "Khu vực du lịch ven vịnh, không phải đơn vị tỉnh/bang."
+    },
+    {
+      "name": "Khu vực đảo Sentosa",
+      "slug": "sg-sentosa",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "sg-trung-tam",
+      "country_code": "SG",
+      "note": "Đảo du lịch phía nam, ánh xạ vào cấp điểm đến tương đương tỉnh/thành của ứng dụng."
+    },
+    {
+      "name": "Phía đông Singapore",
+      "slug": "sg-phia-dong",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "singapore",
+      "country_code": "SG",
+      "note": "Nhóm điểm đến quanh Changi ở phía đông đảo."
+    },
+    {
+      "name": "Khu vực Changi",
+      "slug": "sg-changi",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "sg-phia-dong",
+      "country_code": "SG",
+      "note": "Khu vực sân bay và bờ biển phía đông, không phải đơn vị tỉnh/bang."
+    },
+    {
+      "name": "Pháp",
+      "slug": "phap",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "FR",
+      "note": "Điểm đến châu Âu có bảo tàng, kiến trúc đô thị, làng cổ và bờ biển Địa Trung Hải."
+    },
+    {
+      "name": "Île-de-France",
+      "slug": "fr-ile-de-france",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "phap",
+      "country_code": "FR",
+      "note": "Vùng có Paris và khu vực đô thị xung quanh."
+    },
+    {
+      "name": "Paris",
+      "slug": "fr-paris",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "fr-ile-de-france",
+      "country_code": "FR",
+      "note": "Đơn vị đô thị và địa hạt có bảo tàng, kiến trúc và không gian ven sông Seine."
+    },
+    {
+      "name": "Provence-Alpes-Côte d’Azur",
+      "slug": "fr-provence-alpes-cote-d-azur",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "phap",
+      "country_code": "FR",
+      "note": "Vùng đông nam có cảnh quan Địa Trung Hải và đô thị lịch sử Provence."
+    },
+    {
+      "name": "Alpes-Maritimes",
+      "slug": "fr-alpes-maritimes",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "fr-provence-alpes-cote-d-azur",
+      "country_code": "FR",
+      "note": "Địa hạt ven Địa Trung Hải có Nice, Èze và cảnh quan Côte d’Azur."
+    },
+    {
+      "name": "Vaucluse",
+      "slug": "fr-vaucluse",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "fr-provence-alpes-cote-d-azur",
+      "country_code": "FR",
+      "note": "Địa hạt Provence có Avignon, các làng cổ và cảnh quan nông thôn."
+    },
+    {
+      "name": "Canada",
+      "slug": "canada",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "CA",
+      "note": "Điểm đến Bắc Mỹ có đô thị đa văn hóa, thác nước và núi rừng rộng lớn."
+    },
+    {
+      "name": "Trung Canada",
+      "slug": "ca-trung-canada",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "canada",
+      "country_code": "CA",
+      "note": "Vùng địa lý gồm Ontario và Québec; bộ dữ liệu tuyển chọn Ontario."
+    },
+    {
+      "name": "Ontario",
+      "slug": "ca-ontario",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "ca-trung-canada",
+      "country_code": "CA",
+      "note": "Tỉnh có Toronto, Ottawa và phần thác Niagara phía Canada."
+    },
+    {
+      "name": "Tây Canada",
+      "slug": "ca-tay-canada",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "canada",
+      "country_code": "CA",
+      "note": "Nhóm tỉnh phía tây có bờ Thái Bình Dương và dãy Rocky."
+    },
+    {
+      "name": "British Columbia",
+      "slug": "ca-british-columbia",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "ca-tay-canada",
+      "country_code": "CA",
+      "note": "Tỉnh ven Thái Bình Dương có Vancouver, rừng ôn đới và núi."
+    },
+    {
+      "name": "Alberta",
+      "slug": "ca-alberta",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "ca-tay-canada",
+      "country_code": "CA",
+      "note": "Tỉnh có các vườn quốc gia Rocky và đô thị Calgary, Edmonton."
+    },
+    {
+      "name": "Thái Lan",
+      "slug": "thai-lan",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "TH",
+      "note": "Điểm đến Đông Nam Á có cung điện, văn hóa Phật giáo, núi phía bắc và biển phía nam."
+    },
+    {
+      "name": "Miền Trung Thái Lan",
+      "slug": "th-mien-trung",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "thai-lan",
+      "country_code": "TH",
+      "note": "Đồng bằng trung tâm, có Bangkok và lưu vực Chao Phraya."
+    },
+    {
+      "name": "Bangkok",
+      "slug": "th-bangkok",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "th-mien-trung",
+      "country_code": "TH",
+      "note": "Thủ đô có cung điện, chùa và các khu phố ven sông Chao Phraya."
+    },
+    {
+      "name": "Miền Bắc Thái Lan",
+      "slug": "th-mien-bac",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "thai-lan",
+      "country_code": "TH",
+      "note": "Vùng núi phía bắc gắn với văn hóa Lanna."
+    },
+    {
+      "name": "Chiang Mai",
+      "slug": "th-chiang-mai",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "th-mien-bac",
+      "country_code": "TH",
+      "note": "Tỉnh phía bắc có phố cổ, chùa trên núi và rừng."
+    },
+    {
+      "name": "Miền Nam Thái Lan",
+      "slug": "th-mien-nam",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "thai-lan",
+      "country_code": "TH",
+      "note": "Vùng bán đảo và đảo du lịch phía nam."
+    },
+    {
+      "name": "Phuket",
+      "slug": "th-phuket",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "th-mien-nam",
+      "country_code": "TH",
+      "note": "Tỉnh đảo phía biển Andaman với phố cổ và các bãi biển."
+    },
+    {
+      "name": "Malaysia",
+      "slug": "malaysia",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "MY",
+      "note": "Điểm đến đa văn hóa có đô thị, phố di sản và thiên nhiên Borneo."
+    },
+    {
+      "name": "Malaysia bán đảo",
+      "slug": "my-ban-dao",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "malaysia",
+      "country_code": "MY",
+      "note": "Phần lãnh thổ trên bán đảo Mã Lai, có Kuala Lumpur và Penang."
+    },
+    {
+      "name": "Kuala Lumpur",
+      "slug": "my-kuala-lumpur",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "my-ban-dao",
+      "country_code": "MY",
+      "note": "Lãnh thổ liên bang và trung tâm đô thị có nhiều công trình hiện đại."
+    },
+    {
+      "name": "Penang",
+      "slug": "my-penang",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "my-ban-dao",
+      "country_code": "MY",
+      "note": "Bang phía tây bắc bán đảo, có khu phố lịch sử George Town."
+    },
+    {
+      "name": "Malaysia trên đảo Borneo",
+      "slug": "my-borneo",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "malaysia",
+      "country_code": "MY",
+      "note": "Phần lãnh thổ phía bắc Borneo, gồm Sabah và Sarawak."
+    },
+    {
+      "name": "Sabah",
+      "slug": "my-sabah",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "my-borneo",
+      "country_code": "MY",
+      "note": "Bang phía bắc Borneo có núi Kinabalu, rừng và đảo ven biển."
+    },
+    {
+      "name": "Indonesia",
+      "slug": "indonesia",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "ID",
+      "note": "Quốc đảo có văn hóa Java, đền đài Bali và cảnh quan nhiệt đới."
+    },
+    {
+      "name": "Đảo Java",
+      "slug": "id-java",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "indonesia",
+      "country_code": "ID",
+      "note": "Vùng đảo có Jakarta, Yogyakarta và nhiều di tích văn hóa."
+    },
+    {
+      "name": "Jakarta",
+      "slug": "id-jakarta",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "id-java",
+      "country_code": "ID",
+      "note": "Đặc khu đô thị trên đảo Java với phố lịch sử và các công trình quốc gia."
+    },
+    {
+      "name": "Đặc khu Yogyakarta",
+      "slug": "id-yogyakarta",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "id-java",
+      "country_code": "ID",
+      "note": "Đơn vị hành chính trên Java gắn với văn hóa cung đình và các quần thể đền."
+    },
+    {
+      "name": "Vùng đảo Bali",
+      "slug": "id-bali",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "indonesia",
+      "country_code": "ID",
+      "note": "Nhóm điểm đến đảo Bali với đền Hindu và núi hồ."
+    },
+    {
+      "name": "Bali",
+      "slug": "id-tinh-bali",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "id-bali",
+      "country_code": "ID",
+      "note": "Tỉnh đảo có đền Hindu, làng nghề và cảnh quan núi hồ."
+    },
+    {
+      "name": "Ý",
+      "slug": "y",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "IT",
+      "note": "Điểm đến châu Âu có di tích La Mã, nghệ thuật Phục Hưng và đô thị kênh đào."
+    },
+    {
+      "name": "Lazio",
+      "slug": "it-lazio",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "y",
+      "country_code": "IT",
+      "note": "Vùng miền trung nước Ý, có thủ đô Rome."
+    },
+    {
+      "name": "Thành phố đô thị Rome",
+      "slug": "it-rome",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "it-lazio",
+      "country_code": "IT",
+      "note": "Đơn vị cấp đô thị gồm Rome và khu vực xung quanh."
+    },
+    {
+      "name": "Tuscany",
+      "slug": "it-tuscany",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "y",
+      "country_code": "IT",
+      "note": "Vùng miền trung có Florence và các đô thị nghệ thuật."
+    },
+    {
+      "name": "Thành phố đô thị Florence",
+      "slug": "it-florence",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "it-tuscany",
+      "country_code": "IT",
+      "note": "Đơn vị cấp đô thị có trung tâm Florence với nghệ thuật Phục Hưng."
+    },
+    {
+      "name": "Veneto",
+      "slug": "it-veneto",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "y",
+      "country_code": "IT",
+      "note": "Vùng đông bắc có Venice và đầm phá."
+    },
+    {
+      "name": "Thành phố đô thị Venice",
+      "slug": "it-venice",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "it-veneto",
+      "country_code": "IT",
+      "note": "Đơn vị cấp đô thị có trung tâm lịch sử Venice trên đầm phá."
+    },
+    {
+      "name": "Thụy Sĩ",
+      "slug": "thuy-si",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "CH",
+      "note": "Điểm đến có đô thị ven hồ, phố cổ và thung lũng trên dãy Alps."
+    },
+    {
+      "name": "Vùng du lịch Zurich",
+      "slug": "ch-vung-zurich",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "thuy-si",
+      "country_code": "CH",
+      "note": "Nhóm điểm đến quanh Zurich, phục vụ phân loại tour."
+    },
+    {
+      "name": "Bang Zurich",
+      "slug": "ch-zurich",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "ch-vung-zurich",
+      "country_code": "CH",
+      "note": "Bang có thành phố Zurich và các khu dân cư ven hồ."
+    },
+    {
+      "name": "Vùng du lịch Bern",
+      "slug": "ch-vung-bern",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "thuy-si",
+      "country_code": "CH",
+      "note": "Nhóm điểm đến bang Bern, từ phố cổ đến Bernese Oberland."
+    },
+    {
+      "name": "Bang Bern",
+      "slug": "ch-bern",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "ch-vung-bern",
+      "country_code": "CH",
+      "note": "Bang có thủ đô liên bang Bern và các thung lũng Bernese Oberland."
+    },
+    {
+      "name": "Trung Thụy Sĩ",
+      "slug": "ch-trung-thuy-si",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "thuy-si",
+      "country_code": "CH",
+      "note": "Vùng có Lucerne và các điểm đến quanh hồ Lucerne."
+    },
+    {
+      "name": "Bang Lucerne",
+      "slug": "ch-lucerne",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "ch-trung-thuy-si",
+      "country_code": "CH",
+      "note": "Bang ở Trung Thụy Sĩ có đô thị lịch sử và cảnh quan ven hồ."
+    },
+    {
+      "name": "Úc",
+      "slug": "uc",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "AU",
+      "note": "Điểm đến châu Đại Dương có đô thị ven cảng, rạn san hô và cảnh quan rừng biển."
+    },
+    {
+      "name": "Đông Úc",
+      "slug": "au-dong-uc",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "uc",
+      "country_code": "AU",
+      "note": "Nhóm điểm đến bờ đông gồm New South Wales và Queensland trong bộ dữ liệu."
+    },
+    {
+      "name": "New South Wales",
+      "slug": "au-new-south-wales",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "au-dong-uc",
+      "country_code": "AU",
+      "note": "Bang có Sydney, bờ Thái Bình Dương và Blue Mountains."
+    },
+    {
+      "name": "Queensland",
+      "slug": "au-queensland",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "au-dong-uc",
+      "country_code": "AU",
+      "note": "Bang đông bắc có rạn san hô ngoài khơi và rừng nhiệt đới."
+    },
+    {
+      "name": "Đông Nam Úc",
+      "slug": "au-dong-nam-uc",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "uc",
+      "country_code": "AU",
+      "note": "Nhóm điểm đến đông nam, ở đây tuyển chọn Victoria."
+    },
+    {
+      "name": "Victoria",
+      "slug": "au-victoria",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "au-dong-nam-uc",
+      "country_code": "AU",
+      "note": "Bang đông nam có Melbourne và tuyến Great Ocean Road."
+    },
+    {
+      "name": "Mỹ",
+      "slug": "my",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "US",
+      "note": "Điểm đến Bắc Mỹ từ đô thị bờ đông đến bờ Thái Bình Dương và cảnh quan Tây Nam."
+    },
+    {
+      "name": "Đông Bắc Mỹ",
+      "slug": "us-dong-bac",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "my",
+      "country_code": "US",
+      "note": "Vùng phía đông bắc, có bang New York."
+    },
+    {
+      "name": "Bang New York",
+      "slug": "us-new-york",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "us-dong-bac",
+      "country_code": "US",
+      "note": "Bang bờ đông có thành phố New York và nhiều cảnh quan nội địa."
+    },
+    {
+      "name": "Bờ Tây Mỹ",
+      "slug": "us-bo-tay",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "my",
+      "country_code": "US",
+      "note": "Vùng ven Thái Bình Dương, tuyển chọn California."
+    },
+    {
+      "name": "California",
+      "slug": "us-california",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "us-bo-tay",
+      "country_code": "US",
+      "note": "Bang ven Thái Bình Dương có San Francisco và các vườn quốc gia Sierra Nevada."
+    },
+    {
+      "name": "Tây Nam Mỹ",
+      "slug": "us-tay-nam",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "my",
+      "country_code": "US",
+      "note": "Vùng nội địa có Arizona và cảnh quan hẻm núi."
+    },
+    {
+      "name": "Arizona",
+      "slug": "us-arizona",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "us-tay-nam",
+      "country_code": "US",
+      "note": "Bang Tây Nam có cao nguyên, sa mạc và các hẻm núi."
+    },
+    {
+      "name": "Vương quốc Anh",
+      "slug": "vuong-quoc-anh",
+      "location_type": "country",
+      "level_id": 3,
+      "parent_slug": null,
+      "country_code": "GB",
+      "note": "Điểm đến gồm các vùng thành viên có đô thị lịch sử, lâu đài và cảnh quan đa dạng."
+    },
+    {
+      "name": "England",
+      "slug": "gb-england",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "vuong-quoc-anh",
+      "country_code": "GB",
+      "note": "Vùng thành viên của Vương quốc Anh, ánh xạ vào cấp 4 để phân nhóm."
+    },
+    {
+      "name": "Greater London",
+      "slug": "gb-greater-london",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "gb-england",
+      "country_code": "GB",
+      "note": "Khu vực hành chính đô thị có các điểm đến bên sông Thames."
+    },
+    {
+      "name": "Scotland",
+      "slug": "gb-scotland",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "vuong-quoc-anh",
+      "country_code": "GB",
+      "note": "Vùng thành viên của Vương quốc Anh, ánh xạ vào cấp 4 để phân nhóm."
+    },
+    {
+      "name": "City of Edinburgh",
+      "slug": "gb-edinburgh",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "gb-scotland",
+      "country_code": "GB",
+      "note": "Khu vực hội đồng có thành phố Edinburgh và trung tâm lịch sử."
+    },
+    {
+      "name": "Wales",
+      "slug": "gb-wales",
+      "location_type": "subcountry_region",
+      "level_id": 4,
+      "parent_slug": "vuong-quoc-anh",
+      "country_code": "GB",
+      "note": "Vùng thành viên của Vương quốc Anh, ánh xạ vào cấp 4 để phân nhóm."
+    },
+    {
+      "name": "Gwynedd",
+      "slug": "gb-gwynedd",
+      "location_type": "province_state",
+      "level_id": 5,
+      "parent_slug": "gb-wales",
+      "country_code": "GB",
+      "note": "Địa hạt tây bắc Wales có lâu đài, làng ven biển và núi."
+    }
+  ],
+  "attractions": [
+    {
+      "province_slug": "jp-tokyo",
+      "country_code": "JP",
+      "name": "Chùa Sensō-ji",
+      "slug": "jp-chua-sensoji",
+      "description": "Ngôi chùa Phật giáo ở Asakusa, gắn với cổng Kaminarimon và phố Nakamise.",
+      "highlights": "Cổng Kaminarimon, phố Nakamise, chính điện và tháp chùa",
+      "best_time": "Mùa xuân và mùa thu; có thể tham quan quanh năm",
+      "cuisine": "Tempura, soba, ningyo-yaki",
+      "tags": "tokyo, asakusa, chùa, văn hóa",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "jp-tokyo",
+      "country_code": "JP",
+      "name": "Tokyo Skytree",
+      "slug": "jp-tokyo-skytree",
+      "description": "Tháp truyền hình và đài quan sát ở khu Sumida, nhìn ra đô thị Tokyo.",
+      "highlights": "Đài quan sát, cảnh sông Sumida, khu Tokyo Solamachi",
+      "best_time": "Quanh năm; ưu tiên ngày trời quang",
+      "cuisine": "Sushi, ramen, monjayaki",
+      "tags": "tokyo, tháp, đài quan sát, đô thị",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "jp-kyoto",
+      "country_code": "JP",
+      "name": "Đền Fushimi Inari Taisha",
+      "slug": "jp-fushimi-inari",
+      "description": "Đền Thần đạo phía nam Kyoto, nổi tiếng với các lối đi qua cổng torii trên núi Inari.",
+      "highlights": "Cổng torii đỏ, tượng cáo, đường đi bộ trên núi",
+      "best_time": "Mùa xuân và mùa thu",
+      "cuisine": "Inari sushi, udon, bánh yatsuhashi",
+      "tags": "kyoto, thần đạo, torii, đi bộ",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "jp-kyoto",
+      "country_code": "JP",
+      "name": "Chùa Kiyomizu-dera",
+      "slug": "jp-kiyomizu-dera",
+      "description": "Ngôi chùa trên sườn đồi phía đông Kyoto với hiên gỗ và tầm nhìn ra thành phố.",
+      "highlights": "Hiên gỗ, khuôn viên chùa, phố Sannenzaka và Ninenzaka lân cận",
+      "best_time": "Mùa hoa anh đào và mùa lá thu",
+      "cuisine": "Đậu phụ Kyoto, matcha, yatsuhashi",
+      "tags": "kyoto, chùa, kiến trúc gỗ, phố cổ",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "jp-osaka",
+      "country_code": "JP",
+      "name": "Lâu đài Osaka",
+      "slug": "jp-lau-dai-osaka",
+      "description": "Quần thể lâu đài và công viên giữa Osaka, có bảo tàng lịch sử trong tháp chính.",
+      "highlights": "Tháp chính, hào nước, tường đá, công viên",
+      "best_time": "Mùa xuân và mùa thu",
+      "cuisine": "Takoyaki, okonomiyaki, kitsune udon",
+      "tags": "osaka, lâu đài, lịch sử, công viên",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "jp-osaka",
+      "country_code": "JP",
+      "name": "Khu phố Dotonbori",
+      "slug": "jp-dotonbori",
+      "description": "Khu phố ven kênh ở Osaka, nổi bật với biển hiệu và các hàng quán ẩm thực.",
+      "highlights": "Kênh Dotonbori, cầu Ebisubashi, biển hiệu Glico",
+      "best_time": "Quanh năm; buổi tối phù hợp ngắm ánh đèn",
+      "cuisine": "Takoyaki, okonomiyaki, kushikatsu",
+      "tags": "osaka, ẩm thực, phố đi bộ, cảnh đêm",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "kr-seoul",
+      "country_code": "KR",
+      "name": "Cung điện Gyeongbokgung",
+      "slug": "kr-gyeongbokgung",
+      "description": "Cung điện hoàng gia ở Seoul, giới thiệu kiến trúc và lịch sử thời Joseon.",
+      "highlights": "Cổng Gwanghwamun, điện Geunjeongjeon, lầu Gyeonghoeru",
+      "best_time": "Tháng 3–5 và tháng 9–11",
+      "cuisine": "Bibimbap, samgyetang, tteokbokki",
+      "tags": "seoul, cung điện, joseon, lịch sử",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "kr-seoul",
+      "country_code": "KR",
+      "name": "Làng Bukchon Hanok",
+      "slug": "kr-bukchon-hanok",
+      "description": "Khu phố nhà hanok truyền thống giữa các cung điện trung tâm Seoul, vẫn có người dân sinh sống.",
+      "highlights": "Nhà hanok, ngõ dốc, kiến trúc truyền thống",
+      "best_time": "Mùa xuân và mùa thu; tuân thủ giờ tham quan địa phương",
+      "cuisine": "Kalguksu, bánh gạo, trà truyền thống",
+      "tags": "seoul, hanok, phố cổ, văn hóa",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "kr-busan",
+      "country_code": "KR",
+      "name": "Bãi biển Haeundae",
+      "slug": "kr-bien-haeundae",
+      "description": "Bãi biển đô thị của Busan với đường dạo và các công trình ven bờ.",
+      "highlights": "Bờ cát, đường dạo, đảo Dongbaek lân cận",
+      "best_time": "Tháng 5–10; mùa hè phù hợp hoạt động biển",
+      "cuisine": "Dwaeji-gukbap, hải sản, chả cá eomuk",
+      "tags": "busan, bãi biển, nghỉ dưỡng, đi bộ",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "kr-busan",
+      "country_code": "KR",
+      "name": "Làng văn hóa Gamcheon",
+      "slug": "kr-gamcheon",
+      "description": "Khu dân cư trên sườn đồi Busan với nhà nhiều màu và nghệ thuật cộng đồng.",
+      "highlights": "Ngõ bậc thang, tranh tường, điểm ngắm khu phố",
+      "best_time": "Mùa xuân và mùa thu",
+      "cuisine": "Milmyeon, chả cá Busan, hotteok",
+      "tags": "busan, nghệ thuật, làng văn hóa, chụp ảnh",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "kr-jeju",
+      "country_code": "KR",
+      "name": "Đỉnh Seongsan Ilchulbong",
+      "slug": "kr-seongsan-ilchulbong",
+      "description": "Địa hình núi lửa ven biển phía đông Jeju, nổi bật với miệng núi dạng lòng chảo.",
+      "highlights": "Miệng núi lửa, đường lên đỉnh, cảnh bình minh",
+      "best_time": "Tháng 4–6 và tháng 9–10",
+      "cuisine": "Quýt Jeju, mì thịt heo, cháo bào ngư",
+      "tags": "jeju, núi lửa, bình minh, thiên nhiên",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "kr-jeju",
+      "country_code": "KR",
+      "name": "Thác Cheonjiyeon",
+      "slug": "kr-thac-cheonjiyeon",
+      "description": "Thác nước ở Seogwipo với lối đi qua khu cây xanh và hồ dưới chân thác.",
+      "highlights": "Dòng thác, hồ nước, đường dạo",
+      "best_time": "Mùa xuân và mùa thu",
+      "cuisine": "Cá hố, quýt Jeju, hải sản địa phương",
+      "tags": "jeju, seogwipo, thác nước, sinh thái",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "cn-bac-kinh",
+      "country_code": "CN",
+      "name": "Tử Cấm Thành",
+      "slug": "cn-tu-cam-thanh",
+      "description": "Quần thể cung điện Minh–Thanh ở Bắc Kinh, hiện là Bảo tàng Cố Cung.",
+      "highlights": "Ngọ Môn, điện Thái Hòa, sân cung điện, hiện vật cung đình",
+      "best_time": "Tháng 4–5 và tháng 9–10",
+      "cuisine": "Vịt quay Bắc Kinh, mì tương đen, sủi cảo",
+      "tags": "bắc kinh, cố cung, cung điện, lịch sử",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "cn-bac-kinh",
+      "country_code": "CN",
+      "name": "Vạn Lý Trường Thành đoạn Mộ Điền Dục",
+      "slug": "cn-truong-thanh-mutianyu",
+      "description": "Đoạn trường thành ở quận Hoài Nhu của Bắc Kinh, chạy theo các dãy núi.",
+      "highlights": "Tường thành, tháp canh, cảnh núi theo mùa",
+      "best_time": "Tháng 4–5 và tháng 9–10",
+      "cuisine": "Sủi cảo, bánh bao, hạt dẻ địa phương",
+      "tags": "bắc kinh, trường thành, di sản, núi",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "cn-thuong-hai",
+      "country_code": "CN",
+      "name": "Bến Thượng Hải",
+      "slug": "cn-ben-thuong-hai",
+      "description": "Dải phố ven sông Hoàng Phố với các tòa nhà lịch sử và góc nhìn sang Phố Đông.",
+      "highlights": "Đường dạo ven sông, kiến trúc lịch sử, cảnh Phố Đông",
+      "best_time": "Mùa xuân và mùa thu",
+      "cuisine": "Tiểu long bao, bánh bao chiên, mì hành",
+      "tags": "thượng hải, bến sông, kiến trúc, cảnh đêm",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "cn-thuong-hai",
+      "country_code": "CN",
+      "name": "Dự Viên",
+      "slug": "cn-du-vien",
+      "description": "Khu vườn cổ ở Thượng Hải với hồ, đá cảnh và kiến trúc sân vườn Giang Nam.",
+      "highlights": "Hồ nước, giả sơn, hành lang, phố cổ lân cận",
+      "best_time": "Mùa xuân và mùa thu",
+      "cuisine": "Tiểu long bao, bánh nếp, bánh bao chiên",
+      "tags": "thượng hải, vườn cổ, giang nam, văn hóa",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "cn-tu-xuyen",
+      "country_code": "CN",
+      "name": "Cơ sở nghiên cứu gấu trúc Thành Đô",
+      "slug": "cn-co-so-gau-truc-thanh-do",
+      "description": "Cơ sở bảo tồn và nghiên cứu gấu trúc ở Thành Đô, có khu tham quan tìm hiểu loài vật này.",
+      "highlights": "Khu gấu trúc, cây xanh, giáo dục bảo tồn",
+      "best_time": "Mùa xuân và mùa thu; buổi sáng thuận tiện quan sát",
+      "cuisine": "Đậu phụ Tứ Xuyên, mì dan dan, bánh bao",
+      "tags": "tứ xuyên, thành đô, gấu trúc, bảo tồn",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "cn-tu-xuyen",
+      "country_code": "CN",
+      "name": "Cửu Trại Câu",
+      "slug": "cn-cuu-trai-cau",
+      "description": "Thung lũng phía bắc Tứ Xuyên với chuỗi hồ, thác và rừng trên địa hình núi cao.",
+      "highlights": "Hồ nhiều sắc nước, thác, rừng và cảnh núi",
+      "best_time": "Tháng 5–10; mùa thu có sắc lá",
+      "cuisine": "Mì địa phương, bánh lúa mạch, món nấm",
+      "tags": "tứ xuyên, hồ, thác nước, núi, thiên nhiên",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "tw-dai-bac",
+      "country_code": "TW",
+      "name": "Taipei 101",
+      "slug": "tw-taipei-101",
+      "description": "Tòa tháp ở khu Tín Nghĩa có đài quan sát nhìn ra Đài Bắc.",
+      "highlights": "Kiến trúc tòa tháp, đài quan sát, khu Tín Nghĩa",
+      "best_time": "Quanh năm; ưu tiên ngày trời quang",
+      "cuisine": "Mì bò, tiểu long bao, bánh dứa",
+      "tags": "đài bắc, tháp, đài quan sát, đô thị",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "tw-dai-bac",
+      "country_code": "TW",
+      "name": "Đài tưởng niệm Tưởng Giới Thạch",
+      "slug": "tw-dai-tuong-niem-tuong-gioi-thach",
+      "description": "Quần thể tưởng niệm và quảng trường ở trung tâm Đài Bắc với khuôn viên rộng.",
+      "highlights": "Nhà tưởng niệm, quảng trường, kiến trúc mái xanh, vườn cây",
+      "best_time": "Tháng 3–5 và tháng 10–11",
+      "cuisine": "Mì bò, cơm thịt kho, trà sữa",
+      "tags": "đài bắc, quảng trường, lịch sử, kiến trúc",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "tw-tan-bac",
+      "country_code": "TW",
+      "name": "Phố cổ Cửu Phần",
+      "slug": "tw-cuu-phan",
+      "description": "Khu phố trên sườn núi thuộc quận Thụy Phương với ngõ dốc và quán trà.",
+      "highlights": "Ngõ bậc thang, đèn lồng, quán trà, cảnh ven biển",
+      "best_time": "Mùa xuân và mùa thu; thường có mưa",
+      "cuisine": "Chè khoai môn, bánh thảo mộc, trà",
+      "tags": "tân bắc, cửu phần, phố cổ, trà",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "tw-tan-bac",
+      "country_code": "TW",
+      "name": "Công viên địa chất Dã Liễu",
+      "slug": "tw-da-lieu",
+      "description": "Khu cảnh quan ven biển thuộc quận Vạn Lý, có đá tạo hình bởi phong hóa và sóng biển.",
+      "highlights": "Đá Nữ Hoàng, đá nấm, bờ biển, đường dạo",
+      "best_time": "Tháng 3–5 và tháng 9–11",
+      "cuisine": "Hải sản, canh cá, bánh gạo",
+      "tags": "tân bắc, địa chất, bờ biển, đá tự nhiên",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "tw-nam-dau",
+      "country_code": "TW",
+      "name": "Hồ Nhật Nguyệt",
+      "slug": "tw-ho-nhat-nguyet",
+      "description": "Hồ giữa núi ở Nam Đầu với các bến thuyền và đường dạo quanh hồ.",
+      "highlights": "Mặt hồ, bến Thủy Xã, Ita Thao, đường xe đạp",
+      "best_time": "Mùa xuân và mùa thu",
+      "cuisine": "Trà đen, trứng trà, món địa phương người Thao",
+      "tags": "nam đầu, hồ, núi, xe đạp, cảnh quan",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "tw-nam-dau",
+      "country_code": "TW",
+      "name": "Nông trại Thanh Cảnh",
+      "slug": "tw-nong-trai-thanh-canh",
+      "description": "Khu tham quan nông trại trên vùng núi Nhân Ái với đồng cỏ và cảnh núi.",
+      "highlights": "Đồng cỏ, đàn cừu, lối đi ngắm núi",
+      "best_time": "Tháng 3–5 và tháng 9–11",
+      "cuisine": "Rau vùng núi, mì địa phương, trà",
+      "tags": "nam đầu, thanh cảnh, nông trại, núi",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "sg-marina-bay",
+      "country_code": "SG",
+      "name": "Gardens by the Bay",
+      "slug": "sg-gardens-by-the-bay",
+      "description": "Quần thể vườn ven vịnh Marina với các khu nhà kính và kiến trúc Supertree.",
+      "highlights": "Supertree Grove, nhà kính, vườn ngoài trời",
+      "best_time": "Quanh năm; ưu tiên sáng sớm hoặc chiều cho khu ngoài trời",
+      "cuisine": "Cơm gà Hải Nam, laksa, satay",
+      "tags": "singapore, marina bay, vườn, kiến trúc",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "sg-marina-bay",
+      "country_code": "SG",
+      "name": "Công viên Merlion",
+      "slug": "sg-cong-vien-merlion",
+      "description": "Không gian ven vịnh với tượng Merlion, biểu tượng quen thuộc của Singapore.",
+      "highlights": "Tượng Merlion, bờ vịnh, góc nhìn sang Marina Bay Sands",
+      "best_time": "Quanh năm; sáng sớm hoặc chiều mát",
+      "cuisine": "Cơm gà, kaya toast, laksa",
+      "tags": "singapore, merlion, biểu tượng, ven vịnh",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "sg-sentosa",
+      "country_code": "SG",
+      "name": "Universal Studios Singapore",
+      "slug": "sg-universal-studios-singapore",
+      "description": "Công viên giải trí theo chủ đề điện ảnh tại Resorts World Sentosa.",
+      "highlights": "Khu chủ đề điện ảnh, trò chơi, biểu diễn theo lịch công viên",
+      "best_time": "Quanh năm; kiểm tra lịch hoạt động khi lập tour",
+      "cuisine": "Cơm gà, mì xào, món ăn quốc tế",
+      "tags": "singapore, sentosa, công viên giải trí, gia đình",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "sg-sentosa",
+      "country_code": "SG",
+      "name": "Bãi biển Siloso",
+      "slug": "sg-bien-siloso",
+      "description": "Bãi biển trên Sentosa với không gian dạo bộ, nghỉ ngơi và hoạt động ven bờ.",
+      "highlights": "Bờ cát, đường dạo, cảnh hoàng hôn",
+      "best_time": "Quanh năm; ưu tiên ngày ít mưa",
+      "cuisine": "Hải sản, satay, nước dừa",
+      "tags": "singapore, sentosa, bãi biển, nghỉ dưỡng",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "sg-changi",
+      "country_code": "SG",
+      "name": "Jewel Changi Airport",
+      "slug": "sg-jewel-changi",
+      "description": "Tổ hợp trải nghiệm và mua sắm tại sân bay Changi với thác nước trong nhà và cây xanh.",
+      "highlights": "Rain Vortex, Forest Valley, khu mua sắm",
+      "best_time": "Quanh năm; kiểm tra lịch vận hành thác nước",
+      "cuisine": "Kaya toast, cơm gà, bánh pandan",
+      "tags": "singapore, changi, thác nước trong nhà, kiến trúc",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "sg-changi",
+      "country_code": "SG",
+      "name": "Công viên bãi biển Changi",
+      "slug": "sg-cong-vien-bien-changi",
+      "description": "Công viên ven biển phía đông Singapore với đường dạo và khu nghỉ chân.",
+      "highlights": "Đường dạo ven biển, hàng cây, cảnh máy bay từ xa",
+      "best_time": "Quanh năm; sáng sớm hoặc chiều mát",
+      "cuisine": "Nasi lemak, satay, mì địa phương",
+      "tags": "singapore, changi, công viên, bờ biển",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "fr-paris",
+      "country_code": "FR",
+      "name": "Tháp Eiffel",
+      "slug": "fr-thap-eiffel",
+      "description": "Tháp kim loại bên sông Seine, là công trình biểu tượng của Paris.",
+      "highlights": "Kiến trúc tháp, đài quan sát, khu Champ de Mars",
+      "best_time": "Tháng 4–6 và tháng 9–10; có thể tham quan quanh năm",
+      "cuisine": "Croissant, crêpe, baguette",
+      "tags": "pháp, paris, tháp eiffel, kiến trúc",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "fr-paris",
+      "country_code": "FR",
+      "name": "Bảo tàng Louvre",
+      "slug": "fr-bao-tang-louvre",
+      "description": "Bảo tàng nghệ thuật trong khu cung điện Louvre, có bộ sưu tập từ cổ đại đến cận đại.",
+      "highlights": "Kim tự tháp kính, phòng trưng bày, tác phẩm Mona Lisa",
+      "best_time": "Quanh năm; kiểm tra ngày mở cửa khi lập tour",
+      "cuisine": "Bánh tart, sandwich baguette, súp Pháp",
+      "tags": "pháp, paris, bảo tàng, nghệ thuật",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "fr-alpes-maritimes",
+      "country_code": "FR",
+      "name": "Đường dạo Promenade des Anglais",
+      "slug": "fr-promenade-des-anglais",
+      "description": "Đường dạo ven biển tại Nice, chạy dọc bờ vịnh Baie des Anges.",
+      "highlights": "Đường dạo, cảnh biển, bãi biển, kiến trúc ven bờ",
+      "best_time": "Tháng 4–6 và tháng 9–10",
+      "cuisine": "Salade niçoise, socca, pissaladière",
+      "tags": "pháp, nice, bờ biển, đi bộ",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "fr-alpes-maritimes",
+      "country_code": "FR",
+      "name": "Làng Èze",
+      "slug": "fr-lang-eze",
+      "description": "Ngôi làng trên đồi ở Côte d’Azur với ngõ đá và tầm nhìn ra Địa Trung Hải.",
+      "highlights": "Ngõ đá, kiến trúc làng cổ, khu vườn, cảnh biển",
+      "best_time": "Mùa xuân và mùa thu",
+      "cuisine": "Ratatouille, socca, món ô liu",
+      "tags": "pháp, èze, làng cổ, địa trung hải",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "fr-vaucluse",
+      "country_code": "FR",
+      "name": "Cung điện Giáo hoàng Avignon",
+      "slug": "fr-cung-dien-giao-hoang-avignon",
+      "description": "Công trình Gothic tại Avignon, gắn với lịch sử giáo hoàng thời trung cổ.",
+      "highlights": "Sân cung điện, đại sảnh, kiến trúc Gothic",
+      "best_time": "Tháng 4–6 và tháng 9–10",
+      "cuisine": "Ratatouille, fougasse, rau Provence",
+      "tags": "pháp, avignon, cung điện, trung cổ",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "fr-vaucluse",
+      "country_code": "FR",
+      "name": "Cầu Saint-Bénézet",
+      "slug": "fr-cau-saint-benezet",
+      "description": "Di tích cây cầu cổ còn lại một phần trên sông Rhône ở Avignon.",
+      "highlights": "Các nhịp cầu còn lại, nhà nguyện, cảnh sông Rhône",
+      "best_time": "Mùa xuân và mùa thu",
+      "cuisine": "Tapenade, fougasse, rau Provence",
+      "tags": "pháp, avignon, cầu cổ, sông rhône",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "ca-ontario",
+      "country_code": "CA",
+      "name": "Tháp CN",
+      "slug": "ca-thap-cn",
+      "description": "Tháp quan sát ở Toronto với góc nhìn ra thành phố và hồ Ontario.",
+      "highlights": "Đài quan sát, cảnh hồ Ontario, đường chân trời Toronto",
+      "best_time": "Quanh năm; ưu tiên ngày trời quang",
+      "cuisine": "Bánh tart bơ, peameal bacon sandwich, món đa văn hóa",
+      "tags": "canada, ontario, toronto, tháp",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "ca-ontario",
+      "country_code": "CA",
+      "name": "Thác Niagara phía Canada",
+      "slug": "ca-thac-niagara-canada",
+      "description": "Khu tham quan ở Niagara Falls, nhìn ra hệ thống thác trên biên giới Canada–Mỹ.",
+      "highlights": "Thác Horseshoe, đường dạo, cảnh sông Niagara",
+      "best_time": "Tháng 5–10; hoạt động trên nước tùy mùa",
+      "cuisine": "Bánh tart bơ, món cá hồ, bánh phong",
+      "tags": "canada, ontario, niagara, thác nước",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "ca-british-columbia",
+      "country_code": "CA",
+      "name": "Công viên Stanley",
+      "slug": "ca-cong-vien-stanley",
+      "description": "Công viên đô thị Vancouver với đường dạo ven biển, rừng cây và các điểm tìm hiểu văn hóa.",
+      "highlights": "Seawall, rừng, cột totem, cảnh cảng Vancouver",
+      "best_time": "Tháng 5–9",
+      "cuisine": "Cá hồi, hải sản, món đa văn hóa",
+      "tags": "canada, british columbia, vancouver, công viên",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "ca-british-columbia",
+      "country_code": "CA",
+      "name": "Công viên cầu treo Capilano",
+      "slug": "ca-cau-treo-capilano",
+      "description": "Khu tham quan ở North Vancouver với cầu treo qua hẻm sông và lối đi giữa rừng.",
+      "highlights": "Cầu treo, lối đi trên cao, rừng ôn đới",
+      "best_time": "Tháng 5–9; các mùa khác tùy điều kiện",
+      "cuisine": "Cá hồi, súp hải sản, bánh phong",
+      "tags": "canada, british columbia, cầu treo, rừng",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "ca-alberta",
+      "country_code": "CA",
+      "name": "Vườn quốc gia Banff",
+      "slug": "ca-vuon-quoc-gia-banff",
+      "description": "Vườn quốc gia trên dãy Rocky ở Alberta với núi, hồ và các tuyến khám phá thiên nhiên.",
+      "highlights": "Cảnh núi Rocky, hồ Louise, thung lũng, thị trấn Banff",
+      "best_time": "Tháng 6–9 cho ngắm hồ và đi bộ; mùa đông cho cảnh tuyết",
+      "cuisine": "Thịt bò Alberta, bánh phong, súp nóng",
+      "tags": "canada, alberta, banff, núi rocky, vườn quốc gia",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "ca-alberta",
+      "country_code": "CA",
+      "name": "Vườn quốc gia Jasper",
+      "slug": "ca-vuon-quoc-gia-jasper",
+      "description": "Vườn quốc gia ở Alberta nổi bật với thung lũng, hồ và cảnh quan dãy Rocky.",
+      "highlights": "Hồ Maligne, cảnh núi, tuyến Icefields Parkway trong công viên",
+      "best_time": "Tháng 6–9; kiểm tra khu vực được phép tiếp cận trước chuyến đi",
+      "cuisine": "Thịt bò Alberta, bánh nướng, súp nóng",
+      "tags": "canada, alberta, jasper, hồ, núi",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "th-bangkok",
+      "country_code": "TH",
+      "name": "Hoàng cung Bangkok",
+      "slug": "th-hoang-cung-bangkok",
+      "description": "Quần thể cung điện lịch sử hoàng gia Thái Lan, có chùa Phật Ngọc trong khuôn viên.",
+      "highlights": "Các điện hoàng gia, Wat Phra Kaew, trang trí truyền thống",
+      "best_time": "Tháng 11–2",
+      "cuisine": "Pad Thai, tom yum, xôi xoài",
+      "tags": "thái lan, bangkok, hoàng cung, văn hóa",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "th-bangkok",
+      "country_code": "TH",
+      "name": "Chùa Wat Arun",
+      "slug": "th-chua-wat-arun",
+      "description": "Ngôi chùa bên bờ tây Chao Phraya, nổi bật với tháp prang trang trí bằng gốm.",
+      "highlights": "Tháp prang, họa tiết gốm, cảnh sông",
+      "best_time": "Tháng 11–2; chiều muộn phù hợp ngắm cảnh ven sông",
+      "cuisine": "Pad Thai, tom kha, trái cây nhiệt đới",
+      "tags": "thái lan, bangkok, chùa, sông",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "th-chiang-mai",
+      "country_code": "TH",
+      "name": "Chùa Wat Phra That Doi Suthep",
+      "slug": "th-doi-suthep",
+      "description": "Ngôi chùa trên núi Doi Suthep với bảo tháp vàng và góc nhìn xuống Chiang Mai.",
+      "highlights": "Bảo tháp, cầu thang naga, cảnh thành phố",
+      "best_time": "Tháng 11–2",
+      "cuisine": "Khao soi, sai ua, xôi nếp",
+      "tags": "thái lan, chiang mai, chùa, núi",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "th-chiang-mai",
+      "country_code": "TH",
+      "name": "Vườn quốc gia Doi Inthanon",
+      "slug": "th-doi-inthanon",
+      "description": "Khu bảo tồn núi cao ở Chiang Mai với rừng, thác và tuyến tìm hiểu thiên nhiên.",
+      "highlights": "Cảnh núi, rừng mây, thác, đường mòn",
+      "best_time": "Tháng 11–2; đường mòn có lịch mở cửa riêng",
+      "cuisine": "Khao soi, cơm nếp, rau vùng núi",
+      "tags": "thái lan, chiang mai, vườn quốc gia, rừng",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "th-phuket",
+      "country_code": "TH",
+      "name": "Phố cổ Phuket",
+      "slug": "th-pho-co-phuket",
+      "description": "Khu phố lịch sử với nhà phố ảnh hưởng kiến trúc Hoa–Bồ Đào Nha và cửa hàng địa phương.",
+      "highlights": "Nhà phố nhiều màu, phố Thalang, nghệ thuật đường phố",
+      "best_time": "Tháng 11–4",
+      "cuisine": "Mì Hokkien, moo hong, bánh địa phương",
+      "tags": "thái lan, phuket, phố cổ, kiến trúc",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "th-phuket",
+      "country_code": "TH",
+      "name": "Mũi Promthep",
+      "slug": "th-mui-promthep",
+      "description": "Mũi đất phía nam Phuket, có điểm ngắm bờ biển và hoàng hôn trên Andaman.",
+      "highlights": "Cảnh biển, mũi đá, hoàng hôn",
+      "best_time": "Tháng 11–4",
+      "cuisine": "Hải sản, cà ri miền nam, trái cây",
+      "tags": "thái lan, phuket, mũi biển, hoàng hôn",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "my-kuala-lumpur",
+      "country_code": "MY",
+      "name": "Tháp đôi Petronas",
+      "slug": "my-thap-doi-petronas",
+      "description": "Cặp tháp biểu tượng trong khu KLCC của Kuala Lumpur.",
+      "highlights": "Kiến trúc tháp đôi, cầu nối, công viên KLCC",
+      "best_time": "Quanh năm; chọn ngày ít mưa cho khu ngoài trời",
+      "cuisine": "Nasi lemak, roti canai, laksa",
+      "tags": "malaysia, kuala lumpur, petronas, kiến trúc",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "my-kuala-lumpur",
+      "country_code": "MY",
+      "name": "Tháp KL",
+      "slug": "my-thap-kl",
+      "description": "Tháp viễn thông trên đồi Bukit Nanas có đài quan sát nhìn ra Kuala Lumpur.",
+      "highlights": "Đài quan sát, cảnh đô thị, khu cây xanh",
+      "best_time": "Quanh năm; ưu tiên ngày trời quang",
+      "cuisine": "Nasi lemak, satay, teh tarik",
+      "tags": "malaysia, kuala lumpur, tháp, đài quan sát",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "my-penang",
+      "country_code": "MY",
+      "name": "Khu phố lịch sử George Town",
+      "slug": "my-george-town",
+      "description": "Khu đô thị di sản trên đảo Penang với nhà phố, công trình tôn giáo và nghệ thuật đường phố.",
+      "highlights": "Nhà phố, tranh tường, hội quán, phố di sản",
+      "best_time": "Tháng 12–3; có thể tham quan quanh năm",
+      "cuisine": "Char kway teow, asam laksa, cendol",
+      "tags": "malaysia, penang, george town, di sản, ẩm thực",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "my-penang",
+      "country_code": "MY",
+      "name": "Đồi Penang",
+      "slug": "my-doi-penang",
+      "description": "Khu đồi trên đảo Penang có tuyến tàu leo dốc và các điểm ngắm đảo.",
+      "highlights": "Tàu leo dốc, cảnh đô thị và biển, cây xanh",
+      "best_time": "Quanh năm; sáng sớm ngày quang mây",
+      "cuisine": "Asam laksa, bánh địa phương, trà",
+      "tags": "malaysia, penang, đồi, thiên nhiên",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "my-sabah",
+      "country_code": "MY",
+      "name": "Công viên Kinabalu",
+      "slug": "my-cong-vien-kinabalu",
+      "description": "Khu bảo tồn ở Sabah có núi Kinabalu và hệ sinh thái rừng núi đa dạng.",
+      "highlights": "Cảnh núi, vườn thực vật, đường mòn",
+      "best_time": "Tháng 2–4; điều kiện núi thay đổi theo thời tiết",
+      "cuisine": "Mì Tuaran, hải sản, cơm địa phương",
+      "tags": "malaysia, sabah, kinabalu, núi, bảo tồn",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "my-sabah",
+      "country_code": "MY",
+      "name": "Công viên biển Tunku Abdul Rahman",
+      "slug": "my-cong-vien-bien-tunku-abdul-rahman",
+      "description": "Nhóm đảo và vùng biển bảo vệ ngoài khơi Kota Kinabalu.",
+      "highlights": "Các đảo, bãi biển, sinh cảnh san hô",
+      "best_time": "Tháng 3–9; hoạt động biển tùy thời tiết",
+      "cuisine": "Hải sản, mì Tuaran, trái cây",
+      "tags": "malaysia, sabah, đảo, biển, sinh thái",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "id-jakarta",
+      "country_code": "ID",
+      "name": "Đài tưởng niệm Quốc gia Monas",
+      "slug": "id-dai-tuong-niem-monas",
+      "description": "Công trình tưởng niệm tại quảng trường Merdeka ở Jakarta, gắn với lịch sử Indonesia.",
+      "highlights": "Đài tưởng niệm, quảng trường, trưng bày lịch sử",
+      "best_time": "Tháng 5–9",
+      "cuisine": "Nasi goreng, soto Betawi, gado-gado",
+      "tags": "indonesia, jakarta, monas, lịch sử",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "id-jakarta",
+      "country_code": "ID",
+      "name": "Phố cổ Kota Tua",
+      "slug": "id-kota-tua",
+      "description": "Khu phố lịch sử Jakarta với quảng trường và các công trình thời thuộc địa.",
+      "highlights": "Quảng trường Fatahillah, bảo tàng, kiến trúc nhà cổ",
+      "best_time": "Tháng 5–9",
+      "cuisine": "Kerak telor, soto Betawi, nasi uduk",
+      "tags": "indonesia, jakarta, phố cổ, kiến trúc",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "id-yogyakarta",
+      "country_code": "ID",
+      "name": "Quần thể đền Prambanan",
+      "slug": "id-den-prambanan",
+      "description": "Quần thể đền Hindu gần Yogyakarta; khu đền chính nằm trong địa phận Sleman.",
+      "highlights": "Tháp đền, phù điêu Ramayana, kiến trúc Hindu",
+      "best_time": "Tháng 5–9",
+      "cuisine": "Gudeg, bakpia, sate",
+      "tags": "indonesia, yogyakarta, prambanan, đền hindu",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "id-yogyakarta",
+      "country_code": "ID",
+      "name": "Taman Sari",
+      "slug": "id-taman-sari",
+      "description": "Di tích khu vườn và hồ tắm hoàng gia của vương triều Yogyakarta.",
+      "highlights": "Hồ tắm, cổng trang trí, kiến trúc cung đình",
+      "best_time": "Tháng 5–9",
+      "cuisine": "Gudeg, bakpia, wedang ronde",
+      "tags": "indonesia, yogyakarta, cung đình, kiến trúc",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "id-tinh-bali",
+      "country_code": "ID",
+      "name": "Đền Tanah Lot",
+      "slug": "id-den-tanah-lot",
+      "description": "Ngôi đền ở Tabanan trên đảo Bali, nổi bật với vị trí trên khối đá ngoài bờ.",
+      "highlights": "Đền trên đá, cảnh biển, hoàng hôn",
+      "best_time": "Tháng 5–9",
+      "cuisine": "Nasi campur, sate lilit, cá nướng",
+      "tags": "indonesia, bali, tanah lot, đền, hoàng hôn",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "id-tinh-bali",
+      "country_code": "ID",
+      "name": "Đền Ulun Danu Beratan",
+      "slug": "id-den-ulun-danu-beratan",
+      "description": "Quần thể đền Hindu bên hồ Beratan thuộc khu Bedugul ở Bali.",
+      "highlights": "Đền ven hồ, cảnh núi, vườn cây",
+      "best_time": "Tháng 5–9; sáng sớm thuận tiện ngắm hồ",
+      "cuisine": "Sate lilit, cơm Bali, rau vùng núi",
+      "tags": "indonesia, bali, hồ beratan, đền, núi",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "it-rome",
+      "country_code": "IT",
+      "name": "Đấu trường Colosseum",
+      "slug": "it-dau-truong-colosseum",
+      "description": "Đấu trường La Mã cổ ở Rome, lưu giữ dấu tích kiến trúc và đời sống công cộng thời cổ đại.",
+      "highlights": "Khán đài, kết cấu vòm, trưng bày lịch sử",
+      "best_time": "Tháng 4–6 và tháng 9–10",
+      "cuisine": "Carbonara, supplì, gelato",
+      "tags": "ý, rome, la mã, đấu trường, lịch sử",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "it-rome",
+      "country_code": "IT",
+      "name": "Di tích Roman Forum",
+      "slug": "it-roman-forum",
+      "description": "Khu di tích trung tâm đời sống chính trị và tôn giáo của Rome cổ đại.",
+      "highlights": "Di tích đền thờ, đường cổ, công trình công cộng",
+      "best_time": "Mùa xuân và mùa thu",
+      "cuisine": "Cacio e pepe, pizza al taglio, gelato",
+      "tags": "ý, rome, khảo cổ, la mã cổ đại",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "it-florence",
+      "country_code": "IT",
+      "name": "Nhà thờ Santa Maria del Fiore",
+      "slug": "it-nha-tho-florence",
+      "description": "Nhà thờ chính tòa Florence có mái vòm nổi bật và mặt tiền đá nhiều màu.",
+      "highlights": "Mái vòm, mặt tiền, tháp chuông Giotto lân cận",
+      "best_time": "Tháng 4–6 và tháng 9–10",
+      "cuisine": "Schiacciata, ribollita, gelato",
+      "tags": "ý, florence, nhà thờ, phục hưng",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "it-florence",
+      "country_code": "IT",
+      "name": "Bảo tàng Uffizi",
+      "slug": "it-bao-tang-uffizi",
+      "description": "Bảo tàng nghệ thuật Florence với các bộ sưu tập hội họa, đặc biệt là nghệ thuật Phục Hưng.",
+      "highlights": "Phòng tranh, tác phẩm Botticelli, kiến trúc tòa nhà",
+      "best_time": "Quanh năm; kiểm tra lịch mở cửa",
+      "cuisine": "Pasta Tuscany, cantucci, gelato",
+      "tags": "ý, florence, bảo tàng, hội họa, phục hưng",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "it-venice",
+      "country_code": "IT",
+      "name": "Quảng trường San Marco",
+      "slug": "it-quang-truong-san-marco",
+      "description": "Quảng trường trung tâm Venice, bao quanh bởi các công trình lịch sử.",
+      "highlights": "Nhà thờ San Marco, tháp chuông, hành lang",
+      "best_time": "Tháng 4–6 và tháng 9–10",
+      "cuisine": "Cicchetti, risotto, baicoli",
+      "tags": "ý, venice, quảng trường, kiến trúc",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "it-venice",
+      "country_code": "IT",
+      "name": "Cung điện Doge",
+      "slug": "it-cung-dien-doge",
+      "description": "Cung điện lịch sử từng là nơi điều hành Cộng hòa Venice.",
+      "highlights": "Kiến trúc Gothic Venice, đại sảnh, cầu Than Thở",
+      "best_time": "Mùa xuân và mùa thu",
+      "cuisine": "Risotto, mì hải sản, cicchetti",
+      "tags": "ý, venice, cung điện, lịch sử",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "ch-zurich",
+      "country_code": "CH",
+      "name": "Phố cổ Zurich",
+      "slug": "ch-pho-co-zurich",
+      "description": "Khu phố lịch sử hai bên sông Limmat với quảng trường và nhà phố cổ.",
+      "highlights": "Ngõ cổ, bờ sông Limmat, kiến trúc trung tâm",
+      "best_time": "Tháng 5–9; có thể tham quan quanh năm",
+      "cuisine": "Rösti, phô mai, sô cô la",
+      "tags": "thụy sĩ, zurich, phố cổ, sông",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "ch-zurich",
+      "country_code": "CH",
+      "name": "Nhà thờ Grossmünster",
+      "slug": "ch-grossmunster",
+      "description": "Nhà thờ có hai tháp đặc trưng trong trung tâm lịch sử Zurich.",
+      "highlights": "Hai tháp, kiến trúc Romanesque, cảnh ven sông",
+      "best_time": "Quanh năm; kiểm tra giờ tham quan",
+      "cuisine": "Rösti, bánh địa phương, sô cô la",
+      "tags": "thụy sĩ, zurich, nhà thờ, kiến trúc",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "ch-bern",
+      "country_code": "CH",
+      "name": "Phố cổ Bern",
+      "slug": "ch-pho-co-bern",
+      "description": "Khu phố lịch sử trên khúc uốn sông Aare với dãy hành lang và công trình trung cổ.",
+      "highlights": "Tháp Zytglogge, hành lang mái vòm, cảnh sông Aare",
+      "best_time": "Tháng 5–9",
+      "cuisine": "Rösti, phô mai, bánh hạt",
+      "tags": "thụy sĩ, bern, phố cổ, trung cổ",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "ch-bern",
+      "country_code": "CH",
+      "name": "Thung lũng Lauterbrunnen",
+      "slug": "ch-thung-lung-lauterbrunnen",
+      "description": "Thung lũng Bernese Oberland với làng mạc, vách núi và nhiều thác nước.",
+      "highlights": "Thác Staubbach, vách núi, đồng cỏ, làng trong thung lũng",
+      "best_time": "Tháng 5–9",
+      "cuisine": "Fondue phô mai, rösti, bánh địa phương",
+      "tags": "thụy sĩ, bern, lauterbrunnen, thung lũng, thác",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "ch-lucerne",
+      "country_code": "CH",
+      "name": "Cầu Chapel",
+      "slug": "ch-cau-chapel",
+      "description": "Cầu gỗ có mái qua sông Reuss ở Lucerne, nằm cạnh tháp nước của thành phố.",
+      "highlights": "Cầu gỗ, tranh trong mái cầu, tháp nước, phố cổ",
+      "best_time": "Quanh năm; tháng 5–9 thuận tiện đi bộ",
+      "cuisine": "Luzerner Chügelipastete, phô mai, sô cô la",
+      "tags": "thụy sĩ, lucerne, cầu gỗ, phố cổ",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "ch-lucerne",
+      "country_code": "CH",
+      "name": "Bảo tàng Giao thông Thụy Sĩ",
+      "slug": "ch-bao-tang-giao-thong-thuy-si",
+      "description": "Bảo tàng ở Lucerne giới thiệu lịch sử và công nghệ giao thông qua nhiều hình thức trưng bày.",
+      "highlights": "Đường sắt, hàng không, đường bộ, trải nghiệm tương tác",
+      "best_time": "Quanh năm",
+      "cuisine": "Rösti, bánh địa phương, sô cô la",
+      "tags": "thụy sĩ, lucerne, bảo tàng, giao thông, gia đình",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "au-new-south-wales",
+      "country_code": "AU",
+      "name": "Nhà hát Opera Sydney",
+      "slug": "au-nha-hat-sydney",
+      "description": "Công trình biểu diễn bên cảng Sydney với hệ mái được nhận diện qua hình ảnh cánh buồm.",
+      "highlights": "Kiến trúc mái, cảnh cảng, lối đi quanh Bennelong Point",
+      "best_time": "Tháng 3–5 và tháng 9–11",
+      "cuisine": "Hải sản, pavlova, meat pie",
+      "tags": "úc, sydney, nhà hát, kiến trúc, cảng",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "au-new-south-wales",
+      "country_code": "AU",
+      "name": "Blue Mountains",
+      "slug": "au-blue-mountains",
+      "description": "Vùng núi phía tây Sydney với vách đá, thung lũng và rừng bạch đàn.",
+      "highlights": "Three Sisters, điểm ngắm thung lũng, đường mòn rừng",
+      "best_time": "Tháng 3–5 và tháng 9–11",
+      "cuisine": "Meat pie, scone, món nướng",
+      "tags": "úc, new south wales, núi, rừng bạch đàn",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "au-queensland",
+      "country_code": "AU",
+      "name": "Rạn san hô Great Barrier Reef",
+      "slug": "au-great-barrier-reef",
+      "description": "Hệ thống rạn san hô ngoài khơi Queensland với nhiều đảo và sinh cảnh biển.",
+      "highlights": "San hô, hệ sinh thái biển, các đảo ngoài khơi",
+      "best_time": "Tháng 5–10; hoạt động biển tùy thời tiết",
+      "cuisine": "Hải sản, trái cây nhiệt đới, món nướng",
+      "tags": "úc, queensland, san hô, biển, sinh thái",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "au-queensland",
+      "country_code": "AU",
+      "name": "Rừng mưa Daintree",
+      "slug": "au-rung-daintree",
+      "description": "Vùng rừng nhiệt đới phía bắc Queensland, gần bờ biển và cửa sông.",
+      "highlights": "Rừng nhiệt đới, lối đi tìm hiểu tự nhiên, cảnh ven biển",
+      "best_time": "Tháng 5–10",
+      "cuisine": "Trái cây nhiệt đới, hải sản, món địa phương",
+      "tags": "úc, queensland, daintree, rừng mưa, bảo tồn",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "au-victoria",
+      "country_code": "AU",
+      "name": "Great Ocean Road",
+      "slug": "au-great-ocean-road",
+      "description": "Tuyến đường ven biển Victoria đi qua bãi biển, vách đá và các khối đá ngoài khơi.",
+      "highlights": "Twelve Apostles, vách biển, thị trấn ven bờ",
+      "best_time": "Tháng 11–4",
+      "cuisine": "Hải sản, fish and chips, bánh địa phương",
+      "tags": "úc, victoria, great ocean road, đường ven biển",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "au-victoria",
+      "country_code": "AU",
+      "name": "Vườn thực vật Hoàng gia Melbourne",
+      "slug": "au-vuon-thuc-vat-melbourne",
+      "description": "Khu vườn thực vật ở Melbourne với các bộ sưu tập cây và đường dạo quanh hồ.",
+      "highlights": "Vườn cây, hồ, không gian đi bộ, tìm hiểu thực vật",
+      "best_time": "Tháng 9–11 và tháng 3–5",
+      "cuisine": "Brunch Melbourne, bánh địa phương, cà phê",
+      "tags": "úc, victoria, melbourne, vườn thực vật",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "us-new-york",
+      "country_code": "US",
+      "name": "Tượng Nữ thần Tự do",
+      "slug": "us-tuong-nu-than-tu-do",
+      "description": "Tượng đài trên đảo Liberty trong cảng New York, gắn với lịch sử nhập cư và biểu tượng tự do.",
+      "highlights": "Tượng đài, bảo tàng, cảnh cảng và Manhattan",
+      "best_time": "Tháng 4–6 và tháng 9–10",
+      "cuisine": "Pizza New York, bagel, cheesecake",
+      "tags": "mỹ, new york, tượng đài, lịch sử",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "us-new-york",
+      "country_code": "US",
+      "name": "Central Park",
+      "slug": "us-central-park",
+      "description": "Công viên giữa Manhattan với hồ, bãi cỏ, đường đi bộ và các công trình cảnh quan.",
+      "highlights": "Bethesda Terrace, các hồ, đường dạo, bãi cỏ",
+      "best_time": "Tháng 4–6 và tháng 9–11",
+      "cuisine": "Bagel, sandwich, pizza New York",
+      "tags": "mỹ, new york, manhattan, công viên",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "us-california",
+      "country_code": "US",
+      "name": "Cầu Golden Gate",
+      "slug": "us-cau-golden-gate",
+      "description": "Cầu treo qua eo biển Golden Gate, nối San Francisco với Marin County.",
+      "highlights": "Kiến trúc cầu, cảnh vịnh, điểm ngắm ven bờ",
+      "best_time": "Tháng 9–10 thường thuận tiện; có thể ngắm quanh năm",
+      "cuisine": "Súp nghêu, sourdough, hải sản",
+      "tags": "mỹ, california, san francisco, cầu treo",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "us-california",
+      "country_code": "US",
+      "name": "Vườn quốc gia Yosemite",
+      "slug": "us-vuon-quoc-gia-yosemite",
+      "description": "Vườn quốc gia California có vách đá granite, thác nước và rừng núi.",
+      "highlights": "Yosemite Valley, El Capitan, thác, rừng cây",
+      "best_time": "Tháng 5–9; thác thường nhiều nước hơn vào cuối xuân",
+      "cuisine": "Món nướng, sandwich, nông sản California",
+      "tags": "mỹ, california, yosemite, vườn quốc gia, núi",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "us-arizona",
+      "country_code": "US",
+      "name": "Vườn quốc gia Grand Canyon",
+      "slug": "us-grand-canyon",
+      "description": "Vườn quốc gia bảo vệ hẻm núi do sông Colorado và các quá trình địa chất tạo nên.",
+      "highlights": "Điểm ngắm South Rim, tầng đá, cảnh sông Colorado",
+      "best_time": "Tháng 3–5 và tháng 9–11; điều kiện khác nhau theo độ cao",
+      "cuisine": "Món nướng Tây Nam, taco, món ngô",
+      "tags": "mỹ, arizona, grand canyon, hẻm núi, địa chất",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "us-arizona",
+      "country_code": "US",
+      "name": "Hẻm núi Antelope",
+      "slug": "us-antelope-canyon",
+      "description": "Hệ thống hẻm núi khe gần Page trên đất Navajo với vách sa thạch uốn lượn.",
+      "highlights": "Vách sa thạch, đường cong tự nhiên, ánh sáng trong hẻm",
+      "best_time": "Tháng 3–10; tham quan theo điều kiện và tour được cấp phép",
+      "cuisine": "Taco, món ngô, bánh chiên địa phương",
+      "tags": "mỹ, arizona, navajo, hẻm núi, sa thạch",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "gb-greater-london",
+      "country_code": "GB",
+      "name": "Big Ben và Cung điện Westminster",
+      "slug": "gb-big-ben-westminster",
+      "description": "Quần thể bên sông Thames có tháp Elizabeth với chuông Big Ben và trụ sở Nghị viện.",
+      "highlights": "Tháp đồng hồ, kiến trúc Gothic, cảnh sông Thames",
+      "best_time": "Tháng 4–6 và tháng 9–10",
+      "cuisine": "Fish and chips, scone, pie",
+      "tags": "anh, london, westminster, big ben, kiến trúc",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "gb-greater-london",
+      "country_code": "GB",
+      "name": "Cầu Tower Bridge",
+      "slug": "gb-tower-bridge",
+      "description": "Cầu kết hợp nhịp nâng và kết cấu treo trên sông Thames ở London.",
+      "highlights": "Hai tháp cầu, cảnh sông, khu trưng bày",
+      "best_time": "Quanh năm; tháng 4–9 thuận tiện đi bộ",
+      "cuisine": "Fish and chips, sandwich, pie",
+      "tags": "anh, london, cầu, sông thames",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "gb-edinburgh",
+      "country_code": "GB",
+      "name": "Lâu đài Edinburgh",
+      "slug": "gb-lau-dai-edinburgh",
+      "description": "Quần thể lâu đài trên Castle Rock, nhìn xuống trung tâm Edinburgh.",
+      "highlights": "Thành lũy, kiến trúc lịch sử, cảnh thành phố",
+      "best_time": "Tháng 5–9",
+      "cuisine": "Cullen skink, shortbread, món kho Scotland",
+      "tags": "anh, scotland, edinburgh, lâu đài",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "gb-edinburgh",
+      "country_code": "GB",
+      "name": "Royal Mile",
+      "slug": "gb-royal-mile",
+      "description": "Tuyến phố lịch sử Old Town Edinburgh nối khu lâu đài với cung điện Holyroodhouse.",
+      "highlights": "Ngõ cổ, kiến trúc đá, nhà thờ St Giles, phố đi bộ",
+      "best_time": "Tháng 5–9",
+      "cuisine": "Shortbread, súp địa phương, bánh nướng",
+      "tags": "anh, scotland, edinburgh, phố cổ",
+      "is_featured": false,
+      "image_url": null
+    },
+    {
+      "province_slug": "gb-gwynedd",
+      "country_code": "GB",
+      "name": "Lâu đài Caernarfon",
+      "slug": "gb-lau-dai-caernarfon",
+      "description": "Lâu đài thời trung cổ ở Caernarfon, nổi bật với các tháp đa giác và tường thành.",
+      "highlights": "Tường thành, tháp đa giác, cảnh cửa sông",
+      "best_time": "Tháng 4–9",
+      "cuisine": "Welsh rarebit, cawl, Welsh cakes",
+      "tags": "anh, wales, gwynedd, lâu đài, trung cổ",
+      "is_featured": true,
+      "image_url": null
+    },
+    {
+      "province_slug": "gb-gwynedd",
+      "country_code": "GB",
+      "name": "Làng Portmeirion",
+      "slug": "gb-lang-portmeirion",
+      "description": "Ngôi làng thiết kế theo cảm hứng kiến trúc Ý bên cửa sông tại Gwynedd.",
+      "highlights": "Nhà nhiều màu, quảng trường, vườn, cảnh cửa sông",
+      "best_time": "Tháng 4–9",
+      "cuisine": "Welsh cakes, bara brith, súp địa phương",
+      "tags": "anh, wales, gwynedd, làng, kiến trúc",
+      "is_featured": false,
+      "image_url": null
+    }
+  ],
+  "summary": {
+    "countries": 15,
+    "regions": 37,
+    "provinces_or_equivalent": 45,
+    "attractions": 90,
+    "total_locations_including_attractions": 187
+  }
+}

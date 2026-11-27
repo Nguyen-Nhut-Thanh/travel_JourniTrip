@@ -172,7 +172,7 @@ export default function TourDepartureCalendar({
     return (
       <section
         id="tour-schedules"
-        className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4"
+        className="rounded-[14px] border border-[#e1edfc] bg-white p-5 sm:p-6 shadow-sm space-y-4"
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4">
           <button
@@ -385,13 +385,13 @@ export default function TourDepartureCalendar({
   return (
     <section
       id="tour-schedules"
-      className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-4"
+      className="rounded-[14px] border border-[#e1edfc] bg-white p-5 sm:p-6 shadow-sm space-y-4"
     >
       <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-100 text-sky-600">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#075bff]">
           <CalendarIcon className="h-4 w-4" />
         </div>
-        <h2 className="text-xl font-bold text-slate-900">Lịch khởi hành</h2>
+        <h2 className="text-[17px] sm:text-lg font-bold text-[#0b1747]">Lịch khởi hành</h2>
       </div>
 
       <div className="flex flex-col gap-4 md:flex-row">

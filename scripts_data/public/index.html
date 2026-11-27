@@ -206,26 +206,39 @@
             </div>
 
             <!-- Options -->
-            <div class="pt-3 border-t border-slate-800/80 space-y-2 text-xs">
+            <div class="pt-3 border-t border-slate-800/80 space-y-3 text-xs">
               <label class="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" id="check-payments" checked class="w-4 h-4 rounded text-blue-600 bg-slate-950 border-slate-700 focus:ring-0">
-                <span class="text-slate-200">Tạo hóa đơn thanh toán thành công (VNPAY / MoMo / Chuyển khoản)</span>
+                <span class="text-slate-200 font-medium">Tạo hóa đơn thanh toán thành công (VNPAY / MoMo / Chuyển khoản)</span>
               </label>
 
-              <label class="flex items-center gap-2 cursor-pointer select-none">
-                <input type="checkbox" id="check-reviews" checked class="w-4 h-4 rounded text-blue-600 bg-slate-950 border-slate-700 focus:ring-0">
-                <span class="text-slate-200">Tự động sinh Đánh giá & Bình luận chân thực (Reviews 4-5 sao, lượt like)</span>
-              </label>
+              <div class="space-y-2.5 p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                  <input type="checkbox" id="check-reviews" checked class="w-4 h-4 rounded text-blue-600 bg-slate-950 border-slate-700 focus:ring-0" onchange="toggleReviewOptions()">
+                  <span class="text-slate-100 font-bold text-amber-400">⭐ Tự động sinh Đánh giá chân thực (Kho 40 mẫu review 4-5 sao)</span>
+                </label>
 
-              <div class="pl-6 space-y-1.5 pt-0.5 text-slate-400">
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" id="check-review-images" checked class="w-3.5 h-3.5 rounded text-blue-600 bg-slate-950 border-slate-700 focus:ring-0">
-                  <span class="text-slate-300">📸 Đính kèm ảnh check-in phong cảnh / ẩm thực thực tế</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" id="check-admin-replies" checked class="w-3.5 h-3.5 rounded text-blue-600 bg-slate-950 border-slate-700 focus:ring-0">
-                  <span class="text-slate-300">💬 Tự động sinh phản hồi cảm ơn từ CSKH / Quản trị viên (Replies)</span>
-                </label>
+                <div id="review-sub-options" class="pl-6 space-y-2 text-slate-300">
+                  <div>
+                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">Mật độ sinh đánh giá (Tăng mạnh số lượng review):</label>
+                    <select id="select-review-density" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-medium">
+                      <option value="high" selected>🔥 Mật độ cao: Kèm đánh giá từ bạn đồng hành (1 - 2 review/đơn) (Khuyên dùng)</option>
+                      <option value="standard">⚡ Chuẩn: 100% đơn hoàn thành đều có đánh giá (1 review/đơn)</option>
+                      <option value="all">🌟 Siêu nhiều: Cả đơn Hoàn thành & Chờ duyệt đều có đánh giá</option>
+                    </select>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-slate-400">
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                      <input type="checkbox" id="check-review-images" checked class="w-3.5 h-3.5 rounded text-blue-600 bg-slate-950 border-slate-700 focus:ring-0">
+                      <span class="text-slate-300">📸 Đính kèm ảnh check-in thực tế</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                      <input type="checkbox" id="check-admin-replies" checked class="w-3.5 h-3.5 rounded text-blue-600 bg-slate-950 border-slate-700 focus:ring-0">
+                      <span class="text-slate-300">💬 Phản hồi cảm ơn từ CSKH (Replies)</span>
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -235,6 +248,64 @@
             <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
             <span>BẮT ĐẦU TẠO DỮ LIỆU VÀO DATABASE</span>
           </button>
+
+          <!-- Section: Review Booster (Bơm đánh giá trực tiếp cho tour) -->
+          <div class="bg-gradient-to-br from-amber-950/25 via-slate-900 to-slate-900 rounded-2xl border border-amber-500/30 p-5 space-y-4 shadow-sm">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                <span>⭐</span> Công cụ Bơm Đánh Giá Tour (Review Booster)
+              </h2>
+              <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">Tăng tức thì</span>
+            </div>
+            <p class="text-xs text-slate-400">
+              Cần thêm đánh giá cho một Tour cụ thể? Bơm trực tiếp số lượng lớn review chất lượng cao (kèm bình luận chân thực, ảnh check-in & phản hồi CSKH) vào bất kỳ Tour nào ngay lập tức.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Chọn Tour muốn bơm đánh giá:</label>
+                <select id="booster-select-tour" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500 text-xs">
+                  <option value="">Đang tải tour...</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Số lượng đánh giá muốn bơm:</label>
+                <select id="booster-review-count" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-amber-400 font-bold focus:outline-none focus:border-amber-500 text-xs">
+                  <option value="5">+5 đánh giá</option>
+                  <option value="10" selected>+10 đánh giá (Khuyên dùng)</option>
+                  <option value="15">+15 đánh giá</option>
+                  <option value="20">+20 đánh giá</option>
+                  <option value="30">+30 đánh giá (Đậm đặc)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Cơ cấu số sao đánh giá:</label>
+                <select id="booster-rating-profile" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 text-xs">
+                  <option value="mostly_five" selected>🌟 Tự nhiên: 80% 5 sao, 20% 4 sao</option>
+                  <option value="all_five">⭐ Tuyệt đối: 100% 5 sao</option>
+                  <option value="natural_mix">📝 Đa dạng: 65% 5 sao, 35% 4 sao</option>
+                </select>
+              </div>
+
+              <div class="flex items-center gap-4 pt-4">
+                <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input type="checkbox" id="booster-check-images" checked class="w-3.5 h-3.5 rounded text-amber-500 bg-slate-950 border-slate-700 focus:ring-0">
+                  <span class="text-slate-300 text-xs">📸 Có ảnh check-in</span>
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input type="checkbox" id="booster-check-replies" checked class="w-3.5 h-3.5 rounded text-amber-500 bg-slate-950 border-slate-700 focus:ring-0">
+                  <span class="text-slate-300 text-xs">💬 CSKH trả lời</span>
+                </label>
+              </div>
+            </div>
+
+            <button type="button" id="btn-boost-reviews" onclick="startBoostReviews()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-600 via-orange-600 to-amber-500 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              <span>BƠM ĐÁNH GIÁ CHO TOUR NGAY</span>
+            </button>
+          </div>
         </div>
 
         <!-- Right: Real-time Terminal Log & Result (5 cols) -->
@@ -650,6 +721,28 @@
           </div>
         </div>
       </div>
+
+      <!-- International locations: import the complete hierarchy and attractions together. -->
+      <section class="rounded-2xl border border-indigo-500/30 bg-slate-900/60 p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base font-bold text-white">🌍 Import địa điểm nước ngoài</h2>
+            <p class="text-xs text-slate-400 mt-1">Nạp cùng lúc Quốc gia → Vùng → Tỉnh/Thành → Điểm tham quan.</p>
+          </div>
+          <button type="button" onclick="loadInternationalLocationStats()" class="px-3 py-2 text-xs rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">🔄 Tải lại</button>
+        </div>
+        <p id="intl-status" role="status" class="text-xs text-indigo-300">Đang tải thống kê bộ dữ liệu tích hợp...</p>
+        <div>
+          <label for="intl-custom-path" class="block text-xs font-semibold text-slate-300 mb-2">File JSON tùy chỉnh (tùy chọn)</label>
+          <input id="intl-custom-path" type="text" placeholder="Để trống để dùng scripts_data/data/international-locations.json" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+        </div>
+        <p class="text-xs text-slate-400">Chạy thử kiểm tra file và cây địa điểm mà không kết nối CSDL. Import lại cập nhật theo slug và giữ nguyên ID.</p>
+        <div class="flex flex-wrap gap-3">
+          <button id="btn-intl-dryrun" type="button" onclick="submitInternationalLocationImport(true)" class="rounded-xl border border-indigo-500/40 bg-indigo-500/10 px-5 py-3 text-sm font-bold text-indigo-200 hover:bg-indigo-500/20 disabled:opacity-50">Kiểm tra / Chạy thử</button>
+          <button id="btn-intl-import" type="button" onclick="submitInternationalLocationImport(false)" class="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white hover:bg-indigo-500 disabled:opacity-50">Import địa điểm nước ngoài</button>
+        </div>
+        <pre id="intl-log-box" role="status" class="hidden whitespace-pre-wrap rounded-xl border border-slate-800 bg-slate-950 p-4 text-xs text-slate-300 max-h-56 overflow-y-auto"></pre>
+      </section>
 
       <!-- Attractions Importer Section (Level 6) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -1268,15 +1361,26 @@
     function renderMetadata() {
       // Tours dropdown
       const selectTour = document.getElementById('select-tour');
+      const boosterSelect = document.getElementById('booster-select-tour');
       selectTour.innerHTML = '';
+      if (boosterSelect) boosterSelect.innerHTML = '';
+
       if (metadata.tours.length === 0) {
         selectTour.innerHTML = '<option value="">Không có tour nào trong DB</option>';
+        if (boosterSelect) boosterSelect.innerHTML = '<option value="">Không có tour nào trong DB</option>';
       } else {
         metadata.tours.forEach(t => {
           const opt = document.createElement('option');
           opt.value = t.tour_id;
           opt.textContent = `[${t.code}] ${t.name} — ${Number(t.base_price).toLocaleString('vi-VN')} đ`;
           selectTour.appendChild(opt);
+
+          if (boosterSelect) {
+            const bOpt = document.createElement('option');
+            bOpt.value = t.tour_id;
+            bOpt.textContent = `[${t.code}] ${t.name}`;
+            boosterSelect.appendChild(bOpt);
+          }
         });
         updateTourHint();
       }
@@ -1400,6 +1504,7 @@
         pendingRatio: 15,
         cancelledRatio: 5,
         includeReviews: document.getElementById('check-reviews').checked,
+        reviewDensity: document.getElementById('select-review-density') ? document.getElementById('select-review-density').value : 'high',
         includeReviewImages: document.getElementById('check-review-images').checked,
         includeAdminReplies: document.getElementById('check-admin-replies').checked,
         includePayments: document.getElementById('check-payments').checked
@@ -1430,6 +1535,61 @@
           loadBatches();
         } else {
           appendLog('error', 'Lỗi: ' + (json.message || 'Không thành công'));
+        }
+      } catch (e) {
+        appendLog('error', 'Lỗi kết nối API: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    function toggleReviewOptions() {
+      const isChecked = document.getElementById('check-reviews').checked;
+      const sub = document.getElementById('review-sub-options');
+      if (sub) {
+        if (isChecked) {
+          sub.classList.remove('opacity-40', 'pointer-events-none');
+        } else {
+          sub.classList.add('opacity-40', 'pointer-events-none');
+        }
+      }
+    }
+
+    async function startBoostReviews() {
+      const btn = document.getElementById('btn-boost-reviews');
+      const tourId = Number(document.getElementById('booster-select-tour').value);
+      if (!tourId) {
+        alert('Vui lòng chọn Tour cần bơm đánh giá!');
+        return;
+      }
+
+      const count = Number(document.getElementById('booster-review-count').value);
+      const ratingProfile = document.getElementById('booster-rating-profile').value;
+      const includeImages = document.getElementById('booster-check-images').checked;
+      const includeReplies = document.getElementById('booster-check-replies').checked;
+
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      appendLog('info', `🚀 Đang bơm ${count} đánh giá mẫu chất lượng cao cho Tour #${tourId}...`);
+
+      try {
+        const res = await fetch('/api/reviews/boost', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tourId, count, ratingProfile, includeImages, includeReplies })
+        });
+        const json = await res.json();
+        if (json.logs) {
+          json.logs.forEach(l => appendLog(l.level, l.message));
+        }
+        if (json.success) {
+          appendLog('success', `✨ ĐÃ BƠM THÀNH CÔNG ${json.reviewsCreated} ĐÁNH GIÁ VÀO TOUR!`);
+          appendLog('info', `⭐ Xếp hạng Tour hiện tại: ${json.ratingAvg} ⭐ (${json.ratingCount} lượt đánh giá)`);
+          loadBatches();
+        } else {
+          appendLog('error', 'Lỗi bơm review: ' + (json.message || 'Thao tác không thành công'));
         }
       } catch (e) {
         appendLog('error', 'Lỗi kết nối API: ' + e.message);
@@ -1786,6 +1946,7 @@
     async function loadImportOverview() {
       await Promise.all([
         loadLocationStats(),
+        loadInternationalLocationStats(),
         loadAttractionStats(),
         loadPartnerStats(),
         loadCatalogStats(),
@@ -2268,6 +2429,49 @@
       if (wrapper) wrapper.classList.toggle('hidden', !isCustom);
     }
 
+    async function loadInternationalLocationStats() {
+      const status = document.getElementById('intl-status');
+      try {
+        const response = await fetch('/api/international-locations/stats');
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được thống kê.');
+        const { expected, imported } = result.data;
+        status.textContent = `Bộ dữ liệu tích hợp đã nạp: ${imported.countries}/${expected.countries} quốc gia, ${imported.regions}/${expected.regions} vùng, ${imported.provinces}/${expected.provinces} tỉnh/thành, ${imported.attractions}/${expected.attractions} điểm tham quan.`;
+      } catch (error) {
+        status.textContent = 'Chưa tải được thống kê CSDL. Bạn vẫn có thể chạy thử kiểm tra file. ' + error.message;
+      }
+    }
+
+    async function submitInternationalLocationImport(dryRun) {
+      const buttons = ['btn-intl-dryrun', 'btn-intl-import'].map(id => document.getElementById(id));
+      const logBox = document.getElementById('intl-log-box');
+      const customFilePath = document.getElementById('intl-custom-path').value.trim() || undefined;
+      buttons.forEach(button => { button.disabled = true; });
+      logBox.classList.remove('hidden');
+      logBox.textContent = dryRun ? 'Đang kiểm tra dữ liệu nước ngoài...' : 'Đang import địa điểm nước ngoài...';
+      try {
+        const response = await fetch('/api/international-locations/import', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dryRun, customFilePath }),
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || 'Import thất bại.');
+        logBox.textContent = result.logs.map(entry => `[${entry.level}] ${entry.message}`).join('\n');
+        if (!dryRun) {
+          await loadInternationalLocationStats();
+          try {
+            const metadataResponse = await fetch('/api/metadata');
+            const metadataResult = await metadataResponse.json();
+            if (metadataResult.success) { metadata = metadataResult.data; renderMetadata(); }
+          } catch (error) { console.error('Không tải lại được danh mục:', error); }
+        }
+      } catch (error) {
+        logBox.textContent = 'Lỗi: ' + error.message;
+      } finally {
+        buttons.forEach(button => { button.disabled = false; });
+      }
+    }
+
     async function loadAttractionStats() {
       try {
         const res = await fetch('/api/attractions/stats');
@@ -2366,6 +2570,7 @@
     init();
     loadAdmins();
     loadLocationStats();
+    loadInternationalLocationStats();
     loadAttractionStats();
     loadPartnerStats();
     loadCatalogStats();

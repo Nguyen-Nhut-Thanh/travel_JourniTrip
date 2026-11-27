@@ -48,7 +48,7 @@ export function AccountOverview({ stats, bookings = [], favorites = [], loading,
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {statItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -56,7 +56,7 @@ export function AccountOverview({ stats, bookings = [], favorites = [], loading,
               key={item.label}
               type="button"
               onClick={() => setActiveTab(item.tab)}
-              className="group relative h-[132px] overflow-hidden rounded-[15px] bg-slate-100 text-left shadow-[0_2px_12px_rgba(15,23,42,0.05)]"
+              className="group relative h-[132px] overflow-hidden rounded-[14px] border border-[#e1edfc] bg-white text-left shadow-sm transition hover:shadow-md"
             >
               <Image
                 src={item.image}
@@ -83,16 +83,16 @@ export function AccountOverview({ stats, bookings = [], favorites = [], loading,
         })}
       </div>
 
-      <section className="rounded-[14px] border border-slate-100 bg-white p-4 shadow-[0_2px_14px_rgba(15,23,42,0.04)]">
+      <section className="rounded-[14px] border border-[#e1edfc] bg-white p-4 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Luggage className="h-5 w-5 text-[#1766c2]" />
-            <h2 className="text-[17px] font-bold text-slate-900">Chuyến đi gần đây</h2>
+            <Luggage className="h-5 w-5 text-[#075bff]" />
+            <h2 className="text-[17px] font-bold text-[#0b1747]">Chuyến đi gần đây</h2>
           </div>
           <button
             type="button"
             onClick={() => setActiveTab("bookings")}
-            className="flex items-center gap-1 text-[11px] font-semibold text-[#1766c2]"
+            className="flex items-center gap-1 text-[11px] font-semibold text-[#075bff]"
           >
             Xem tất cả <ChevronRight className="h-3.5 w-3.5" />
           </button>
@@ -119,7 +119,7 @@ export function AccountOverview({ stats, bookings = [], favorites = [], loading,
               const statusLabel = statusLabels[booking.status?.toLowerCase()] || "Đang xử lý";
 
               return (
-                <article key={booking.booking_id} className="overflow-hidden rounded-[12px] border border-slate-100 bg-white">
+                <article key={booking.booking_id} className="overflow-hidden rounded-xl border border-[#e1edfc] bg-white">
                   <div className="relative h-[128px] overflow-hidden bg-slate-100">
                     {imageUrl ? (
                       <Image
@@ -136,7 +136,7 @@ export function AccountOverview({ stats, bookings = [], favorites = [], loading,
                   </div>
 
                   <div className="px-2.5 pb-2.5 pt-2">
-                    <h3 className="text-[13px] font-bold text-slate-900 line-clamp-1">{tourName}</h3>
+                    <h3 className="text-[13px] font-bold text-[#0b1747] line-clamp-1">{tourName}</h3>
                     <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-500">
                       <CalendarDays className="h-3 w-3" />
                       {startDate ? new Date(startDate).toLocaleDateString("vi-VN") : "Chưa xác định"}
@@ -144,7 +144,7 @@ export function AccountOverview({ stats, bookings = [], favorites = [], loading,
                     <button
                       type="button"
                       onClick={() => setActiveTab("bookings")}
-                      className="mt-2 w-full rounded-md bg-[#f3f8ff] py-2 text-[10px] font-semibold text-[#1766c2] transition hover:bg-blue-100"
+                      className="mt-2 w-full rounded-lg bg-[#f0f6ff] py-2 text-[10px] font-semibold text-[#075bff] transition hover:bg-[#e1edfc]"
                     >
                       Xem chi tiết →
                     </button>
@@ -156,16 +156,16 @@ export function AccountOverview({ stats, bookings = [], favorites = [], loading,
         )}
       </section>
 
-      <section className="rounded-[14px] border border-slate-100 bg-white p-4 shadow-[0_2px_14px_rgba(15,23,42,0.04)]">
+      <section className="rounded-[14px] border border-[#e1edfc] bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Heart className="h-5 w-5 fill-rose-500 text-rose-500" />
-            <h2 className="text-[15px] font-bold text-slate-900">Tour yêu thích</h2>
+            <h2 className="text-[15px] font-bold text-[#0b1747]">Tour yêu thích</h2>
           </div>
           <button
             type="button"
             onClick={() => setActiveTab("favorites")}
-            className="flex items-center gap-1 text-[11px] font-semibold text-[#1766c2]"
+            className="flex items-center gap-1 text-[11px] font-semibold text-[#075bff]"
           >
             Xem tất cả <ChevronRight className="h-3.5 w-3.5" />
           </button>
@@ -176,7 +176,7 @@ export function AccountOverview({ stats, bookings = [], favorites = [], loading,
             Bạn chưa có tour yêu thích nào.
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {favorites.slice(0, 4).map((fav) => {
               const tourObj = fav.tours;
               const tourId = fav.tour_id || tourObj?.tour_id;
@@ -208,7 +208,7 @@ export function AccountOverview({ stats, bookings = [], favorites = [], loading,
                       <span className="truncate">{depLoc}</span>
                     </div>
                   ) : null}
-                  <p className="mt-1 text-[12px] font-extrabold text-[#255786]">{formatVND(priceVal)}</p>
+                  <p className="mt-1 text-[12px] font-extrabold text-[#075bff]">{formatVND(priceVal)}</p>
                 </Link>
               );
             })}

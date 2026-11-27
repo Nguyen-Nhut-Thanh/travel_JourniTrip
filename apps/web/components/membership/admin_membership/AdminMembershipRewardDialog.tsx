@@ -23,20 +23,20 @@ export function AdminMembershipRewardDialog({ onClose, onCreated }: { onClose: (
     catch (e) { setError(e instanceof Error ? e.message : 'Không thể thêm voucher.'); }
     finally { setBusy(false); }
   }
-  return <dialog ref={dialog} aria-labelledby="reward-dialog-title" onCancel={e => { if (busy) e.preventDefault(); else onClose(); }} className="m-auto w-[calc(100%_-_32px)] max-w-xl max-h-[90dvh] overflow-y-auto rounded-2xl border border-slate-700 bg-[#0F1522] p-6 text-slate-200 shadow-2xl backdrop:bg-black/70">
-    <header className="flex items-center justify-between"><h2 id="reward-dialog-title" className="text-xl font-bold text-white">Thêm voucher đổi điểm</h2><button type="button" disabled={busy} onClick={onClose} aria-label="Đóng"><X size={20} /></button></header>
-    <p className="mt-2 text-xs leading-5 text-slate-400">Voucher sẽ xuất hiện trong kho đổi điểm của user sau khi lưu. Hạn dùng tính từ ngày khách đổi điểm lấy voucher.</p>
+  return <dialog ref={dialog} aria-labelledby="reward-dialog-title" onCancel={e => { if (busy) e.preventDefault(); else onClose(); }} className="m-auto w-[calc(100%_-_32px)] max-w-xl max-h-[90dvh] overflow-y-auto rounded-[14px] border border-[#e1edfc] bg-white p-6 text-slate-800 shadow-2xl backdrop:bg-slate-900/40">
+    <header className="flex items-center justify-between"><h2 id="reward-dialog-title" className="text-xl font-bold text-[#0b1747]">Thêm voucher đổi điểm</h2><button type="button" disabled={busy} onClick={onClose} aria-label="Đóng" className="text-slate-400 hover:text-slate-600"><X size={20} /></button></header>
+    <p className="mt-2 text-xs leading-5 text-[#7387aa]">Voucher sẽ xuất hiện trong kho đổi điểm của user sau khi lưu. Hạn dùng tính từ ngày khách đổi điểm lấy voucher.</p>
     <form onSubmit={submit} className="mt-5 space-y-4">
-      <label className="block text-sm">Tên voucher<input required minLength={3} maxLength={150} disabled={busy} value={title} onChange={e => setTitle(e.target.value)} placeholder="VD: Voucher tour 200.000đ" className="mt-1 w-full rounded-xl border border-slate-700 px-3 py-2" /></label>
+      <label className="block text-xs font-semibold text-slate-700">Tên voucher<input required minLength={3} maxLength={150} disabled={busy} value={title} onChange={e => setTitle(e.target.value)} placeholder="VD: Voucher tour 200.000đ" className="mt-1 w-full rounded-lg border border-[#dce7f7] bg-white px-3 py-2 text-xs text-slate-800 outline-none focus:border-[#075bff]" /></label>
       <div className="grid grid-cols-2 gap-4">{[
         { label:'Điểm cần đổi', value:pointsCost, set:setPointsCost, min:1, max:1000000 },
         { label:'Giá trị giảm (đ)', value:valueVnd, set:setValueVnd, min:1000, max:1000000000 },
         { label:'Đơn tối thiểu (đ)', value:minOrder, set:setMinOrder, min:1, max:9999999999 },
         { label:'Hạn dùng (ngày)', value:validityDays, set:setValidityDays, min:1, max:365 },
-      ].map(field => <label key={field.label} className="block text-sm">{field.label}<input required type="number" step={1} min={field.min} max={field.max} disabled={busy} value={field.value} onChange={e => field.set(Number(e.target.value))} className="mt-1 w-full rounded-xl border border-slate-700 px-3 py-2" /></label>)}</div>
-      <label className="block text-sm">Mô tả và điều kiện sử dụng<textarea required minLength={5} maxLength={1000} disabled={busy} value={description} onChange={e => setDescription(e.target.value)} rows={3} className="mt-1 w-full rounded-xl border border-slate-700 px-3 py-2" /></label>
-      {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
-      <div className="flex justify-end gap-3"><button type="button" disabled={busy} onClick={onClose} className="rounded-xl border border-slate-700 px-4 py-2 text-sm">Để sau</button><button disabled={busy} className="flex items-center gap-2 rounded-xl bg-amber-400 px-4 py-2 text-sm font-bold text-[#070A10] disabled:opacity-50">{busy && <Loader2 size={16} className="animate-spin" />}{busy ? 'Đang lưu...' : 'Thêm voucher'}</button></div>
+      ].map(field => <label key={field.label} className="block text-xs font-semibold text-slate-700">{field.label}<input required type="number" step={1} min={field.min} max={field.max} disabled={busy} value={field.value} onChange={e => field.set(Number(e.target.value))} className="mt-1 w-full rounded-lg border border-[#dce7f7] bg-white px-3 py-2 text-xs text-slate-800 outline-none focus:border-[#075bff]" /></label>)}</div>
+      <label className="block text-xs font-semibold text-slate-700">Mô tả và điều kiện sử dụng<textarea required minLength={5} maxLength={1000} disabled={busy} value={description} onChange={e => setDescription(e.target.value)} rows={3} className="mt-1 w-full rounded-lg border border-[#dce7f7] bg-white px-3 py-2 text-xs text-slate-800 outline-none focus:border-[#075bff]" /></label>
+      {error && <p role="alert" className="text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200">{error}</p>}
+      <div className="flex justify-end gap-3 pt-2"><button type="button" disabled={busy} onClick={onClose} className="rounded-lg border border-[#dce7f7] px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">Để sau</button><button disabled={busy} className="flex items-center gap-2 rounded-[12px] bg-[#075bff] hover:bg-[#064ddd] px-4 py-2 text-xs font-[650] text-white shadow-sm transition-all disabled:opacity-50">{busy && <Loader2 size={16} className="animate-spin" />}{busy ? 'Đang lưu...' : 'Thêm voucher'}</button></div>
     </form>
   </dialog>;
 }

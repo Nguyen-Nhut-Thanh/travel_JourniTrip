@@ -1,24 +1,17 @@
 "use client";
 
-import FavoriteButton from "@/components/tour_cards/elements/UserFavoriteButton";
 import { Dialog } from "@/components/common/dialogs_and_feedback/dialogs/Dialog";
 import { PLACEHOLDER_IMAGE } from "@/lib/utils/images";
-import { useTourFavorite } from "@/lib/hooks/useTourFavorite";
-import { useToast } from "@/lib/notifications/useToast";
-import { Check, ChevronLeft, ChevronRight, Image as ImageIcon, MapPin, Share2, Star, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Image as ImageIcon, X } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useId, useRef, useState } from "react";
 import type { TourDetailHeroProps } from 'shared';
 
 export default function TourDetailHero({ tour }: TourDetailHeroProps) {
   const galleryTitleId = useId();
-  const toast = useToast();
-  const { favorite, pending, handleFavoriteClick } = useTourFavorite(tour.tour_id, tour.name);
   
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
   const thumbnailScrollRef = useRef<HTMLDivElement>(null);
 
   const images =
@@ -27,18 +20,6 @@ export default function TourDetailHero({ tour }: TourDetailHeroProps) {
       : [PLACEHOLDER_IMAGE];
 
   const mainImage = images[activeImageIndex] || images[0];
-
-  const handleShareClick = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      toast.success("Đã chép liên kết tour vào bộ nhớ tạm!");
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const departureName = [...new Set(tour.tour_schedules.map(schedule => schedule.departure_location?.name).filter(Boolean))].join(" / ") || tour.departure_locations?.name || "Chưa cập nhật";
-  const tourCategory = tour.tour_type || "Tour Miền Tây";
 
   const scrollThumbnails = (direction: "left" | "right") => {
     thumbnailScrollRef.current?.scrollBy({
@@ -49,76 +30,12 @@ export default function TourDetailHero({ tour }: TourDetailHeroProps) {
 
   return (
     <div className="space-y-4">
-      {/* Breadcrumbs */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500 sm:text-sm">
-        <Link href="/" className="hover:text-sky-600 transition">Trang chủ</Link>
-        <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
-        <Link href="/tours" className="hover:text-sky-600 transition">Tour</Link>
-        <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
-        <span className="text-slate-600 font-medium">{tourCategory}</span>
-        <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
-        <span className="truncate font-bold text-slate-900 max-w-[200px] sm:max-w-xs">{tour.name}</span>
-      </nav>
-
-      {/* Title & Metadata Header */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-black text-slate-900 sm:text-3xl leading-snug">
-            {tour.name}
-          </h1>
-
-          <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm">
-            <span className="rounded-full bg-sky-50 px-3 py-1 font-bold text-sky-700 border border-sky-100">
-              {tourCategory}
-            </span>
-
-            <div className="flex items-center gap-1 text-amber-500 font-bold">
-              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-              <span>{Number(tour.rating_avg) ? Number(tour.rating_avg).toFixed(1) : "5.0"}</span>
-              <span className="text-slate-400 font-normal">
-                ({tour.rating_count ?? (tour.reviews ? tour.reviews.length : 0)} đánh giá)
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1 text-slate-600">
-              <MapPin className="h-4 w-4 text-sky-600" />
-              <span>Khởi hành từ: <strong className="text-slate-800">{departureName}</strong></span>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons: Yêu thích & Chia sẻ */}
-        <div className="flex items-center gap-2 shrink-0 pt-1">
-          <FavoriteButton
-            active={favorite}
-            loading={pending}
-            onClick={handleFavoriteClick}
-            className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs sm:text-sm font-semibold transition-all shadow-sm ${
-              favorite
-                ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
-                : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-            }`}
-            iconClassName="h-4 w-4"
-            label="Yêu thích"
-          />
-
-          <button
-            type="button"
-            onClick={handleShareClick}
-            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
-          >
-            {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Share2 className="h-4 w-4 text-slate-500" />}
-            <span>{copied ? "Đã chép" : "Chia sẻ"}</span>
-          </button>
-        </div>
-      </div>
-
       {/* Media Gallery Section */}
       <div className="space-y-3">
         {/* Featured Main Image Container */}
         <div
           onClick={() => setIsGalleryModalOpen(true)}
-          className="relative aspect-[16/9] md:aspect-[21/9] w-full overflow-hidden rounded-2xl bg-slate-900 shadow-lg group cursor-pointer"
+          className="relative aspect-[16/9] md:aspect-[21/9] w-full overflow-hidden rounded-[14px] bg-slate-900 shadow-sm group cursor-pointer"
         >
           <Image
             src={mainImage}

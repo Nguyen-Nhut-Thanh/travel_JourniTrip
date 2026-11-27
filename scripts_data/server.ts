@@ -2,7 +2,7 @@ import { config } from 'dotenv';
 import { resolve } from 'node:path';
 import express, { Request, Response } from 'express';
 import path from 'path';
-import { getMetadata, generateScenario, getBatches, rollbackBatch } from './services/data-generator';
+import { getMetadata, generateScenario, getBatches, rollbackBatch, boostTourReviews } from './services/data-generator';
 import {
   TIER_DEFINITIONS,
   listUsersWithMembership,
@@ -31,6 +31,10 @@ import {
   getAttractionStats,
   importAttractions,
 } from './services/attraction-importer';
+import {
+  getInternationalLocationStats,
+  importInternationalLocations,
+} from './services/international-location-importer';
 
 config({ path: resolve(__dirname, '../.env'), quiet: true });
 
@@ -60,6 +64,18 @@ app.post('/api/generate', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Error generating scenario:', error);
     res.status(500).json({ success: false, message: error.message || 'Lỗi khi tạo dữ liệu mẫu' });
+  }
+});
+
+// API: Bơm đánh giá trực tiếp cho một Tour (Review Booster)
+app.post('/api/reviews/boost', async (req: Request, res: Response) => {
+  try {
+    const options = req.body;
+    const result = await boostTourReviews(options);
+    res.json(result);
+  } catch (error: any) {
+    console.error('Error boosting reviews:', error);
+    res.status(500).json({ success: false, message: error.message || 'Lỗi khi bơm đánh giá cho tour' });
   }
 });
 
@@ -156,6 +172,26 @@ app.post('/api/locations/import', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Error importing locations:', error);
     res.status(400).json({ success: false, message: error.message || 'Lỗi khi import địa điểm' });
+  }
+});
+
+// API: Import trọn bộ cây địa điểm và điểm tham quan nước ngoài.
+app.get('/api/international-locations/stats', async (_req: Request, res: Response) => {
+  try {
+    res.json({ success: true, data: await getInternationalLocationStats() });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || 'Lỗi lấy thống kê địa điểm nước ngoài' });
+  }
+});
+
+app.post('/api/international-locations/import', async (req: Request, res: Response) => {
+  try {
+    const { dryRun, customFilePath } = req.body;
+    if (dryRun !== undefined && typeof dryRun !== 'boolean') throw new Error('dryRun phải là boolean.');
+    if (customFilePath !== undefined && typeof customFilePath !== 'string') throw new Error('customFilePath phải là chuỗi.');
+    res.json(await importInternationalLocations({ dryRun, customFilePath }));
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message || 'Lỗi import địa điểm nước ngoài' });
   }
 });
 

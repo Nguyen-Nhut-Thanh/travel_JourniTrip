@@ -2,6 +2,7 @@
 
 Bộ công cụ độc lập phục vụ:
 - **Import dữ liệu nền & Địa điểm**: 34 tỉnh/thành phố, 3 vùng miền, quốc gia Việt Nam.
+- **Import địa điểm nước ngoài**: 15 quốc gia/điểm đến, 37 vùng, 45 tỉnh/thành hoặc khu vực tương đương và 90 điểm tham quan trong một file JSON.
 - **Import Điểm tham quan (Attractions)**: 81 điểm tham quan nổi bật bao phủ toàn bộ 34 tỉnh/thành (cấp 6) kèm mô tả, ẩm thực & tags AI.
 - **Import Đối tác & Nhà cung cấp (Providers / Partners)**: 25 đối tác đa lĩnh vực (Du thuyền, Khách sạn, Hàng không, Xe khách, Đường sắt, Bảo hiểm & Vé vui chơi).
 - **Import Khách sạn & Phòng nghỉ (Hotels & Rooms)**: 15 hạng khách sạn tiêu chuẩn 3-5 sao, resort & homestay dùng chung linh hoạt cho mọi tour.
@@ -23,12 +24,15 @@ scripts_data/
 ├── public/index.html                     # Giao diện Web Studio (5 tab trực quan)
 ├── data/
 │   ├── provinces.json                    # Bộ dữ liệu chuẩn 34 tỉnh/thành tích hợp sẵn (offline)
+│   ├── international-locations.json      # Cây địa điểm và điểm tham quan nước ngoài (cấp 3–6)
 │   ├── attractions.json                  # 81 điểm tham quan nổi bật bao phủ 34 tỉnh/thành (cấp 6)
 │   ├── partners.json                     # Bộ 25 đối tác chuẩn hóa (Du thuyền, Khách sạn, Xe, Bay...)
 │   ├── hotels.json                       # 15 khách sạn cao cấp 3-5 sao & các loại phòng
 │   └── transports.json                   # 16 phương tiện vận chuyển (máy bay, xe, tàu hỏa, du thuyền)
 ├── services/                             # Core Business Services (dùng chung cho Web API & CLI)
 │   ├── location-importer.ts              # Service import 34 tỉnh/thành & thống kê địa điểm
+│   ├── international-location-data.ts    # Kiểm tra schema, slug, cấp địa lý và mã quốc gia
+│   ├── international-location-importer.ts # Import nước ngoài trong một transaction
 │   ├── attraction-importer.ts            # Service import 81 điểm tham quan 34 tỉnh & chi tiết
 │   ├── partner-importer.ts               # Service import đối tác & thống kê nhà cung cấp
 │   ├── catalog-importer.ts               # Service import khách sạn, phòng nghỉ & phương tiện
@@ -38,6 +42,7 @@ scripts_data/
 │   └── admin-manager.ts                  # Cấp quyền Admin & tạo hồ sơ nhân viên
 ├── cli/                                  # Các lệnh CLI độc lập
 │   ├── import-provinces.ts               # CLI import 34 tỉnh/thành (npm run db:import:provinces)
+│   ├── import-international-locations.ts # CLI import trọn bộ địa điểm nước ngoài
 │   ├── seed-partners.ts                  # CLI import đối tác (npm run seed:partners)
 │   ├── seed-hotels.ts                    # CLI import khách sạn & phòng (npm run seed:hotels)
 │   ├── seed-transports.ts                # CLI import phương tiện (npm run seed:transports)
@@ -74,6 +79,33 @@ Các tab trên giao diện:
 ---
 
 ## 🛠️ Các lệnh CLI nhanh
+
+### Địa điểm nước ngoài
+
+```bash
+# Kiểm tra JSON, slug và cây cha–con offline; không kết nối hoặc ghi database
+npm run db:import:international -- --dry-run
+
+# Import toàn bộ quốc gia, vùng, tỉnh/thành và điểm tham quan
+npm run db:import:international
+
+# Dùng file tùy chỉnh có cùng schema_version = 1.0.0
+npm run db:import:international -- --file ./scripts_data/data/international-locations.json
+```
+
+Cũng có thể vào tab **Dữ liệu nền & Import → Import địa điểm nước ngoài** trên Web Studio để chạy thử hoặc import.
+
+Importer kiểm tra toàn bộ file trước khi ghi, sắp xếp cha trước con, ánh xạ `parent_slug` / `province_slug` sang ID và giữ `country_code` ở mọi cấp. Dữ liệu điểm tham quan được lưu vào `locations`, `destinations_detail` và `location_images` khi có ảnh. Chạy lại cập nhật theo slug và giữ nguyên ID; ảnh đang có được giữ nếu file không cung cấp ảnh mới. Toàn bộ lần import nằm trong một transaction; nếu trùng slug với quốc gia/cấp khác hoặc cây trong database khác với file, lần import sẽ thất bại và rollback. Chạy thử chỉ xác thực file, không kiểm tra xung đột trong database.
+
+Các lệnh Việt Nam tiếp tục dùng `provinces.json` và `attractions.json`. Thống kê Việt Nam và tùy chọn `seed:attractions -- --clean` chỉ áp dụng cho dữ liệu có `country_code = VN`.
+
+Kiểm tra importer bằng database giả lập, không ghi database thật:
+
+```bash
+npx tsx --test scripts_data/services/international-location-importer.test.ts
+```
+
+### Dữ liệu Việt Nam và các danh mục khác
 
 ```bash
 # 1. Import địa điểm (34 tỉnh/thành Việt Nam)

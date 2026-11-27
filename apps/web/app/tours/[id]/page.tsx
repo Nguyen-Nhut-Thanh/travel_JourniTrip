@@ -4,6 +4,7 @@ import TourAmenities from "@/components/tour_detail/itinerary_and_experience/Use
 import TourBookingCard from "@/components/tour_detail/hero_and_booking/UserTourBookingCard";
 import TourDepartureCalendar from "@/components/tour_detail/hero_and_booking/UserTourDepartureCalendar";
 import TourDetailHero from "@/components/tour_detail/hero_and_booking/UserTourDetailHero";
+import TourDetailHeader from "@/components/tour_detail/hero_and_booking/UserTourDetailHeader";
 import TourHighlightsList from "@/components/tour_detail/itinerary_and_experience/UserTourHighlightsList";
 import TourItineraryTimeline from "@/components/tour_detail/itinerary_and_experience/UserTourItineraryTimeline";
 import { TourPoliciesSection } from "@/components/tour_detail/policies/UserTourPoliciesSection";
@@ -12,7 +13,6 @@ import TourRecommendedList from "@/components/tour_detail/recommendations/UserTo
 import TourReviewsSection from "@/components/reviews/customer_reviews/UserTourReviewsSection";
 import { TourReviewsModal } from "@/components/reviews/customer_reviews/UserTourReviewsModal";
 import TourVideoHighlights from "@/components/tour_detail/itinerary_and_experience/UserTourVideoHighlights";
-import UserTourCostumesSection from "@/components/tour_detail/costumes/UserTourCostumesSection";
 import { getPublicTourDetail } from "@/lib/tours/client/api";
 import { resolvePickupPoint } from '@/lib/booking/client/departure';
 import { Loader2 } from "lucide-react";
@@ -155,12 +155,14 @@ export default function TourDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] pb-4 pt-6">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-10">
+    <div className="min-h-screen bg-blue-50/40 pb-6 pt-5">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
+        <TourDetailHeader tour={tour} />
+
         {/* Main 2-Column Grid Section */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 items-start">
           {/* Main Left Column (col-span-8) */}
-          <div className="lg:col-span-8 space-y-8 min-w-0">
+          <div className="lg:col-span-8 space-y-4 min-w-0">
             {/* 1. Hero Gallery & Information */}
             <TourDetailHero tour={tour} />
 
@@ -183,9 +185,6 @@ export default function TourDetailPage({
             {/* 4. Tiện ích nổi bật (Amenities) */}
             <TourAmenities key={`amenities-${tourId}`} amenities={tour.tour_amenities || []} />
 
-            {/* 4.5. Trang phục địa phương & Thử đồ AI (nếu có) */}
-            <UserTourCostumesSection costumes={tour.tour_costumes} tourName={tour.name} />
-
             {/* 5. Điểm nổi bật của chương trình (Tour Highlights) */}
             <TourHighlightsList />
             <TourSmartMap tour={tour} attractions={displaySchedule?.tour_schedule_attractions} />
@@ -205,7 +204,7 @@ export default function TourDetailPage({
           </div>
 
           {/* Right Sticky Sidebar Column (col-span-4) */}
-          <div className="lg:col-span-4 sticky top-24 space-y-6">
+          <div className="lg:col-span-4 sticky top-24 space-y-4">
             <TourBookingCard
               tour={tour}
               selectedSchedule={selectedSchedule}
@@ -228,7 +227,7 @@ export default function TourDetailPage({
       />
 
       {/* Closing section spans the viewport outside the main content container. */}
-      <div className="mt-10 w-full">
+      <div className="mt-8 w-full">
         <TourRecommendedList />
       </div>
     </div>

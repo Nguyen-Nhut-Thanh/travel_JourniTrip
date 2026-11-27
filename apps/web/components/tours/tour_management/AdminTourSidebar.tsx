@@ -83,7 +83,7 @@ export function TourSidebar<T extends TourDetailForm>({
     });
   return (
     <aside
-      className="flex min-w-0 flex-col gap-[22px] lg:self-stretch"
+      className="flex min-w-0 flex-col gap-4 lg:self-stretch"
       aria-label="Hình ảnh, thời lượng và giá tour"
     >
       <TourEditorCard
@@ -92,7 +92,7 @@ export function TourSidebar<T extends TourDetailForm>({
         description="Ảnh đại diện hiển thị cho tour trên website."
         icon={Image}
       >
-        <div className="[&>div>div:first-child]:rounded-[15px] [&>div>div:first-child]:border [&>div>div:first-child]:border-[#9ec4ff] [&>div>div:first-child]:bg-[linear-gradient(145deg,#f3f8ff,#fff)] [&>div>div:first-child]:px-3 [&>div>div:first-child]:py-[19px] [&>div>div:first-child_p:first-of-type]:text-[14px] [&>div>div:first-child_p:first-of-type]:text-[#354966] [&>div>div:first-child_p:last-of-type]:text-[12px] [&>div>div:first-child_p:last-of-type]:leading-[1.7]">
+        <div className="[&>div>div:first-child]:rounded-xl [&>div>div:first-child]:border [&>div>div:first-child]:border-blue-200 [&>div>div:first-child]:bg-[linear-gradient(145deg,#f3f8ff,#fff)] [&>div>div:first-child]:px-3 [&>div>div:first-child]:py-4 [&>div>div:first-child_p:first-of-type]:text-[13px] [&>div>div:first-child_p:first-of-type]:text-slate-700 [&>div>div:first-child_p:last-of-type]:text-[12px] [&>div>div:first-child_p:last-of-type]:leading-[1.6]">
           <ImageUpload
             multiple
             maxFiles={MAX_TOUR_IMAGES}
@@ -107,7 +107,7 @@ export function TourSidebar<T extends TourDetailForm>({
             }
           />
         </div>
-        <p className="text-[12px] leading-[1.65] text-[#8490a5] mt-3">
+        <p className="text-[12px] leading-[1.6] text-[#7387aa] mt-2.5">
           Tối đa {MAX_TOUR_IMAGES} ảnh. Ảnh đầu tiên được dùng làm ảnh bìa.
         </p>
       </TourEditorCard>
@@ -136,22 +136,22 @@ export function TourSidebar<T extends TourDetailForm>({
             const maximum =
               item.key === "duration_nights" ? nightRange.max : undefined;
             return (
-              <div key={item.key} className="flex min-w-0 flex-col gap-[7px]">
-                <label htmlFor={item.key} className="flex items-center gap-[6px] text-[13px] leading-[1.5] font-bold text-[#26324e]">
+              <div key={item.key} className="flex min-w-0 flex-col gap-1.5">
+                <label htmlFor={item.key} className="flex items-center gap-1.5 text-[13px] leading-[1.5] font-[650] text-[#0b1747]">
                   {item.label} <span className="text-[#ed5f6c]">*</span>
                 </label>
-                <div className="grid grid-cols-[22px_minmax(0,1fr)_22px] items-center gap-1 rounded-[11px] border border-[#dfe6f1] bg-[#f9fbff] px-2 py-[10px]">
+                <div className="grid grid-cols-[24px_minmax(0,1fr)_24px] items-center gap-1 rounded-lg border border-[#dce7f7] bg-[#f9fbff] px-2 py-2">
                   <button
                     type="button"
-                    className="grid size-[21px] shrink-0 place-items-center rounded-full bg-[#eaf0f8] text-[#53627d] hover:bg-[#dceaff] hover:text-[#0868f9] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="grid size-5.5 shrink-0 place-items-center rounded-full bg-[#eaf0f8] text-[#53627d] hover:bg-blue-100 hover:text-[#075bff] disabled:cursor-not-allowed disabled:opacity-40"
                     disabled={lockCoreFields || count <= minimum}
                     aria-label={"Giảm " + item.label.toLowerCase()}
                     onClick={() => changeDuration(item.key, count - 1)}
                   >
                     <Minus size={12} />
                   </button>
-                  <span className="flex min-w-0 items-center justify-center gap-[3px] [&>svg]:shrink-0 [&>svg]:text-[#8090a9]">
-                    <Icon size={16} />
+                  <span className="flex min-w-0 items-center justify-center gap-1 [&>svg]:shrink-0 [&>svg]:text-[#8090a9]">
+                    <Icon size={15} />
                     <input
                       id={item.key}
                       type="number"
@@ -162,7 +162,7 @@ export function TourSidebar<T extends TourDetailForm>({
                       value={count}
                       aria-invalid={!durationValid}
                       aria-describedby="tour-duration-help"
-                      className="w-10 min-w-0 [appearance:textfield] bg-transparent p-0 text-center text-[14px] font-[650] outline-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
+                      className="w-10 min-w-0 [appearance:textfield] bg-transparent p-0 text-center text-[14px] font-[650] text-slate-900 outline-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
                       onChange={(event) =>
                         changeDuration(item.key, Number(event.target.value))
                       }
@@ -170,7 +170,7 @@ export function TourSidebar<T extends TourDetailForm>({
                   </span>
                   <button
                     type="button"
-                    className="grid size-[21px] shrink-0 place-items-center rounded-full bg-[#eaf0f8] text-[#53627d] hover:bg-[#dceaff] hover:text-[#0868f9] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="grid size-5.5 shrink-0 place-items-center rounded-full bg-[#eaf0f8] text-[#53627d] hover:bg-blue-100 hover:text-[#075bff] disabled:cursor-not-allowed disabled:opacity-40"
                     disabled={
                       lockCoreFields ||
                       (maximum !== undefined && count >= maximum)
@@ -188,7 +188,7 @@ export function TourSidebar<T extends TourDetailForm>({
         <p
           id="tour-duration-help"
           className={
-            durationValid ? "text-[12px] leading-[1.65] text-[#8490a5] mt-3" : "mt-3 text-[12px] leading-[1.6] text-[#d34453]"
+            durationValid ? "text-[12px] leading-[1.6] text-[#7387aa] mt-2.5" : "mt-2.5 text-[12px] leading-[1.6] text-rose-600 font-medium"
           }
           role={durationValid ? undefined : "alert"}
         >
@@ -196,14 +196,14 @@ export function TourSidebar<T extends TourDetailForm>({
           số ngày.
         </p>
       </TourEditorCard>
-      <div ref={controlsRef} className="flex shrink-0 flex-col gap-[22px] lg:sticky lg:top-[min(16px,calc(100dvh_-_var(--tour-controls-height,600px)_-_16px))] lg:z-[5]">
+      <div ref={controlsRef} className="flex shrink-0 flex-col gap-4 lg:sticky lg:top-[min(16px,calc(100dvh_-_var(--tour-controls-height,600px)_-_16px))] lg:z-[5]">
         <TourEditorCard
           title="Quản lý chốt khách"
           description="Thiết lập thời hạn chốt khách cho tour."
           icon={UsersRound}
         >
-          <div className="flex min-w-0 flex-col gap-[7px]">
-            <label htmlFor="tour-cut-off" className="flex items-center gap-[6px] text-[13px] leading-[1.5] font-bold text-[#26324e]">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <label htmlFor="tour-cut-off" className="flex items-center gap-1.5 text-[13px] leading-[1.5] font-[650] text-[#0b1747]">
               Chốt trước (giờ) <span className="text-[#ed5f6c]">*</span>
             </label>
             <div className="relative">
@@ -213,7 +213,7 @@ export function TourSidebar<T extends TourDetailForm>({
                 type="number"
                 min={0}
                 step={1}
-                className="w-full rounded-[11px] border border-[#dfe6f1] bg-[#f8faff] px-3 py-[11px] text-[14px] leading-[1.5] text-[#233455] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[#94a0b4] focus:border-[#79a8f5] focus:bg-white focus:shadow-[0_0_0_3px_#e8f1ff] disabled:cursor-not-allowed disabled:bg-[#f0f3f8] disabled:text-[#8a96aa] read-only:cursor-not-allowed read-only:bg-[#f0f3f8] read-only:text-[#8a96aa] pl-[38px]"
+                className="w-full rounded-lg border border-[#dce7f7] bg-[#f8faff] px-3 py-2 text-[13px] leading-[1.5] text-slate-800 outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:border-[#075bff] focus:bg-white focus:shadow-[0_0_0_3px_#e8f1ff] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 read-only:cursor-not-allowed read-only:bg-slate-100 read-only:text-slate-500 pl-9"
                 value={tour.cut_off_hours ?? ""}
                 placeholder="24"
                 onChange={(event) =>
@@ -228,7 +228,7 @@ export function TourSidebar<T extends TourDetailForm>({
               />
             </div>
           </div>
-          <p className="mt-[11px] flex items-start gap-[7px] rounded-[10px] bg-[#edf5ff] p-[10px] text-[12px] leading-[1.6] text-[#7183a0] [&_svg]:mt-px [&_svg]:shrink-0 [&_svg]:text-[#3184f8]">
+          <p className="mt-2.5 flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50/70 p-2.5 text-[12px] leading-[1.6] text-slate-600 [&_svg]:mt-0.5 [&_svg]:shrink-0 [&_svg]:text-[#075bff]">
             <Info size={16} />
             <span>
               Tour tự động ngừng nhận đặt chỗ trước giờ khởi hành theo thời hạn
@@ -243,8 +243,8 @@ export function TourSidebar<T extends TourDetailForm>({
         >
           <div className="space-y-3">
             <div>
-              <label htmlFor="tour-base-price" className="mb-1.5 flex items-center gap-1.5 text-[12px] font-semibold text-[#26324e]">
-                <Coins size={14} className="text-[#0868f9]" />
+              <label htmlFor="tour-base-price" className="mb-1.5 flex items-center gap-1.5 text-[12px] font-[650] text-[#0b1747]">
+                <Coins size={14} className="text-[#075bff]" />
                 Giá cơ bản (Người lớn)
               </label>
               <VndPriceInput
@@ -260,8 +260,8 @@ export function TourSidebar<T extends TourDetailForm>({
               />
             </div>
             <div>
-              <label htmlFor="tour-single-room-surcharge" className="mb-1.5 flex items-center gap-1.5 text-[12px] font-semibold text-[#26324e]">
-                <BedDouble size={14} className="text-[#0868f9]" />
+              <label htmlFor="tour-single-room-surcharge" className="mb-1.5 flex items-center gap-1.5 text-[12px] font-[650] text-[#0b1747]">
+                <BedDouble size={14} className="text-[#075bff]" />
                 + Phòng đơn (mặc định)
               </label>
               <VndPriceInput
@@ -282,14 +282,14 @@ export function TourSidebar<T extends TourDetailForm>({
           type="button"
           onClick={onSave}
           disabled={readOnly || saving}
-          className="relative mt-[2px] flex min-h-[54px] w-full items-center justify-center gap-[11px] rounded-[15px] border border-[#1c69f2] bg-[linear-gradient(135deg,#4c92ff,#1258ef_65%,#0646db)] px-10 py-[14px] text-[15px] font-bold text-white shadow-[0_6px_14px_#1a6af328,inset_0_1px_0_#ffffff50] transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[0_9px_18px_#1a6af33a] disabled:cursor-wait disabled:opacity-[.65]"
+          className="relative flex min-h-11 w-full items-center justify-center gap-2 rounded-[12px] border border-[#075bff] bg-[#075bff] px-6 py-3 text-[14px] font-[650] text-white shadow-sm transition-colors duration-180 hover:bg-[#064ddd] disabled:cursor-wait disabled:opacity-60"
         >
           {saving ? (
-            <Loader2 className="animate-spin" size={21} />
+            <Loader2 className="animate-spin" size={19} />
           ) : success ? (
-            <CheckCircle2 size={21} />
+            <CheckCircle2 size={19} />
           ) : (
-            <Plane size={21} />
+            <Plane size={19} />
           )}
           <span>
             {saving
@@ -304,7 +304,7 @@ export function TourSidebar<T extends TourDetailForm>({
             <ArrowRight size={18} className="absolute right-4" />
           )}
         </button>
-        <p className="text-center text-[12px] text-[#8a9ab2]">
+        <p className="text-center text-[12px] text-[#7387aa]">
           {mode === "create"
             ? "Hoàn tất thông tin để tạo hành trình mới."
             : "Các thay đổi sẽ được cập nhật cho tour này."}

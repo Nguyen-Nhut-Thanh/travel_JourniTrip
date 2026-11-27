@@ -48,11 +48,11 @@ const CARD_TIER_CONFIGS: Record<MembershipTierId, CardTierVisual> = {
   },
   diamond: {
     id: "diamond",
-    name: "SIGNATURE DIAMOND",
+    name: "ROYAL DIAMOND",
     badge: "Hạng Kim Cương",
-    gradient: "linear-gradient(135deg, #022C22 0%, #065F46 45%, #10B981 100%)",
-    shadow: "0 25px 50px -12px rgba(16, 185, 129, 0.35)",
-    accentText: "text-emerald-300",
+    gradient: "linear-gradient(135deg, #200636 0%, #350b57 45%, #4a1078 100%)",
+    shadow: "0 25px 50px -12px rgba(74, 16, 120, 0.4)",
+    accentText: "text-purple-300",
   },
 };
 

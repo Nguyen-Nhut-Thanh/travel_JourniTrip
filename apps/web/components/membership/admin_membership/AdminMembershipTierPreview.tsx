@@ -45,13 +45,13 @@ export const tierStyles: Record<
 export function MembershipTierPreview({ tier }: { tier: MembershipTier }) {
   return (
     <aside className="space-y-4 xl:sticky xl:top-4 xl:self-start">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/20">
-        <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-900">
-          <Sparkles size={17} className="text-amber-500" />
+      <section className="rounded-[14px] border border-[#e1edfc] bg-white p-5 shadow-sm">
+        <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-[#0b1747]">
+          <Sparkles size={17} className="text-[#075bff]" />
           Xem trước thẻ hội viên
         </h2>
         <div
-          className={`relative isolate flex aspect-[1.586/1] flex-col justify-between overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br ${tierStyles[tier.id].card} p-5 text-white shadow-lg`}
+          className={`relative isolate flex aspect-[1.586/1] flex-col justify-between overflow-hidden rounded-[14px] border border-white/20 bg-gradient-to-br ${tierStyles[tier.id].card} p-5 text-white shadow-md`}
         >
           <div
             aria-hidden
@@ -97,31 +97,31 @@ export function MembershipTierPreview({ tier }: { tier: MembershipTier }) {
             </span>
           </div>
         </div>
-        <div className="mt-5 border-t border-slate-100 pt-4">
-          <p className="text-xs font-bold text-slate-800">
+        <div className="mt-5 border-t border-[#e1edfc] pt-4">
+          <p className="text-xs font-bold text-[#0b1747]">
             Quyền lợi hạng {tier.name}
           </p>
           <ul className="mt-3 space-y-2.5">
             {membershipBenefits(tier).map((benefit) => (
               <li
                 key={benefit}
-                className="flex items-start gap-2 text-xs leading-5 text-slate-600"
+                className="flex items-start gap-2 text-xs leading-5 text-[#4a6182]"
               >
                 <Check size={14} className="mt-0.5 shrink-0 text-emerald-600" />
                 {benefit}
               </li>
             ))}
           </ul>
-          <p className="mt-4 rounded-lg bg-slate-50 p-3 text-[11px] leading-5 text-slate-500">
+          <p className="mt-4 rounded-xl border border-blue-100 bg-[#f8fbff] p-3 text-[11px] leading-5 text-[#607599]">
             {tier.threshold
               ? `Từ ${formatVND(tier.threshold)} chi tiêu hợp lệ trong kỳ.`
               : "Hạng khởi đầu cho mọi hội viên."}
           </p>
         </div>
       </section>
-      <section className="rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-5 text-xs leading-6 text-slate-300">
-        <h2 className="mb-2 flex items-center gap-2 font-semibold text-cyan-300">
-          <Info size={16} />
+      <section className="rounded-[14px] border border-blue-200/80 bg-blue-50/50 p-5 text-xs leading-6 text-[#4a6182] shadow-sm">
+        <h2 className="mb-2 flex items-center gap-2 font-bold text-[#0b1747]">
+          <Info size={16} className="text-[#075bff]" />
           Quy tắc áp dụng
         </h2>
         <p>

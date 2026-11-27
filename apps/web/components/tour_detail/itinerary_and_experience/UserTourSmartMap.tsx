@@ -86,22 +86,17 @@ export default function TourSmartMap({
   const featuredLocation = featured?.location;
 
   return (
-    <section className="@container/destinations min-w-0 space-y-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-      <div className="flex items-center gap-3 sm:gap-4">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-600 sm:h-14 sm:w-14">
-          <Route className="h-6 w-6" />
-        </span>
-        <div>
-          <h2 className="text-xl font-extrabold tracking-tight text-slate-950 sm:text-2xl">
-            Khám phá điểm đến
-          </h2>
-          <p className="mt-1 text-sm leading-6 text-slate-500">
-            Chọn từng tỉnh/thành để xem các điểm tham quan trong tour.
-          </p>
+    <section className="@container/destinations min-w-0 space-y-4 rounded-[14px] border border-[#e1edfc] bg-white p-5 sm:p-6 shadow-sm">
+      <div className="flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#075bff]">
+          <MapPin className="h-4 w-4" />
         </div>
+        <h2 className="text-[17px] sm:text-lg font-bold text-[#0b1747]">
+          Khám phá điểm đến
+        </h2>
       </div>
       {!selected ? (
-        <p className="py-4 text-sm text-slate-500">
+        <p className="py-4 text-sm text-[#7387aa]">
           Các điểm đến đang được cập nhật.
         </p>
       ) : (
@@ -112,24 +107,13 @@ export default function TourSmartMap({
             onSelect={setActiveProvince}
           />
           <div aria-live="polite" className="space-y-3">
-            <div className="flex min-w-0 items-baseline justify-between gap-3">
-              <h3
-                title={`Khám phá ${selected.name}`}
-                className="min-w-0 truncate text-lg font-extrabold tracking-tight text-slate-950 sm:text-3xl"
-              >
-                Khám phá <span className="text-sky-600">{selected.name}</span>
-              </h3>
-              <p className="shrink-0 whitespace-nowrap text-xs text-slate-500 sm:text-sm">
-                {attractions.length} điểm tham quan
-              </p>
-            </div>
             {featuredLocation ? (
               <div
                 key={selected.id}
                 className={`grid items-start gap-3 ${otherAttractions.length ? "@[640px]/destinations:grid-cols-[1.15fr_1fr]" : ""}`}
               >
                 <article
-                  className={`relative isolate overflow-hidden rounded-xl bg-slate-100 ${otherAttractions.length ? "aspect-[4/3] @[640px]/destinations:aspect-auto @[640px]/destinations:h-[26rem]" : "aspect-[16/10] max-h-[30rem] sm:aspect-[16/9]"}`}
+                  className={`relative isolate overflow-hidden rounded-[14px] bg-slate-100 ${otherAttractions.length ? "aspect-[4/3] @[640px]/destinations:aspect-auto @[640px]/destinations:h-[26rem]" : "aspect-[16/10] max-h-[30rem] sm:aspect-[16/9]"}`}
                 >
                   <ImageWithFallback
                     src={featuredLocation.location_images?.[0]?.image_url}
@@ -143,7 +127,7 @@ export default function TourSmartMap({
                   />
                   <div className="absolute inset-x-0 bottom-0 space-y-2 p-5 text-white sm:p-6">
                     <h4 className="flex items-start gap-2 text-xl font-bold sm:text-2xl">
-                      <MapPin className="mt-1 h-5 w-5 shrink-0" />
+                      <MapPin className="mt-1 h-5 w-5 shrink-0 text-[#075bff]" />
                       <span className="min-w-0 break-words">
                         {featuredLocation.name}
                       </span>
@@ -162,7 +146,7 @@ export default function TourSmartMap({
                     role="region"
                     aria-label={`Các điểm tham quan khác tại ${selected.name}`}
                     tabIndex={0}
-                    className="no-scrollbar min-w-0 space-y-3 overflow-y-auto overscroll-y-contain rounded-xl focus-visible:outline-2 focus-visible:outline-sky-600 @[640px]/destinations:max-h-[26rem]"
+                    className="no-scrollbar min-w-0 space-y-1 overflow-y-auto overscroll-y-contain rounded-xl focus-visible:outline-2 focus-visible:outline-[#075bff] @[640px]/destinations:max-h-[26rem]"
                   >
                     {otherAttractions.map((visit) => {
                       const location = visit.location!;
@@ -174,9 +158,9 @@ export default function TourSmartMap({
                             handleSelectAttraction(visit.location_id)
                           }
                           title={`Xem điểm tham quan ${location.name}`}
-                          className="group grid w-full min-h-32 grid-cols-[0.9fr_1.1fr] gap-2.5 rounded-2xl p-1.5 text-left cursor-pointer transition-all hover:bg-sky-50/70 hover:shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                          className="group grid w-full min-h-24 sm:min-h-28 grid-cols-[0.9fr_1.1fr] gap-2.5 rounded-xl border border-transparent p-1 sm:p-1.5 text-left cursor-pointer transition-all hover:border-[#e1edfc] hover:bg-[#f8fbff] hover:shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#075bff]"
                         >
-                          <span className="relative min-h-32 overflow-hidden rounded-xl bg-slate-100">
+                          <span className="relative min-h-24 sm:min-h-28 overflow-hidden rounded-xl bg-slate-100">
                             <ImageWithFallback
                               src={location.location_images?.[0]?.image_url}
                               alt={location.name}
@@ -184,14 +168,14 @@ export default function TourSmartMap({
                               className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             />
                           </span>
-                          <span className="min-w-0 py-1">
-                            <span className="flex items-start gap-1.5 text-sm font-bold text-slate-950 transition-colors group-hover:text-sky-600">
-                              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
+                          <span className="min-w-0 py-0.5">
+                            <span className="flex items-start gap-1.5 text-sm font-bold text-[#0b1747] transition-colors group-hover:text-[#075bff]">
+                              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#075bff]" />
                               <span className="min-w-0 break-words">
                                 {location.name}
                               </span>
                             </span>
-                            <span className="mt-2 block whitespace-pre-line break-words text-xs leading-5 text-slate-500">
+                            <span className="mt-1 block line-clamp-3 whitespace-pre-line break-words text-xs leading-5 text-[#7387aa]">
                               {location.note ||
                                 "Thông tin giới thiệu địa điểm đang được cập nhật."}
                             </span>
@@ -203,20 +187,22 @@ export default function TourSmartMap({
                 )}
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-sky-200 bg-sky-50/40 px-5 py-10 text-center text-sm leading-6 text-slate-500">
+              <div className="rounded-[14px] border border-dashed border-[#b9d7fb] bg-[#f8fbff] px-5 py-10 text-center text-sm leading-6 text-[#7387aa]">
                 Chưa có điểm tham quan được chọn tại {selected.name} trong lịch
                 trình này.
               </div>
             )}
           </div>
-          <div className="flex min-w-0 flex-col gap-4 border-t border-slate-100 pt-5 @[640px]/destinations:flex-row @[640px]/destinations:items-center">
+          <div className="flex min-w-0 flex-col gap-4 border-t border-[#edf2fb] pt-5 @[640px]/destinations:flex-row @[640px]/destinations:items-center">
             <div className="flex shrink-0 items-center gap-2.5">
-              <Route className="h-7 w-7 text-slate-400" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#075bff]">
+                <Route className="h-4 w-4" />
+              </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-950">
+                <h3 className="text-sm font-bold text-[#0b1747]">
                   Tuyến hành trình
                 </h3>
-                <p className="mt-0.5 text-xs text-slate-500">
+                <p className="mt-0.5 text-xs text-[#7387aa]">
                   Lộ trình {provinces.length} điểm dừng
                 </p>
               </div>
@@ -234,7 +220,7 @@ export default function TourSmartMap({
                     {index < provinces.length - 1 && (
                       <span
                         aria-hidden="true"
-                        className="absolute left-1/2 top-2.5 h-px w-full bg-sky-300"
+                        className="absolute left-1/2 top-2.5 h-0.5 w-full bg-[#b9d7fb]"
                       />
                     )}
                     <button
@@ -243,17 +229,17 @@ export default function TourSmartMap({
                         selected.id === province.id ? "step" : undefined
                       }
                       onClick={() => setActiveProvince(province.id)}
-                      className="relative flex w-full flex-col items-center gap-2 rounded text-xs focus-visible:outline-2 focus-visible:outline-sky-600"
+                      className="relative flex w-full flex-col items-center gap-2 rounded text-xs focus-visible:outline-2 focus-visible:outline-[#075bff]"
                     >
                       <span
                         aria-hidden="true"
-                        className={`h-5 w-5 rounded-full ${selected.id === province.id ? "border-4 border-sky-600 bg-white" : "border-[5px] border-white bg-white ring-1 ring-inset ring-sky-400"}`}
+                        className={`h-5 w-5 rounded-full ${selected.id === province.id ? "border-4 border-[#075bff] bg-white ring-2 ring-blue-100" : "border-2 border-white bg-[#dce7f7] ring-1 ring-[#b9d7fb]"}`}
                       />
                       <span
                         className={
                           selected.id === province.id
-                            ? "font-bold text-sky-600"
-                            : "text-slate-500"
+                            ? "font-bold text-[#075bff]"
+                            : "text-[#7387aa] hover:text-[#0b1747]"
                         }
                       >
                         {province.name}

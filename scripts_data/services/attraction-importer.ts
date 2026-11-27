@@ -37,11 +37,11 @@ export interface AttractionStats {
 
 export async function getAttractionStats(): Promise<AttractionStats> {
   const [totalCount, featuredCount, byParentRaw] = await Promise.all([
-    prisma.locations.count({ where: { level_id: 6 } }),
-    prisma.locations.count({ where: { level_id: 6, is_featured: true } }),
+    prisma.locations.count({ where: { level_id: 6, country_code: 'VN' } }),
+    prisma.locations.count({ where: { level_id: 6, country_code: 'VN', is_featured: true } }),
     prisma.locations.groupBy({
       by: ['parent_id'],
-      where: { level_id: 6, parent_id: { not: null } },
+      where: { level_id: 6, country_code: 'VN', parent_id: { not: null } },
       _count: { location_id: true },
     }),
   ]);
@@ -136,7 +136,7 @@ export async function importAttractions(options: ImportAttractionsOptions = {}):
   try {
     rawList = JSON.parse(content);
     if (!Array.isArray(rawList)) {
-      throw new Error('Dữ liệu JSON điểm tham quan phải là một mảng.');
+      throw new Error('Dữ liệu điểm tham quan Việt Nam phải là một mảng. Với international-locations.json, dùng npm run db:import:international.');
     }
   } catch (err: any) {
     throw new Error(`Lỗi phân tích file JSON điểm tham quan: ${err.message}`);
@@ -157,7 +157,7 @@ export async function importAttractions(options: ImportAttractionsOptions = {}):
       });
       const inUseIds = new Set(inUseAttractions.map((a) => a.location_id));
       const allAttractions = await prisma.locations.findMany({
-        where: { level_id: 6 },
+        where: { level_id: 6, country_code: 'VN' },
         select: { location_id: true },
       });
       const toDelete = allAttractions.filter((a) => !inUseIds.has(a.location_id)).map((a) => a.location_id);
@@ -174,7 +174,7 @@ export async function importAttractions(options: ImportAttractionsOptions = {}):
 
   // Lấy toàn bộ tỉnh/thành phố (level_id = 5) để mapping
   const provinces = await prisma.locations.findMany({
-    where: { level_id: 5 },
+    where: { level_id: 5, country_code: 'VN' },
     select: { location_id: true, slug: true, name: true },
   });
 
@@ -237,6 +237,10 @@ export async function importAttractions(options: ImportAttractionsOptions = {}):
         ],
       },
     });
+
+    if (existing && (existing.country_code !== 'VN' || existing.level_id !== 6 || existing.location_type !== 'attraction')) {
+      throw new Error(`Slug đã thuộc quốc gia hoặc cấp địa điểm khác: ${slug}.`);
+    }
 
     let targetLocationId: number;
 

@@ -16,3 +16,22 @@ export function changeTimePart(value: string, part: "hour" | "minute" | "period"
   const minute = part === "minute" ? next : time.minute;
   return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
+
+/** Giữ nguyên vị trí cuộn nếu lựa chọn đã hiện đầy đủ; chỉ căn giữa khi mở lần đầu. */
+export function getTimeColumnScrollTop({
+  scrollTop, viewportHeight, optionTop, optionHeight, center = false,
+}: {
+  scrollTop: number;
+  viewportHeight: number;
+  optionTop: number;
+  optionHeight: number;
+  center?: boolean;
+}) {
+  if (viewportHeight <= 0) return scrollTop;
+  if (center) return Math.max(0, optionTop - (viewportHeight - optionHeight) / 2);
+  if (optionTop < scrollTop) return optionTop;
+  if (optionTop + optionHeight > scrollTop + viewportHeight) {
+    return optionTop + optionHeight - viewportHeight;
+  }
+  return scrollTop;
+}

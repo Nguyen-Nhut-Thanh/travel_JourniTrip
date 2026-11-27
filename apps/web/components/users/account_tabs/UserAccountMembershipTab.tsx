@@ -99,7 +99,7 @@ export function AccountMembershipTab() {
   const pointsBalance = data.pointsBalance ?? data.points;
 
   return (
-    <div className="-mx-4 -mt-4 sm:-mx-6 sm:-mt-6 lg:-mx-8 lg:-mt-8 -mb-4 sm:-mb-6 lg:-mb-8 p-4 sm:p-6 lg:p-7 xl:p-8 bg-[#050B14] text-slate-100 min-h-screen rounded-3xl sm:rounded-[32px] border border-slate-800/80 shadow-2xl relative overflow-hidden space-y-12 selection:bg-amber-500 selection:text-slate-950">
+    <div className="-mx-4 -mt-4 sm:-mx-6 sm:-mt-6 lg:-mx-8 lg:-mt-8 -mb-4 sm:-mb-6 lg:-mb-8 p-4 sm:p-6 lg:p-7 xl:p-8 bg-[#050B14] text-slate-100 min-h-screen rounded-3xl sm:rounded-[32px] border border-slate-800/80 shadow-2xl relative overflow-hidden space-y-8 selection:bg-amber-500 selection:text-slate-950">
       {/* Ambient Background Glows chuẩn pagemember.html */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden z-0">
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-amber-500/10 rounded-full blur-[130px]" />

@@ -5,7 +5,7 @@ import { ScheduleManagement } from "@/components/schedules/schedule_table/AdminS
 import { TourSidebar } from "@/components/tours/tour_management/AdminTourSidebar";
 import { TourEditorShell } from "@/components/tours/tour_editor/AdminTourEditorShell";
 
-import { TourAmenitiesEditor } from "@/components/tours/tour_editor/AdminTourAmenitiesEditor";
+import { TourDetailsCard } from "@/components/tours/tour_editor/AdminTourDetailsCard";
 import { getAdminTransports } from "@/lib/catalogs/admin/api";
 import { getAdminLocations } from "@/lib/locations/admin/api";
 import { createAdminTour } from "@/lib/tours/admin/api";
@@ -137,14 +137,14 @@ export default function AdminTourCreatePage() {
 
   return (
     <TourEditorShell title="Thêm Tour Mới" description="Tạo tour du lịch mới cho website. Điền đầy đủ thông tin để tour hiển thị chuyên nghiệp và thu hút hơn." onBack={() => router.push('/admin/tours')}>
-      <div className="grid items-start gap-[22px] lg:grid-cols-[minmax(0,min(calc((100%_-_22px)*1.55/2.55),calc(100%_-_302px)))_minmax(260px,calc((100%_-_22px)/3.4))] lg:justify-start">
-        <div className="flex min-w-0 flex-col gap-[22px]">
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)] lg:justify-start">
+        <div className="flex min-w-0 flex-col gap-4">
           <TourBasicInfoCard mode="create" tour={form} locations={locations} transports={transports} onTourChange={setForm} />
-          <TourAmenitiesEditor value={form.tour_amenities} onChange={tour_amenities => setForm(previous => ({ ...previous, tour_amenities }))} />
+          <TourDetailsCard tour={form} onTourChange={setForm} />
         </div>
         <TourSidebar mode="create" tour={form} saving={saving} success={false} onSave={handleCreate} onTourChange={setForm} />
       </div>
-      <div className="mt-6">
+      <div className="mt-4">
         <ScheduleManagement />
       </div>
     </TourEditorShell>

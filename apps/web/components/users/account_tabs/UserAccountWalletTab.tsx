@@ -46,7 +46,7 @@ export function AccountWalletTab() {
   );
 
   return (
-    <div className="w-full min-w-0 space-y-6">
+    <div className="w-full min-w-0 space-y-4">
       <AccountPageBanner
         title="Ví voucher & ưu đãi"
         description="Lưu giữ ưu đãi cho những chuyến đi sắp tới."
@@ -65,7 +65,7 @@ export function AccountWalletTab() {
           <div className="flex shrink-0 items-center gap-2">
             <Link
               href="/account/membership"
-              className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs transition hover:border-slate-300 hover:bg-slate-50 sm:text-sm"
+              className="rounded-lg border border-[#dce7f7] bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs transition hover:border-slate-300 hover:bg-slate-50 sm:text-sm"
             >
               Hạng thành viên
             </Link>
@@ -74,7 +74,7 @@ export function AccountWalletTab() {
               type="button"
               onClick={refresh}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 transition hover:text-blue-700 disabled:opacity-50 sm:text-sm"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#075bff] transition hover:text-blue-700 disabled:opacity-50 sm:text-sm"
             >
               <RotateCw size={15} className={loading ? "animate-spin" : ""} />
               <span>Làm mới</span>
@@ -85,11 +85,11 @@ export function AccountWalletTab() {
 
       {/* Content */}
       {loading ? (
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="relative flex min-h-[148px] overflow-hidden rounded-2xl bg-white border border-slate-100 p-5 shadow-xs animate-pulse"
+              className="relative flex min-h-[148px] overflow-hidden rounded-[14px] bg-white border border-[#e1edfc] p-5 shadow-xs animate-pulse"
             >
               <div className="flex flex-1 items-start gap-3.5">
                 <div className="h-11 w-11 rounded-xl bg-slate-100 shrink-0" />
@@ -109,26 +109,26 @@ export function AccountWalletTab() {
           ))}
         </div>
       ) : error ? (
-        <div role="alert" className="rounded-2xl border border-rose-100 bg-white p-8 text-center text-rose-700 shadow-xs">
+        <div role="alert" className="rounded-[14px] border border-rose-100 bg-white p-8 text-center text-rose-700 shadow-xs">
           <p>{error}</p>
-          <button type="button" onClick={refresh} className="mt-3 font-semibold text-blue-600 underline">
+          <button type="button" onClick={refresh} className="mt-3 font-semibold text-[#075bff] underline">
             Thử tải lại
           </button>
         </div>
       ) : visibleVouchers.length ? (
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {visibleVouchers.map((voucher: MembershipVoucher) => {
             const inactive = voucher.state === "used" || voucher.state === "expired";
             return (
               <article
                 key={voucher.voucher_id}
-                className={`relative flex min-h-[148px] overflow-hidden rounded-2xl bg-white border border-slate-100/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all duration-200 hover:shadow-md hover:border-blue-100 ${
+                className={`relative flex min-h-[148px] overflow-hidden rounded-[14px] bg-white border border-[#e1edfc] shadow-sm transition-all duration-200 hover:shadow-md hover:border-blue-200 ${
                   inactive ? "opacity-60" : ""
                 }`}
               >
                 {/* Left Info Section */}
                 <div className="flex flex-1 min-w-0 items-start gap-3.5 p-4 sm:p-5">
-                  <div className="mt-0.5 flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-blue-600">
+                  <div className="mt-0.5 flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#075bff]">
                     <Ticket className="h-5 w-5 sm:h-5.5 sm:w-5.5" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -182,7 +182,7 @@ export function AccountWalletTab() {
                     <button
                       type="button"
                       onClick={() => void copy(voucher.code)}
-                      className="mt-2 inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 transition"
+                      className="mt-2 inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#075bff] hover:text-blue-700 transition"
                     >
                       {copied === voucher.code ? (
                         <Check size={14} className="text-emerald-600" />
@@ -206,8 +206,8 @@ export function AccountWalletTab() {
           })}
         </div>
       ) : (
-        <div className="rounded-2xl border border-slate-200/70 bg-white px-6 py-14 text-center shadow-xs">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-blue-500">
+        <div className="rounded-[14px] border border-[#e1edfc] bg-white px-6 py-14 text-center shadow-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-[#075bff]">
             <Ticket size={28} />
           </div>
           <p className="mt-4 font-bold text-slate-800">

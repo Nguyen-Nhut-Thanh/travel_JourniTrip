@@ -175,7 +175,7 @@ export function AccountNotificationsTab() {
   }
 
   return (
-    <div className="w-full min-w-0 space-y-6">
+    <div className="w-full min-w-0 space-y-4">
       <AccountPageBanner
         title={unreadCount > 0 ? `Thông báo (${unreadCount} chưa đọc)` : "Thông báo"}
         description="Cập nhật trạng thái đặt tour, hạn thanh toán, yêu cầu hủy và ưu đãi mới."
@@ -195,7 +195,7 @@ export function AccountNotificationsTab() {
               type="button"
               onClick={refresh}
               disabled={loading}
-              className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-2xs transition hover:bg-slate-50 disabled:opacity-50"
+              className="rounded-lg border border-[#dce7f7] bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-2xs transition hover:bg-slate-50 disabled:opacity-50"
             >
               Làm mới
             </button>
@@ -204,7 +204,7 @@ export function AccountNotificationsTab() {
                 type="button"
                 disabled={saving}
                 onClick={() => void readAll()}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-blue-700 disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-[12px] bg-[#075bff] px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-[#064ddd] disabled:opacity-50"
               >
                 <CheckCheck size={15} />
                 <span>Đánh dấu tất cả đã đọc</span>
@@ -217,7 +217,7 @@ export function AccountNotificationsTab() {
       {(error || actionError) && (
         <div
           role="alert"
-          className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs font-semibold text-rose-700"
+          className="rounded-[14px] border border-rose-200 bg-rose-50 p-4 text-xs font-semibold text-rose-700"
         >
           {error || actionError}
           <button
@@ -232,13 +232,13 @@ export function AccountNotificationsTab() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center p-12 text-slate-500 gap-3">
-          <Loader2 className="animate-spin text-blue-600" size={32} />
+          <Loader2 className="animate-spin text-[#075bff]" size={32} />
           <p className="text-sm font-semibold text-slate-600">
             Đang tải danh sách thông báo...
           </p>
         </div>
       ) : filteredNotifications.length ? (
-        <ul className="space-y-3.5">
+        <ul className="space-y-4">
           {filteredNotifications.map((item) => {
             const meta = getNotificationMeta(item);
             const Icon = meta.icon;
@@ -247,10 +247,10 @@ export function AccountNotificationsTab() {
             return (
               <li
                 key={item.notification_id}
-                className={`group relative rounded-2xl border p-4 sm:p-5 transition shadow-2xs ${
+                className={`group relative rounded-[14px] border p-4 sm:p-5 transition shadow-sm ${
                   isUnread
                     ? `${meta.borderColor} ${meta.activeBg}`
-                    : "border-slate-100 bg-white hover:border-slate-200"
+                    : "border-[#e1edfc] bg-white hover:border-blue-200"
                 }`}
               >
                 <div className="flex items-start gap-3.5 sm:gap-4">
@@ -276,7 +276,7 @@ export function AccountNotificationsTab() {
                       </div>
 
                       {isUnread && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-2.5 py-0.5 text-[10.5px] font-black uppercase text-white shadow-xs">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#075bff] px-2.5 py-0.5 text-[10.5px] font-black uppercase text-white shadow-xs">
                           <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
                           Mới
                         </span>

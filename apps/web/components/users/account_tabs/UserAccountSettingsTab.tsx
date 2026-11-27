@@ -139,17 +139,17 @@ export function AccountSettingsTab({
             <MapPin size={28} className="text-white" />
           </div>
         </div>
-        <h1 className="relative text-[24px] font-extrabold tracking-tight text-[#13274c] sm:text-[28px]">
+        <h1 className="relative text-[24px] font-extrabold tracking-tight text-[#07123e] sm:text-[28px]">
           Cài đặt tài khoản
         </h1>
-        <p className="relative mt-1 text-sm font-medium text-slate-500 xl:pr-56">
+        <p className="relative mt-1 text-sm font-medium text-[#7387aa] xl:pr-56">
           Cập nhật thông tin cá nhân và tài khoản để trải nghiệm tốt hơn
         </p>
       </div>
 
-      <div className="rounded-[24px] border border-white/90 bg-white/95 px-4 pb-6 shadow-[0_8px_40px_-20px_rgba(63,110,173,0.18)] sm:px-6 sm:pb-8">
+      <div className="rounded-[14px] border border-[#e1edfc] bg-white px-4 pb-6 shadow-sm sm:px-6 sm:pb-8">
         <div
-          className="mb-6 flex border-b border-slate-100"
+          className="mb-6 flex border-b border-[#edf2fb]"
           aria-label="Mục cài đặt"
         >
           {(
@@ -164,7 +164,7 @@ export function AccountSettingsTab({
               aria-pressed={tab === id}
               disabled={saving}
               onClick={() => setTab(id)}
-              className={`relative flex flex-1 items-center justify-center gap-2 border-b-2 px-2 py-5 text-[13px] font-bold transition sm:text-[15px] ${tab === id ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500 hover:text-blue-600"}`}
+              className={`relative flex flex-1 items-center justify-center gap-2 border-b-2 px-2 py-5 text-[13px] font-bold transition sm:text-[15px] ${tab === id ? "border-[#075bff] text-[#075bff]" : "border-transparent text-slate-500 hover:text-[#075bff]"}`}
             >
               <Icon size={19} aria-hidden="true" />
               {label}
@@ -173,14 +173,14 @@ export function AccountSettingsTab({
         </div>
         <div hidden={tab !== "profile"}>
           <div className="mb-6 flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-              <ContactRound size={21} />
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#075bff]">
+              <ContactRound size={20} />
             </span>
             <div>
-              <h2 className="text-[17px] font-bold text-[#13274c]">
+              <h2 className="text-[17px] font-bold text-[#0b1747]">
                 Thông tin cá nhân
               </h2>
-              <p className="mt-1 text-[13px] text-slate-500">
+              <p className="mt-1 text-[13px] text-[#7387aa]">
                 Cập nhật thông tin cá nhân của bạn
               </p>
             </div>
@@ -216,7 +216,7 @@ export function AccountSettingsTab({
                       maxLength={150}
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 outline-none focus:border-sky-500"
+                      className="w-full rounded-lg border border-[#dce7f7] py-2.5 pl-10 pr-4 outline-none focus:border-[#075bff]"
                       placeholder="Nhập họ và tên"
                     />
                   </div>
@@ -240,7 +240,7 @@ export function AccountSettingsTab({
                       maxLength={15}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 outline-none focus:border-sky-500"
+                      className="w-full rounded-lg border border-[#dce7f7] py-2.5 pl-10 pr-4 outline-none focus:border-[#075bff]"
                       placeholder="Nhập số điện thoại"
                     />
                   </div>
@@ -263,7 +263,7 @@ export function AccountSettingsTab({
                       type="email"
                       disabled
                       value={user?.accounts?.email || ""}
-                      className="w-full rounded-xl border border-slate-100 bg-[#f3f6fb] py-2.5 pl-10 pr-4 text-slate-500"
+                      className="w-full rounded-lg border border-[#edf2fb] bg-[#f8fbff] py-2.5 pl-10 pr-4 text-slate-500"
                     />
                   </div>
                 </div>
@@ -323,7 +323,7 @@ export function AccountSettingsTab({
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       placeholder="Nhập địa chỉ"
-                      className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 outline-none focus:border-sky-500"
+                      className="w-full rounded-lg border border-[#dce7f7] py-2.5 pl-10 pr-4 outline-none focus:border-[#075bff]"
                     />
                   </div>
                 </div>
@@ -332,7 +332,7 @@ export function AccountSettingsTab({
                   <button
                     type="submit"
                     disabled={saving}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#1674ed] px-6 py-3 text-[15px] font-bold text-white shadow-sm shadow-blue-200 transition hover:bg-blue-700 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-[12px] bg-[#075bff] px-6 py-2.5 text-[14px] font-[650] text-white shadow-sm transition hover:bg-[#064ddd] disabled:opacity-50"
                   >
                     {saving ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -345,16 +345,16 @@ export function AccountSettingsTab({
               </fieldset>
             </form>
             <aside className="space-y-3 xl:pt-1">
-              <section className="rounded-2xl border border-[#edf2fa] bg-[#f8faff] p-4 sm:p-5">
+              <section className="rounded-xl border border-[#e1edfc] bg-[#f8fbff] p-4 sm:p-5">
                 <div className="mb-5 flex items-center gap-3">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-                    <ContactRound size={21} />
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#075bff]">
+                    <ContactRound size={20} />
                   </span>
                   <div>
-                    <h2 className="text-[15px] font-bold text-[#13274c]">
+                    <h2 className="text-[15px] font-bold text-[#0b1747]">
                       Thông tin tài khoản
                     </h2>
-                    <p className="mt-1 text-[13px] text-slate-500">
+                    <p className="mt-1 text-[13px] text-[#7387aa]">
                       Một số thông tin cơ bản về tài khoản của bạn
                     </p>
                   </div>
@@ -406,10 +406,10 @@ export function AccountSettingsTab({
                   ))}
                 </dl>
               </section>
-              <section className="flex gap-3 rounded-2xl border border-blue-50 bg-[#edf5ff] p-5 text-blue-600">
+              <section className="flex gap-3 rounded-xl border border-[#e1edfc] bg-[#eff6ff] p-4 text-[#075bff]">
                 <Info size={22} className="mt-0.5 shrink-0" />
                 <div>
-                  <h3 className="text-[15px] font-bold">Lưu ý</h3>
+                  <h3 className="text-[15px] font-bold text-[#075bff]">Lưu ý</h3>
                   <p className="mt-1.5 text-[13px] leading-6 text-[#5a7eae]">
                     Hãy cập nhật đầy đủ thông tin để nhận được hỗ trợ tốt hơn và
                     trải nghiệm các dịch vụ của JourniTrip.

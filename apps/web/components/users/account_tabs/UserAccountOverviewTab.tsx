@@ -47,7 +47,7 @@ export function AccountOverviewTab({
         </button>
       </section>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_370px] lg:gap-5">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_370px] lg:gap-4">
         <div className="min-w-0">
           <AccountProfileHeader user={user} />
           <AccountOverview

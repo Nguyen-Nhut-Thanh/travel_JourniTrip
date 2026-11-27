@@ -51,17 +51,21 @@ export default function TourItineraryTimeline({
 
   return (
     <section
-      className="space-y-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"
+      className="space-y-4 rounded-[14px] border border-[#e1edfc] bg-white p-4 sm:p-5 shadow-sm"
       aria-labelledby={`${id}-heading`}
     >
       <div className="flex min-w-0 items-center justify-between gap-3">
-        <h2
-          id={`${id}-heading`}
-          className="flex items-center gap-2 text-lg font-bold text-slate-900 sm:text-xl"
-        >
-          <CalendarDays className="h-5 w-5 shrink-0 text-sky-600" />
-          Lịch trình chi tiết
-        </h2>
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#075bff]">
+            <CalendarDays className="h-4 w-4" />
+          </div>
+          <h2
+            id={`${id}-heading`}
+            className="text-[17px] sm:text-lg font-bold text-[#0b1747]"
+          >
+            Lịch trình chi tiết
+          </h2>
+        </div>
         <span className="shrink-0 text-sm font-medium text-slate-500">
           {totalDays} ngày · {totalNights} đêm
         </span>

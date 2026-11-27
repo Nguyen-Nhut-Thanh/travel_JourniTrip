@@ -16,6 +16,7 @@ export default function AdminLayout({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isChatWorkspace = pathname.startsWith("/admin/chats");
+  const isMembershipPage = pathname === "/admin/marketing/membership";
   const isTourPolicies = /^\/admin\/tours\/[^/]+\/policies$/.test(pathname);
 
   if (pathname === "/admin/login") {
@@ -39,7 +40,7 @@ export default function AdminLayout({
 
           <main className={isChatWorkspace ? "flex-1 min-h-0 flex flex-col overflow-hidden" : "admin-content-scroll flex-1 min-h-0"}>
             <div data-admin-page="" className={isChatWorkspace ? "h-full w-full" : isTourPolicies ? "mx-auto w-full max-w-[1520px] px-4 py-3 md:px-6 lg:flex lg:h-full lg:min-h-0 lg:flex-col" : "mx-auto w-full max-w-[1520px] px-4 pb-6 pt-3 md:px-6 md:pb-8"}>
-              {!isChatWorkspace && pathname !== "/admin/schedules" && <AdminBreadcrumbs pathname={pathname} />}
+              {!isChatWorkspace && !isMembershipPage && pathname !== "/admin/schedules" && <AdminBreadcrumbs pathname={pathname} />}
               <AdminContentPermission />
               {isChatWorkspace ? children : <div className={isTourPolicies ? "lg:min-h-0 lg:flex-1" : undefined}>{children}</div>}
             </div>

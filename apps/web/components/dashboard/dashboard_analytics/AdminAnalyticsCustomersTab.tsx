@@ -32,10 +32,17 @@ export function AnalyticsCustomersTab({ data }: AnalyticsCustomersTabProps) {
   > = {
     diamond: {
       label: "Kim Cương",
-      badge: "bg-cyan-100 text-cyan-800 border-cyan-200",
+      badge: "bg-purple-100 text-purple-800 border-purple-200",
       icon: Gem,
-      border: "border-cyan-200",
-      glow: "from-cyan-500/10 to-blue-500/10",
+      border: "border-purple-200",
+      glow: "from-purple-500/10 to-indigo-500/10",
+    },
+    platinum: {
+      label: "Bạch Kim",
+      badge: "bg-sky-100 text-sky-800 border-sky-200",
+      icon: Gem,
+      border: "border-sky-200",
+      glow: "from-sky-500/10 to-cyan-500/10",
     },
     gold: {
       label: "Vàng",
@@ -60,6 +67,15 @@ export function AnalyticsCustomersTab({ data }: AnalyticsCustomersTabProps) {
     },
   };
 
+  const getTierMeta = (tierOrLabel: string = "") => {
+    const raw = (tierOrLabel || "").trim().toLowerCase();
+    if (raw === "kim cương" || raw === "diamond") return tierStyles.diamond;
+    if (raw === "bạch kim" || raw === "platinum") return tierStyles.platinum;
+    if (raw === "vàng" || raw === "gold") return tierStyles.gold;
+    if (raw === "bạc" || raw === "silver") return tierStyles.silver;
+    return tierStyles.bronze;
+  };
+
   const totalVipSpent = customers.topVip.reduce((s, c) => s + c.totalSpent, 0);
 
   return (
@@ -77,13 +93,14 @@ export function AnalyticsCustomersTab({ data }: AnalyticsCustomersTabProps) {
         <h4 className="text-[16px] font-[750] leading-[1.5] text-[#0b1747] mb-3">
           Phân Bổ Cơ Cấu Theo Hạng Thành Viên
         </h4>
-        <div className="grid grid-cols-4 gap-3 @max-[1180px]/analytics:grid-cols-2 @max-[650px]/analytics:grid-cols-1">
+        <div className="grid grid-cols-5 gap-3 @max-[1180px]/analytics:grid-cols-2 @max-[650px]/analytics:grid-cols-1">
           {customers.byTier.map((tierItem) => {
-            const meta = tierStyles[tierItem.tier] || tierStyles.bronze;
+            const meta = getTierMeta(tierItem.tier || tierItem.label);
             const Icon = meta.icon;
             const pct = Math.round((tierItem.count / totalUsers) * 100);
+            const tierCode = (tierItem.tier || "").toLowerCase();
             return (
-              <AdminStatCard key={tierItem.tier} title={tierItem.label} value={`${tierItem.count} TV`} icon={Icon} tone={tierItem.tier === "diamond" ? "cyan" : tierItem.tier === "gold" ? "amber" : tierItem.tier === "silver" ? "slate" : "orange"} description={`Hội viên cấp ${tierItem.tier}`}
+              <AdminStatCard key={tierItem.tier} title={tierItem.label} value={`${tierItem.count} TV`} icon={Icon} tone={tierCode === "diamond" ? "purple" : tierCode === "platinum" ? "cyan" : tierCode === "gold" ? "amber" : tierCode === "silver" ? "slate" : "orange"} description={`Hội viên cấp ${tierItem.label || tierItem.tier}`}
                 badge={<span className={`rounded-full border px-1.5 py-0.5 ${meta.badge}`}>{pct}%</span>}
               >
                 <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500"><span>Tỷ trọng hội viên</span><span>{pct}%</span></div>
@@ -129,7 +146,7 @@ export function AnalyticsCustomersTab({ data }: AnalyticsCustomersTabProps) {
                 </tr>
               ) : (
                 customers.topVip.map((vip, idx) => {
-                  const meta = tierStyles[vip.membershipTier] || tierStyles.bronze;
+                  const meta = getTierMeta(vip.membershipTier);
                   const TierIcon = meta.icon;
                   return (
                     <tr

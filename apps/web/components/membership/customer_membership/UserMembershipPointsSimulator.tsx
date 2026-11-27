@@ -34,13 +34,13 @@ const SIM_TIER_CONFIGS: TierSimConfig[] = [
   },
   {
     id: "platinum",
-    borderClass: "border-cyan-500/30 hover:border-cyan-400/50",
-    textColor: "text-cyan-300",
+    borderClass: "border-sky-500/30 hover:border-sky-400/50",
+    textColor: "text-sky-300",
   },
   {
     id: "diamond",
-    borderClass: "border-emerald-500/30 hover:border-emerald-400/50",
-    textColor: "text-emerald-300",
+    borderClass: "border-purple-500/30 hover:border-purple-400/50",
+    textColor: "text-purple-300",
   },
 ];
 
@@ -110,7 +110,7 @@ export function UserMembershipPointsSimulator({
       </div>
 
       {/* 5 Tiers Output Grid */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5 xl:gap-2.5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {tiers.map((tier) => {
           const style = SIM_TIER_CONFIGS.find(t => t.id === tier.id)!;
           const t = { ...style, name: tier.name, multiplier: tier.pointMultiplier, multiplierText: `×${tier.pointMultiplier.toLocaleString("vi-VN")}`, badge: `×${tier.pointMultiplier.toLocaleString("vi-VN")} Điểm` };

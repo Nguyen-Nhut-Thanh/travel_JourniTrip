@@ -54,12 +54,12 @@ export function AccountPageBanner({
 
       <div className="relative z-10 mx-auto flex max-w-[1240px] flex-col justify-between gap-4 px-4 py-3 pb-5 sm:min-h-[168px] sm:px-6 sm:py-4 lg:flex-row lg:items-center lg:px-8">
         <div className="flex min-w-0 items-start gap-3.5 sm:items-center sm:gap-4">
-          <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-[#dceafe]/90 text-[#1d6ce0] shadow-[0_8px_24px_rgba(37,99,235,0.10)] backdrop-blur-sm sm:h-[60px] sm:w-[60px]">
+          <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/80 bg-[#dceafe]/90 text-[#075bff] shadow-[0_8px_24px_rgba(37,99,235,0.10)] backdrop-blur-sm sm:h-[60px] sm:w-[60px]">
             <Icon className="h-6 w-6 sm:h-7 sm:w-7" strokeWidth={1.9} />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl font-extrabold leading-tight tracking-tight text-[#0f1e36] sm:text-[26px]">{title}</h1>
-            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-600 sm:text-sm">{description}</p>
+            <h1 className="text-xl font-extrabold leading-tight tracking-tight text-[#07123e] sm:text-[26px]">{title}</h1>
+            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-[#7387aa] sm:text-sm">{description}</p>
           </div>
         </div>
 
@@ -77,7 +77,7 @@ export function AccountPageBanner({
       </div>
 
       {hasToolbar ? (
-        <div className="relative z-20 border-t border-white/80 bg-white/80 shadow-[0_4px_20px_rgba(15,23,42,0.03)] backdrop-blur-md">
+        <div className="relative z-20 border-b border-[#e1edfc] border-t border-white/80 bg-white/80 shadow-[0_4px_20px_rgba(15,23,42,0.03)] backdrop-blur-md">
           <div className="mx-auto max-w-[1240px] px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               {filters?.length && onFilterChange ? (
@@ -92,11 +92,11 @@ export function AccountPageBanner({
                         aria-selected={selected}
                         onClick={() => onFilterChange(filter.value)}
                         className={`relative shrink-0 pb-3 text-sm font-semibold transition ${
-                          selected ? "font-bold text-blue-600" : "text-slate-600 hover:text-slate-900"
+                          selected ? "font-bold text-[#075bff]" : "text-slate-600 hover:text-slate-900"
                         }`}
                       >
                         {filter.label}
-                        {selected && <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-blue-600" />}
+                        {selected && <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-[#075bff]" />}
                       </button>
                     );
                   })}

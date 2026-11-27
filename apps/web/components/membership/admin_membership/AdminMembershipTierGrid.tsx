@@ -91,7 +91,7 @@ export function AdminMembershipTierGrid({
       </div>
 
       {/* 5 Metallic Tier Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 items-stretch">
         {tiers.map((tier) => {
           const visual = TIER_VISUALS[tier.id] || TIER_VISUALS.bronze;
           const TierIcon = visual.icon;

@@ -61,7 +61,7 @@ export function BookingHistoryCard({ item, rawBooking, onReview, onCancelRequest
           : Clock;
 
   return (
-    <article className="group relative flex w-full min-w-0 flex-col gap-3 overflow-visible rounded-[24px] border border-blue-100/80 bg-white p-3 shadow-[0_12px_32px_rgba(30,64,175,0.07)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(30,64,175,0.12)] hover:z-20 sm:p-3.5 md:flex-row md:gap-3.5">
+    <article className="group relative flex w-full min-w-0 flex-col gap-3.5 overflow-visible rounded-[14px] border border-[#e1edfc] bg-white p-3.5 shadow-sm transition-all duration-200 hover:border-[#b9d7fb] hover:shadow-md hover:z-20 md:flex-row md:gap-3.5">
       <svg className="pointer-events-none absolute h-0 w-0" aria-hidden="true">
         <defs>
           <clipPath id={`${waveId}-main`} clipPathUnits="objectBoundingBox">
@@ -101,7 +101,7 @@ export function BookingHistoryCard({ item, rawBooking, onReview, onCancelRequest
       <div className="relative z-10 grid min-w-0 flex-1 grid-rows-[36px_116px_auto] gap-2 py-1">
         <div className="flex h-9 min-w-0 items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-base font-extrabold leading-7 tracking-tight text-slate-900 transition-colors group-hover:text-[#1266f1] md:text-lg">
+            <h3 className="truncate text-base font-extrabold leading-7 tracking-tight text-[#0b1747] transition-colors group-hover:text-[#075bff] md:text-lg">
               <Link href={`/booking/${item.id}`} title={item.name} className="block truncate">{item.name}</Link>
             </h3>
           </div>
@@ -135,8 +135,8 @@ export function BookingHistoryCard({ item, rawBooking, onReview, onCancelRequest
 
         <div className="grid min-w-0 grid-cols-2 items-end gap-x-3 gap-y-1 pt-1">
           <span title="Tổng tiền thanh toán" className="col-span-2 block truncate text-[10px] font-medium leading-tight text-slate-500">Tổng tiền thanh toán</span>
-          <div className="flex min-w-0 items-center rounded-2xl border border-blue-100/70 bg-[#f3f7fd] px-3.5 py-1.5">
-            <span title={formatVND(item.price)} className="block min-w-0 w-full truncate text-base font-extrabold leading-tight tracking-tight text-[#1266f1]">{formatVND(item.price)}</span>
+          <div className="flex min-w-0 items-center rounded-xl border border-[#e1edfc] bg-[#f8fbff] px-3.5 py-1.5">
+            <span title={formatVND(item.price)} className="block min-w-0 w-full truncate text-base font-extrabold leading-tight tracking-tight text-[#075bff]">{formatVND(item.price)}</span>
           </div>
           {(() => {
             const badgeContent = (

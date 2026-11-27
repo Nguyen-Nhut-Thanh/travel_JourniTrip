@@ -102,14 +102,14 @@ export default function AdminTourDetailPage() {
 
   return (
     <TourEditorShell title="Chỉnh Sửa Tour" description={'Cập nhật thông tin và hoàn thiện hành trình: ' + (tour.name || '')} onBack={() => router.push('/admin/tours')}>
-      <div className="grid items-start gap-[22px] lg:grid-cols-[minmax(0,min(calc((100%_-_22px)*1.55/2.55),calc(100%_-_302px)))_minmax(260px,calc((100%_-_22px)/3.4))] lg:justify-start">
-        <div className="flex min-w-0 flex-col gap-[22px]">
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)] lg:justify-start">
+        <div className="flex min-w-0 flex-col gap-4">
           <TourBasicInfoCard tour={tour} locations={locations} transports={transports} lockCoreFields={hasLockedCoreFields} onTourChange={updateTour} />
           <TourDetailsCard tour={tour} onTourChange={updateTour} />
         </div>
         <TourSidebar tour={tour} saving={saving} success={saved} lockCoreFields={hasLockedCoreFields} onSave={handleSave} onTourChange={updateTour} />
       </div>
-      <div className="mt-6">
+      <div className="mt-4">
         <ScheduleManagement tourId={Number(id)} />
       </div>
     </TourEditorShell>

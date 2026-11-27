@@ -131,7 +131,7 @@ export function AccountFavoritesTab({ favorites = [] }: AccountFavoritesTabProps
   };
 
   return (
-    <div className="w-full min-w-0 space-y-6">
+    <div className="w-full min-w-0 space-y-4">
       <AccountPageBanner
         title="Tour yêu thích"
         description="Lưu lại những hành trình bạn yêu thích để dễ dàng xem lại và đặt tour trong tương lai!"
@@ -170,11 +170,11 @@ export function AccountFavoritesTab({ favorites = [] }: AccountFavoritesTabProps
 
       {/* Thẻ tour ngang theo mẫu tham khảo */}
       {filteredList.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white/80 px-6 py-16 text-center shadow-xs">
+        <div className="flex flex-col items-center justify-center rounded-[14px] border border-[#e1edfc] bg-white px-6 py-16 text-center shadow-sm">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-rose-50 text-rose-500 shadow-xs">
             <Heart className="h-7 w-7" />
           </div>
-          <h3 className="text-base font-bold text-slate-800">
+          <h3 className="text-base font-bold text-[#0b1747]">
             {searchQuery
               ? `Không tìm thấy tour nào khớp với "${searchQuery}"`
               : filterType === "all"
@@ -183,14 +183,14 @@ export function AccountFavoritesTab({ favorites = [] }: AccountFavoritesTabProps
               ? "Chưa có tour trong nước yêu thích nào"
               : "Chưa có tour nước ngoài yêu thích nào"}
           </h3>
-          <p className="mt-1 max-w-sm text-xs leading-relaxed text-slate-500">
+          <p className="mt-1 max-w-sm text-xs leading-relaxed text-[#7387aa]">
             {searchQuery
               ? "Hãy thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc để xem tất cả."
               : "Khám phá các tour du lịch hấp dẫn và nhấn biểu tượng trái tim để lưu lại hành trình mơ ước của bạn!"}
           </p>
           <Link
             href="/tours"
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#1766c2] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md"
+            className="mt-5 inline-flex items-center gap-2 rounded-[12px] bg-[#075bff] px-5 py-2.5 text-xs font-[650] text-white shadow-sm transition hover:bg-[#064ddd]"
           >
             Khám phá tour ngay
           </Link>

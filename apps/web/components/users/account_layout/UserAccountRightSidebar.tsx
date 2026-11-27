@@ -62,8 +62,8 @@ export function AccountRightSidebar({
   ];
 
   return (
-    <div className="space-y-3.5">
-      <section className="relative h-[156px] overflow-hidden rounded-[13px] border border-sky-100 bg-[#dff5ff]">
+    <div className="space-y-4">
+      <section className="relative h-[156px] overflow-hidden rounded-[14px] border border-[#e1edfc] bg-[#dff5ff]">
         <Image
           src="/images/shared/travel-cover.png"
           alt="Travel quote"
@@ -81,15 +81,15 @@ export function AccountRightSidebar({
           <br />
           có giá trị.”
         </div>
-        <div className="absolute bottom-5 right-14 rotate-12 text-2xl text-[#1766c2]">
+        <div className="absolute bottom-5 right-14 rotate-12 text-2xl text-[#075bff]">
           ✈
         </div>
       </section>
 
-      <section className="rounded-[13px] border border-slate-100 bg-white p-4 shadow-[0_2px_14px_rgba(15,23,42,0.04)]">
+      <section className="rounded-[14px] border border-[#e1edfc] bg-white p-4 shadow-sm">
         <div className="mb-4 flex items-center gap-2">
-          <User className="h-5 w-5 fill-[#1766c2]/10 text-[#1766c2]" />
-          <h3 className="text-[15px] font-bold text-slate-900">
+          <User className="h-5 w-5 fill-[#075bff]/10 text-[#075bff]" />
+          <h3 className="text-[15px] font-bold text-[#0b1747]">
             Thông tin cá nhân
           </h3>
         </div>
@@ -102,7 +102,7 @@ export function AccountRightSidebar({
                 key={item.label}
                 className="grid grid-cols-[116px_minmax(0,1fr)] items-center gap-2 text-[11px]"
               >
-                <div className="flex items-center gap-2 text-slate-400">
+                <div className="flex items-center gap-2 text-[#7387aa]">
                   <Icon className="h-3.5 w-3.5" />
                   <span>{item.label}</span>
                 </div>
@@ -120,23 +120,23 @@ export function AccountRightSidebar({
         <button
           type="button"
           onClick={() => setActiveTab?.("settings")}
-          className="mt-5 w-full rounded-lg bg-[#eef6ff] py-2.5 text-[12px] font-semibold text-[#1766c2] transition hover:bg-blue-100"
+          className="mt-5 w-full rounded-[12px] border border-[#e1edfc] bg-[#f0f6ff] py-2.5 text-[12px] font-[650] text-[#075bff] transition hover:bg-[#e1edfc]"
         >
           Chỉnh sửa thông tin
         </button>
       </section>
 
-      <section className="rounded-[13px] border border-slate-100 bg-white p-4 shadow-[0_2px_14px_rgba(15,23,42,0.04)]">
+      <section className="rounded-[14px] border border-[#e1edfc] bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-[#1766c2]" />
-            <h3 className="text-[14px] font-bold text-slate-800">
+            <MapPin className="h-5 w-5 text-[#075bff]" />
+            <h3 className="text-[14px] font-bold text-[#0b1747]">
               Điểm đến nổi bật
             </h3>
           </div>
           <Link
             href="/#favorite-destinations"
-            className="text-[10px] font-semibold text-[#1766c2]"
+            className="text-[10px] font-semibold text-[#075bff]"
           >
             Xem tất cả →
           </Link>

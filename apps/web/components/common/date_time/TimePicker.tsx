@@ -20,7 +20,7 @@ export function TimePicker({ value, onChange, disabled = false, locale = "vi-VN"
     </div>
     <div className="grid grid-cols-3 gap-2">
       <DateTimeColumn label={english ? "Hour" : "Giờ"} value={time.hour % 12 || 12} disabled={disabled} options={Array.from({ length: 12 }, (_, index) => ({ value: index + 1, label: String(index + 1).padStart(2, "0") }))} onChange={hour => select("hour", hour)} />
-      <DateTimeColumn label={english ? "Minute" : "Phút"} value={time.minute} disabled={disabled} options={Array.from({ length: 60 }, (_, minute) => ({ value: minute, label: String(minute).padStart(2, "0") }))} onChange={minute => select("minute", minute)} />
+      <DateTimeColumn label={english ? "Minute" : "Phút"} value={time.minute} disabled={disabled} compact options={[0, 30].map(minute => ({ value: minute, label: String(minute).padStart(2, "0") }))} onChange={minute => select("minute", minute)} />
       <DateTimeColumn label="AM/PM" value={time.hour >= 12 ? 1 : 0} disabled={disabled} compact options={[{ value: 0, label: "AM" }, { value: 1, label: "PM" }]} onChange={period => select("period", period)} />
     </div>
   </section>;

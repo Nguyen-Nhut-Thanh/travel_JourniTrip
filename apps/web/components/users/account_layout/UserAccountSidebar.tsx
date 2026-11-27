@@ -85,10 +85,10 @@ export function AccountSidebar({
   };
 
   return (
-    <aside className="no-scrollbar flex w-full flex-col border-r border-slate-200/80 bg-white lg:sticky lg:top-[66px] lg:h-[calc(100vh-66px)] lg:self-start lg:overflow-y-auto">
+    <aside className="no-scrollbar flex w-full flex-col border-r border-[#e1edfc] bg-white lg:sticky lg:top-[66px] lg:h-[calc(100vh-66px)] lg:self-start lg:overflow-y-auto">
       <Link
         href="/account"
-        className="mx-3 mb-2 mt-4 hidden flex-col items-center rounded-2xl border border-slate-100 bg-gradient-to-b from-white to-slate-50 px-3 py-3 text-center transition hover:border-blue-100 hover:bg-blue-50/40 lg:flex"
+        className="mx-3 mb-2 mt-4 hidden flex-col items-center rounded-2xl border border-[#e1edfc] bg-gradient-to-b from-white to-slate-50 px-3 py-3 text-center transition hover:border-[#b9d7fb] hover:bg-blue-50/40 lg:flex"
       >
         <div className="relative h-[52px] w-[52px] overflow-hidden rounded-full bg-slate-100 ring-2 ring-white shadow-sm">
           <AccountAvatar source={user?.avatar_url} name={displayName} sizes="52px" />
@@ -119,14 +119,14 @@ export function AccountSidebar({
                 onClick={() => setActiveTab?.(item.id)}
                 className={`group flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3 py-3 text-left text-sm transition-all lg:w-full lg:gap-3.5 lg:px-4 lg:py-3.5 ${
                   isActive
-                    ? "bg-[#eef6ff] font-semibold text-[#1766c2]"
+                    ? "bg-[#f0f6ff] font-semibold text-[#075bff]"
                     : "font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
                 <Icon
                   size={20}
                   strokeWidth={1.9}
-                  className={isActive ? "text-[#1766c2]" : "text-slate-500"}
+                  className={isActive ? "text-[#075bff]" : "text-slate-500"}
                 />
                 <span className="flex-1">{item.label}</span>
                 {item.badge && (
@@ -139,10 +139,10 @@ export function AccountSidebar({
         </div>
 
         {canAccessAdmin && (
-          <div className="mt-3 border-t border-slate-100 pt-3">
+          <div className="mt-3 border-t border-[#edf2fb] pt-3">
             <Link
               href="/admin"
-              className="flex w-full items-center gap-3.5 rounded-xl bg-blue-50 px-4 py-3.5 text-sm font-semibold text-[#1766c2] transition-colors hover:bg-blue-100"
+              className="flex w-full items-center gap-3.5 rounded-xl bg-[#f0f6ff] px-4 py-3.5 text-sm font-semibold text-[#075bff] transition-colors hover:bg-blue-100"
             >
               <LayoutDashboard size={20} strokeWidth={1.9} />
               <span>Trang quản trị</span>

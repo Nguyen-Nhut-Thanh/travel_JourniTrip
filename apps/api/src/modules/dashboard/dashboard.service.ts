@@ -922,9 +922,32 @@ export class DashboardService {
             : [];
         const vipUserMap = new Map(vipUsers.map((u) => [u.user_id, u]));
 
+        const resolveTierKey = (totalSpent: number, existingTier?: string): string => {
+            // Ngưỡng chi tiêu quy định: Kim Cương >= 100tr, Bạch Kim >= 50tr, Vàng >= 20tr, Bạc >= 5tr, Đồng >= 0
+            const calculatedTier =
+                totalSpent >= 100_000_000
+                    ? 'diamond'
+                    : totalSpent >= 50_000_000
+                    ? 'platinum'
+                    : totalSpent >= 20_000_000
+                    ? 'gold'
+                    : totalSpent >= 5_000_000
+                    ? 'silver'
+                    : 'bronze';
+
+            if (!existingTier || existingTier === 'bronze') {
+                return calculatedTier;
+            }
+            const tierOrder = ['bronze', 'silver', 'gold', 'platinum', 'diamond'];
+            return tierOrder.indexOf(calculatedTier) > tierOrder.indexOf(existingTier)
+                ? calculatedTier
+                : existingTier;
+        };
+
         const topVip: CustomerVipItem[] = topVipAgg.map((v) => {
             const u = vipUserMap.get(v.user_id);
-            const tierKey = u?.membership?.tier || 'bronze';
+            const totalSpent = Number(v._sum.total_amount || 0);
+            const tierKey = resolveTierKey(totalSpent, u?.membership?.tier);
             return {
                 userId: v.user_id,
                 fullName: u?.full_name || 'Khách hàng',
@@ -932,10 +955,35 @@ export class DashboardService {
                 phone: u?.phone || 'N/A',
                 membershipTier: tierLabels[tierKey] || tierKey || 'Đồng',
                 totalBookings: v._count.booking_id,
-                totalSpent: Number(v._sum.total_amount || 0),
+                totalSpent,
                 lastBookingDate: v._max.created_at ? v._max.created_at.toISOString().split('T')[0] : null,
             };
         });
+
+        // Đồng bộ dữ liệu bảng memberships nếu chưa có hoặc có tier thấp hơn chi tiêu thực tế tích lũy
+        for (const v of topVipAgg) {
+            const u = vipUserMap.get(v.user_id);
+            const totalSpent = Number(v._sum.total_amount || 0);
+            const tierKey = resolveTierKey(totalSpent, u?.membership?.tier);
+            if (!u?.membership || u.membership.tier !== tierKey) {
+                void this.prisma.memberships
+                    .upsert({
+                        where: { user_id: v.user_id },
+                        create: {
+                            user_id: v.user_id,
+                            tier: tierKey,
+                            spending: totalSpent,
+                            cycle_start: new Date(),
+                            cycle_end: new Date(Date.now() + 365 * 24 * 3600 * 1000),
+                        },
+                        update: {
+                            tier: tierKey,
+                            spending: totalSpent,
+                        },
+                    })
+                    .catch(() => {});
+            }
+        }
 
         // Đánh giá & Review Analytics
         const starsCount = { star1: 0, star2: 0, star3: 0, star4: 0, star5: 0 };

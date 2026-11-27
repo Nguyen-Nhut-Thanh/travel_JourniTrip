@@ -278,22 +278,6 @@ export class ToursPublicService {
                         sort_order: true,
                     },
                 },
-                tour_costumes: {
-                    where: { is_active: true },
-                    orderBy: { costume_id: 'asc' },
-                    select: {
-                        costume_id: true,
-                        tour_id: true,
-                        name: true,
-                        category: true,
-                        gender: true,
-                        description: true,
-                        image_url: true,
-                        prompt_keywords: true,
-                        rental_price: true,
-                        is_active: true,
-                    },
-                },
                 tour_destinations: {
                     orderBy: { visit_order: 'asc' },
                     select: {

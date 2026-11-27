@@ -54,10 +54,10 @@ export function FavoriteTourCard({
   };
 
   return (
-    <article className="group relative isolate mx-auto flex w-full max-w-[620px] min-w-0 flex-col gap-3 overflow-hidden rounded-[22px] border border-white bg-white p-3 shadow-[0_12px_34px_rgba(30,64,175,0.08)] transition-all duration-300 hover:shadow-[0_18px_42px_rgba(30,64,175,0.13)] xl:h-[250px] xl:flex-row xl:gap-3 xl:p-3">
+    <article className="group relative isolate mx-auto flex w-full max-w-[620px] min-w-0 flex-col gap-3 overflow-hidden rounded-[14px] border border-[#e1edfc] bg-white p-3.5 shadow-sm transition-all duration-200 hover:border-[#b9d7fb] hover:shadow-md xl:h-[250px] xl:flex-row xl:gap-3 xl:p-3.5">
       <Link
         href={`/tours/${item.tour_id}`}
-        className="absolute inset-0 z-0 rounded-[22px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600"
+        className="absolute inset-0 z-0 rounded-[14px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#075bff]"
         aria-label={`Xem chi tiết ${item.name}`}
       />
 
@@ -141,9 +141,9 @@ export function FavoriteTourCard({
               {item.summary || " "}
             </p>
 
-            <div className="grid grid-cols-1 gap-2 rounded-2xl bg-blue-50/80 p-2.5 sm:grid-cols-3 xl:gap-1 xl:bg-transparent xl:p-0">
+            <div className="grid grid-cols-1 gap-2 rounded-xl border border-[#e1edfc]/60 bg-[#f8fbff] p-2.5 sm:grid-cols-3 xl:gap-1 xl:border-0 xl:bg-transparent xl:p-0">
             <div className="flex min-w-0 items-center gap-2.5">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#2563eb]">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#075bff]">
                 <CalendarDays className="h-3.5 w-3.5" />
               </span>
               <span className="min-w-0">
@@ -158,7 +158,7 @@ export function FavoriteTourCard({
               </span>
             </div>
             <div className="flex min-w-0 items-center gap-2.5">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#2563eb]">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#075bff]">
                 <Clock3 className="h-3.5 w-3.5" />
               </span>
               <span className="min-w-0">
@@ -171,7 +171,7 @@ export function FavoriteTourCard({
               </span>
             </div>
             <div className="flex min-w-0 items-center gap-2.5">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#2563eb]">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#075bff]">
                 <Plane className="h-3.5 w-3.5 -rotate-12" />
               </span>
               <span className="min-w-0">
@@ -216,7 +216,7 @@ export function FavoriteTourCard({
                 {formatVND(item.originalPrice!)}
               </span>
             )}
-            <span className="mt-1 block truncate text-lg font-extrabold leading-none tracking-tight text-[#1266f1] md:text-xl">
+            <span className="mt-1 block truncate text-lg font-extrabold leading-none tracking-tight text-[#075bff] md:text-xl">
               {item.price > 0 ? formatVND(item.price) : "Liên hệ"}
               {item.price > 0 && (
                 <span className="ml-1 text-xs font-normal text-slate-400">
@@ -227,13 +227,13 @@ export function FavoriteTourCard({
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {hasDiscount && (
-              <span className="hidden rounded-full bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 sm:inline-flex">
+              <span className="hidden rounded-full bg-blue-50 px-3 py-2 text-xs font-bold text-[#075bff] sm:inline-flex">
                 Tiết kiệm {discountPercent}%
               </span>
             )}
             <Link
               href={`/tours/${item.tour_id}`}
-              className="group/btn pointer-events-auto inline-flex items-center gap-1 rounded-full bg-[#1266f1] px-2.5 py-2.5 text-[11px] font-semibold text-white shadow-lg shadow-blue-600/25 transition-all duration-200 hover:bg-[#0d53c9] active:scale-[.98] md:px-3"
+              className="group/btn pointer-events-auto inline-flex items-center gap-1 rounded-[12px] bg-[#075bff] px-3 py-2 text-[11px] font-[650] text-white shadow-sm transition-all duration-200 hover:bg-[#064ddd] active:scale-[.98] md:px-3.5"
             >
               <span>Xem chi tiết</span>
               <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover/btn:translate-x-1" />

@@ -14,7 +14,6 @@ import {
   XCircle,
 } from "lucide-react";
 import { useId } from "react";
-import { BookingCancellationRules } from "@/components/booking/BookingCancellationRules";
 import {
   TOUR_POLICY_DEFINITIONS,
   type TourPoliciesEditorProps,
@@ -128,7 +127,7 @@ export function TourPoliciesEditor({
               {descriptions[active.key]}
             </p>
           </div>
-          {["cancel", "weekday", "holiday"].includes(active.key) ? <div className="overflow-y-auto rounded-xl border bg-slate-50 p-4"><p className="mb-3 text-xs font-semibold text-blue-800">Bảng phí được dùng chung với bước đặt tour và xử lý booking để tránh lệch chính sách.</p><BookingCancellationRules /></div> : <RichTextInput
+          <RichTextInput
             key={active.key}
             value={current}
             onChange={(content) =>
@@ -141,7 +140,7 @@ export function TourPoliciesEditor({
             compact
             fillHeight
             editorClassName="min-h-[260px] lg:min-h-0"
-          />}
+          />
           <p className="flex shrink-0 items-start gap-2 text-[11px] leading-5 text-[#8490a5]">
             <Info size={14} className="mt-0.5 shrink-0" />
             Nội dung này sẽ hiển thị trên trang chi tiết tour.

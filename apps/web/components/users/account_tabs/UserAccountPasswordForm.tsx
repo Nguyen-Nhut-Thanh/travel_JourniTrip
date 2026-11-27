@@ -55,12 +55,12 @@ export function AccountPasswordForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-2xl rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+      className="max-w-2xl rounded-[14px] border border-[#e1edfc] bg-white p-6 shadow-sm"
     >
-      <h2 className="text-[19px] font-bold text-slate-900">
+      <h2 className="text-[19px] font-bold text-[#0b1747]">
         {hasPassword ? "Thay đổi mật khẩu" : "Thiết lập mật khẩu"}
       </h2>
-      <p className="mb-5 mt-1 text-[15px] text-slate-500">
+      <p className="mb-5 mt-1 text-[15px] text-[#7387aa]">
         {hasPassword
           ? "Chọn mật khẩu có ít nhất 8 ký tự."
           : "Bạn đang đăng nhập bằng Google. Thiết lập mật khẩu để có thể đăng nhập bằng email."}
@@ -112,13 +112,13 @@ export function AccountPasswordForm({
               autoComplete={field.autoComplete}
               value={field.value}
               onChange={(event) => field.setter(event.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-[15px] outline-none focus:border-sky-500"
+              className="w-full rounded-lg border border-[#dce7f7] px-4 py-2.5 text-[15px] outline-none focus:border-[#075bff]"
             />
           </div>
         ))}
         <button
           type="submit"
-          className="inline-flex items-center gap-2 rounded-xl bg-[#1766c2] px-6 py-3 text-[15px] font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-[12px] bg-[#075bff] px-6 py-2.5 text-[14px] font-[650] text-white shadow-sm transition hover:bg-[#064ddd] disabled:opacity-50"
         >
           {saving ? (
             <Loader2 size={16} className="animate-spin" />

@@ -140,7 +140,7 @@ export function AccountBookingsTab({ bookings = [] }: AccountBookingsTabProps) {
   }, [formattedBookings, activeFilter, sortBy]);
 
   return (
-    <div className="w-full min-w-0 space-y-6">
+    <div className="w-full min-w-0 space-y-4">
       <AccountPageBanner
         title="Lịch sử đặt tour"
         description="Cùng nhìn lại những hành trình tuyệt vời mà bạn đã trải nghiệm cùng JourniTrip!"
@@ -175,11 +175,11 @@ export function AccountBookingsTab({ bookings = [] }: AccountBookingsTabProps) {
 
       {/* Booking Cards List */}
       {filteredList.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white/80 px-6 py-16 text-center shadow-xs">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-[#1766c2] shadow-xs">
+        <div className="flex flex-col items-center justify-center rounded-[14px] border border-[#e1edfc] bg-white px-6 py-16 text-center shadow-sm">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-[#075bff] shadow-xs">
             <CalendarDays className="h-7 w-7" />
           </div>
-          <h3 className="text-base font-bold text-slate-800">
+          <h3 className="text-base font-bold text-[#0b1747]">
             {activeFilter === "all"
               ? "Chưa có đơn đặt tour nào"
               : activeFilter === "completed"
@@ -190,12 +190,12 @@ export function AccountBookingsTab({ bookings = [] }: AccountBookingsTabProps) {
               ? "Chưa có chuyến đi nào sắp diễn ra"
               : "Không có đơn đặt tour nào đã hủy"}
           </h3>
-          <p className="mt-1 max-w-sm text-xs leading-relaxed text-slate-500">
+          <p className="mt-1 max-w-sm text-xs leading-relaxed text-[#7387aa]">
             Khám phá các tour du lịch tuyệt vời và sẵn sàng cho những chuyến đi đáng nhớ cùng JourniTrip!
           </p>
           <Link
             href="/tours"
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#1766c2] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md"
+            className="mt-5 inline-flex items-center gap-2 rounded-[12px] bg-[#075bff] px-5 py-2.5 text-xs font-[650] text-white shadow-sm transition hover:bg-[#064ddd]"
           >
             Khám phá tour ngay
           </Link>

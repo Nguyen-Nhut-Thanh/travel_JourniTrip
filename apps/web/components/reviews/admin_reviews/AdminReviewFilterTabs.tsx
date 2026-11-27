@@ -57,7 +57,7 @@ export function ReviewFilterTabs({
                 onClick={() => onStatusChange(tab.id)}
                 className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition ${
                   isActive
-                    ? "bg-slate-900 text-white shadow-sm"
+                    ? "bg-[#075bff] text-white shadow-sm hover:bg-[#064ed8]"
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`}
               >

@@ -17,6 +17,7 @@ import {
   MessageCircle,
   RefreshCw,
   ShieldCheck,
+  Star,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -49,6 +50,11 @@ export default function TourBookingCard({
     selectedSchedule,
     selectedPickupPointId,
   );
+  const departureName =
+    selectedSchedule?.departure_location?.name ||
+    [...new Set((tour.tour_schedules || []).map(schedule => schedule.departure_location?.name).filter(Boolean))].join(" / ") ||
+    tour.departure_locations?.name ||
+    "Chưa cập nhật";
 
   const scrollToSchedules = () => {
     const element = document.getElementById("tour-schedules");
@@ -62,7 +68,7 @@ export default function TourBookingCard({
   };
 
   return (
-    <div className="sticky top-24 rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.10)] space-y-5">
+    <div className="sticky top-24 rounded-[14px] border border-[#e1edfc] bg-white p-5 sm:p-6 shadow-sm space-y-4">
       {/* Price Header */}
       <div>
         <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -202,7 +208,7 @@ export default function TourBookingCard({
         ) : bookingHref ? (
           <Link
             href={bookingHref}
-            className="flex w-full items-center justify-center rounded-2xl bg-[#0b63b6] py-3.5 text-center text-sm sm:text-base font-extrabold text-white shadow-lg shadow-sky-500/20 transition-all hover:bg-[#09559c] active:scale-[0.98]"
+            className="flex w-full items-center justify-center rounded-[12px] bg-[#075bff] py-3 text-center text-sm sm:text-base font-[650] text-white shadow-sm transition-all hover:bg-[#064ddd] active:scale-[0.98]"
           >
             Đặt tour
           </Link>
@@ -210,7 +216,7 @@ export default function TourBookingCard({
           <button
             type="button"
             onClick={scrollToSchedules}
-            className="w-full rounded-2xl bg-[#0b63b6] py-3.5 text-center text-sm sm:text-base font-extrabold text-white shadow-lg shadow-sky-500/20 transition-all hover:bg-[#09559c] active:scale-[0.98]"
+            className="w-full rounded-[12px] bg-[#075bff] py-3 text-center text-sm sm:text-base font-[650] text-white shadow-sm transition-all hover:bg-[#064ddd] active:scale-[0.98]"
           >
             Chọn ngày khởi hành
           </button>
@@ -219,9 +225,9 @@ export default function TourBookingCard({
         <button
           type="button"
           onClick={handleChatConsult}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 py-3 text-center text-xs sm:text-sm font-bold text-slate-700 transition hover:bg-slate-100"
+          className="flex w-full items-center justify-center gap-2 rounded-[12px] border border-[#dce7f7] bg-slate-50/70 py-2.5 text-center text-xs sm:text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
         >
-          <MessageCircle className="h-4 w-4 text-sky-600" />
+          <MessageCircle className="h-4 w-4 text-[#075bff]" />
           <span>Chat tư vấn</span>
         </button>
       </div>
@@ -255,6 +261,23 @@ export default function TourBookingCard({
           </span>
           <span className="text-slate-400 font-normal whitespace-nowrap text-[10px]">
             Hoàn tiền 100%
+          </span>
+        </div>
+      </div>
+
+      {/* Tour Quick Meta: Đánh giá & Điểm khởi hành */}
+      <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="flex items-center gap-1 font-bold text-amber-500">
+          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+          <span>{Number(tour.rating_avg) ? Number(tour.rating_avg).toFixed(1) : "5.0"}</span>
+          <span className="font-normal text-slate-400 text-[11px]">
+            ({tour.rating_count ?? (tour.reviews ? tour.reviews.length : 0)} đánh giá)
+          </span>
+        </div>
+        <div className="flex min-w-0 items-center gap-1 text-slate-600">
+          <MapPin className="h-3.5 w-3.5 shrink-0 text-[#075bff]" />
+          <span className="min-w-0 break-words">
+            Khởi hành: <strong className="text-slate-800">{departureName}</strong>
           </span>
         </div>
       </div>

@@ -15,13 +15,13 @@ export default function TourVideoHighlights({ videos = [] }: TourVideoHighlights
   }
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+    <div className="rounded-[14px] border border-[#e1edfc] bg-white p-5 sm:p-6 shadow-sm space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-100 text-sky-600">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#075bff]">
             <Video className="h-4 w-4" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900">Trải nghiệm qua video</h2>
+          <h2 className="text-[17px] sm:text-lg font-bold text-[#0b1747]">Trải nghiệm qua video</h2>
         </div>
       </div>
 

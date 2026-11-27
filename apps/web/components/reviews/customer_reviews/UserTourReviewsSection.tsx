@@ -17,9 +17,9 @@ export default function TourReviewsSection({
   const hasReviews = reviews && reviews.length > 0;
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-[14px] border border-[#e1edfc] bg-white shadow-sm">
       <div className="p-4 sm:p-5">
-        <h2 className="text-xl font-extrabold text-slate-900 sm:text-2xl">
+        <h2 className="text-lg font-extrabold text-[#0b1747] sm:text-xl">
           Đánh giá của khách hàng
         </h2>
 
@@ -86,7 +86,7 @@ export default function TourReviewsSection({
             Chưa có đánh giá nào cho tour này. Hãy là người đầu tiên trải nghiệm và chia sẻ nhận xét!
           </div>
         ) : (
-          reviews.slice(0, 5).map((review, index) => (
+          reviews.slice(0, 2).map((review, index) => (
             <article
               key={review.id}
               className={`p-4 sm:p-5 ${
