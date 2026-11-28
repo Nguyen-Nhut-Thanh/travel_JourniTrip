@@ -110,7 +110,7 @@ export interface ImageUploadProps {
     value?: string | string[];
     onChange: (url: string | string[]) => void;
     multiple?: boolean;
-    endpoint?: string;
+    endpoint: string;
     label?: string;
     maxFiles?: number;
     previewLayout?: 'grid' | 'carousel';

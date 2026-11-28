@@ -1,11 +1,22 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UploadedFile, UseGuards } from '@nestjs/common';
 import type { TourAdminPayload } from 'shared';
+import { UseImageUpload } from '../../common/decorators/use-image-upload.decorator';
+import { uploadToFolder } from '../../common/decorators/use-folder-upload';
+import { CloudinaryService } from '../../infrastructure/storage/cloudinary.service';
 import { AdminAuthGuard } from '../auth/admin.guard';
 import { ToursAdminService } from './tours-admin.service';
 @Controller()
 @UseGuards(AdminAuthGuard)
 export class ToursAdminController {
-    constructor(private readonly toursAdminService: ToursAdminService) { }
+    constructor(
+        private readonly toursAdminService: ToursAdminService,
+        private readonly cloudinaryService: CloudinaryService,
+    ) { }
+    @Post('admin/tours/upload-image')
+    @UseImageUpload()
+    async uploadImage(@UploadedFile() file: Express.Multer.File) {
+        return uploadToFolder(this.cloudinaryService, file, 'JourniTrip/tours');
+    }
     @Get('admin/tours')
     list(
     @Query('search')

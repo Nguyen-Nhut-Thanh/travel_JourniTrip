@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageUpload } from "@/components/common/form_controls/ImageUpload";
+import { ContentImageUpload } from "@/components/common/form_controls/ContentImageUpload";
 import { VndPriceInput } from "@/components/common/form_controls/VndPriceInput";
 import {
   ArrowRight,
@@ -93,7 +93,8 @@ export function TourSidebar<T extends TourDetailForm>({
         icon={Image}
       >
         <div className="[&>div>div:first-child]:rounded-xl [&>div>div:first-child]:border [&>div>div:first-child]:border-blue-200 [&>div>div:first-child]:bg-[linear-gradient(145deg,#f3f8ff,#fff)] [&>div>div:first-child]:px-3 [&>div>div:first-child]:py-4 [&>div>div:first-child_p:first-of-type]:text-[13px] [&>div>div:first-child_p:first-of-type]:text-slate-700 [&>div>div:first-child_p:last-of-type]:text-[12px] [&>div>div:first-child_p:last-of-type]:leading-[1.6]">
-          <ImageUpload
+          <ContentImageUpload
+            resource="tour"
             multiple
             maxFiles={MAX_TOUR_IMAGES}
             previewLayout="carousel"

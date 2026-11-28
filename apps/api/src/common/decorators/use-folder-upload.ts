@@ -19,8 +19,13 @@ export const FOLDER_PRESETS: Record<string, Partial<FolderUploadOptions>> = {
   'JourniTrip/banners': {
     errorMessage: 'Lỗi khi upload banner lên Cloudinary',
   },
+  'JourniTrip/tours': {
+    errorMessage: 'Lỗi khi upload ảnh tour lên Cloudinary',
+  },
+  'JourniTrip/vouchers': {
+    errorMessage: 'Lỗi khi upload ảnh voucher lên Cloudinary',
+  },
   'JourniTrip/posts': {
-    transformation: [{ width: 1920, height: 1920, crop: 'limit' }],
     errorMessage: 'Không thể tải ảnh bài viết. Vui lòng thử lại.',
   },
   'JourniTrip/reviews': {

@@ -1,5 +1,5 @@
 import { requestJson } from "@/lib/http/requestJson";
-import { uploadValidatedImage } from "@/lib/http/uploadApi";
+import { uploadContentImage } from "@/lib/http/contentImageUpload";
 import type { AdminBannerPayload, Banner, SeasonalThemeConfig } from 'shared';
 
 export function fetchAdminBanners() {
@@ -49,8 +49,8 @@ export function deleteAdminBanner(bannerId: string | number) {
 }
 
 export async function uploadAdminBannerImage(file: File) {
-  return uploadValidatedImage(
-    "/banners/admin/upload",
+  return uploadContentImage(
+    "banner",
     file,
     "Không thể upload ảnh banner",
   );

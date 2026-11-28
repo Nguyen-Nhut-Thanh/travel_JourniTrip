@@ -4,7 +4,7 @@ import { useId } from "react";
 
 import CustomDropdown from "@/components/common/form_controls/CustomDropdown";
 import { ARTICLE_ICONS, type ArticleBlock } from "shared";
-import { ImageUpload } from "@/components/common/form_controls/ImageUpload";
+import { ContentImageUpload } from "@/components/common/form_controls/ContentImageUpload";
 import { ArticleBlockIcon } from "@/components/posts/blog_detail/UserArticleBlockIcon";
 import { RichTextInput } from "@/components/common/form_controls/RichTextInput";
 import { PostTourPicker } from "@/components/posts/post_editor/AdminPostTourPicker";
@@ -72,8 +72,8 @@ export function PostBlockFields({
     case "image":
       return (
         <div className="space-y-3">
-          <ImageUpload
-            endpoint="/admin/posts/upload-image"
+          <ContentImageUpload
+            resource="post"
             value={block.url}
             onChange={(value) =>
               onChange({

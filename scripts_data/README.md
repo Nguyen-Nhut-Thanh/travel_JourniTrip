@@ -2,7 +2,7 @@
 
 Bộ công cụ độc lập phục vụ:
 - **Import dữ liệu nền & Địa điểm**: 34 tỉnh/thành phố, 3 vùng miền, quốc gia Việt Nam.
-- **Import địa điểm nước ngoài**: 15 quốc gia/điểm đến, 37 vùng, 45 tỉnh/thành hoặc khu vực tương đương và 90 điểm tham quan trong một file JSON.
+- **Import địa điểm nước ngoài**: 15 quốc gia/điểm đến, 63 vùng, 180 tỉnh/thành hoặc khu vực tương đương và 601 điểm tham quan trong một file JSON.
 - **Import Điểm tham quan (Attractions)**: 81 điểm tham quan nổi bật bao phủ toàn bộ 34 tỉnh/thành (cấp 6) kèm mô tả, ẩm thực & tags AI.
 - **Import Đối tác & Nhà cung cấp (Providers / Partners)**: 25 đối tác đa lĩnh vực (Du thuyền, Khách sạn, Hàng không, Xe khách, Đường sắt, Bảo hiểm & Vé vui chơi).
 - **Import Khách sạn & Phòng nghỉ (Hotels & Rooms)**: 15 hạng khách sạn tiêu chuẩn 3-5 sao, resort & homestay dùng chung linh hoạt cho mọi tour.
@@ -81,6 +81,23 @@ Các tab trên giao diện:
 ## 🛠️ Các lệnh CLI nhanh
 
 ### Địa điểm nước ngoài
+
+Bộ dữ liệu có **859 nút địa điểm**, tăng từ 187 nút. Cây phân cấp: **Quốc gia → Khu vực/Miền → Tỉnh/Thành hoặc địa hạt tương đương → Điểm tham quan**.
+
+| Quốc gia | Khu vực/miền | Tỉnh/thành hoặc tương đương | Điểm tham quan |
+| --- | ---: | ---: | ---: |
+| Nhật Bản | 10 | 47 | 155 |
+| Trung Quốc | 7 | 31 | 131 |
+| Pháp | 13 | 53 | 168 |
+| Hàn Quốc | 6 | 16 | 81 |
+| 11 quốc gia/điểm đến khác | 27 | 33 | 66 |
+| **Tổng** | **63** | **180** | **601** |
+
+Ví dụ: Nhật Bản → Kanto → Kanagawa → Hồ Ashi; Trung Quốc → Tây Nam Trung Quốc → Vân Nam → Thành cổ Lệ Giang; Pháp → Île-de-France → Yvelines (Versailles) → Cung điện Versailles; Hàn Quốc → Vùng thủ đô Hàn Quốc → Gyeonggi → Thành Hwaseong ở Suwon.
+
+Nhật Bản có đủ 47 tỉnh theo phân vùng du lịch JNTO. Trung Quốc bao phủ 31 tỉnh/khu tự trị/đô thị của phần đại lục; Đài Loan tiếp tục dùng mã TW riêng. Pháp bao phủ 13 vùng chính quốc với 53 địa hạt/cụm đô thị được tuyển chọn. Hàn Quốc dùng sáu vùng du lịch, gộp Jeonnam–Gwangju theo phân loại của VISITKOREA. Đây là danh mục du lịch tuyển chọn, không phải toàn bộ đơn vị hành chính hoặc mọi điểm tham quan. Phạm vi và nguồn tham khảo nằm trong `import_notes`, `sources` của JSON; thống kê từng nước nằm ở `summary.by_country`.
+
+Mỗi điểm có mô tả tiếng Việt, điểm nổi bật, gợi ý mùa, ẩm thực địa phương và từ khóa. `image_url` để `null` khi chưa có ảnh đúng địa điểm được xác minh. Mùa tham quan không thay thế lịch mở cửa hoặc điều kiện thực tế khi lập tour.
 
 ```bash
 # Kiểm tra JSON, slug và cây cha–con offline; không kết nối hoặc ghi database

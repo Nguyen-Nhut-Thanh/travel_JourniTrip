@@ -90,24 +90,6 @@
     "bytes": 132449
   },
   {
-    "source": "https://cdn-icons-png.flaticon.com/512/784/784306.png",
-    "local": "/images/home/why-choose-safety.png",
-    "contentType": "image/png",
-    "bytes": 19503
-  },
-  {
-    "source": "https://cdn-icons-png.flaticon.com/512/1042/1042339.png",
-    "local": "/images/home/why-choose-premium-service.png",
-    "contentType": "image/png",
-    "bytes": 25513
-  },
-  {
-    "source": "https://cdn-icons-png.flaticon.com/512/2721/2721091.png",
-    "local": "/images/home/why-choose-savings.png",
-    "contentType": "image/png",
-    "bytes": 15028
-  },
-  {
     "source": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600",
     "local": "/images/tours/itinerary-landscape.jpg",
     "contentType": "image/jpeg",

@@ -248,6 +248,7 @@ export function AboutUsPhotoCollage({
               src={primaryImage}
               alt="Vẻ đẹp Vịnh Hạ Long cùng JourniTrip"
               fill
+              unoptimized
               className="object-cover transition-transform duration-700 group-hover:scale-105"
               sizes="(max-width: 1024px) 50vw, 325px"
             />
@@ -273,6 +274,7 @@ export function AboutUsPhotoCollage({
               src={secondaryImage}
               alt="Điểm đến thành phố nổi bật"
               fill
+              unoptimized
               className="object-cover transition-transform duration-700 group-hover:scale-110"
               sizes="(max-width: 1024px) 28vw, 180px"
             />

@@ -1,4 +1,3 @@
-import type * as ReactTypes from 'react';
 import type { LocationDetailForm } from "./forms";
 import type { AdminLocationItem } from "./models";
 export type LocationDetailsCardProps = {
@@ -27,9 +26,8 @@ export type LocationImageSidebarProps = {
     form: LocationDetailForm;
     uploading: boolean;
     saving: boolean;
-    fileInputRef: ReactTypes.RefObject<HTMLInputElement | null>;
     onFormChange: (updater: (prev: LocationDetailForm) => LocationDetailForm) => void;
-    onFileUpload: (event: ReactTypes.ChangeEvent<HTMLInputElement>) => void;
+    onUploadingChange: (uploading: boolean) => void;
     onCancel: () => void;
     onSave: () => void;
 };

@@ -1,8 +1,6 @@
 "use client";
 
-import { getToken } from "@/lib/auth/client/session";
-import { API_BASE } from "@/lib/http/config";
-import { uploadAuthenticatedFile } from "@/lib/http/uploadApi";
+import { uploadValidatedImage } from "@/lib/http/uploadApi";
 import { Loader2, UploadCloud, X } from "lucide-react";
 import { useRef, useState } from "react";
 import type { ImageUploadProps } from 'shared';
@@ -13,7 +11,7 @@ export const ImageUpload = ({
   value,
   onChange,
   multiple = false,
-  endpoint = "/auth/upload-avatar",
+  endpoint,
   label = "Kéo thả ảnh vào đây hoặc click để chọn",
   maxFiles = 5,
   previewLayout = 'grid',
@@ -48,18 +46,8 @@ export const ImageUpload = ({
       for (let index = 0; index < (multiple ? files.length : 1); index += 1) {
         const file = files[index];
 
-        if (file.size > 5 * 1024 * 1024) {
-          throw new Error(`File ${file.name} vượt quá 5MB.`);
-        }
-
-        const token = getToken();
-        if (!token) {
-          throw new Error("Bạn chưa đăng nhập.");
-        }
-
-        const data = await uploadAuthenticatedFile(
-          `${API_BASE}${endpoint}`,
-          token,
+        const data = await uploadValidatedImage(
+          endpoint,
           file,
           "Upload thất bại",
         );
@@ -145,7 +133,7 @@ export const ImageUpload = ({
         </div>
       )}
 
-      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple={multiple} disabled={disabled || isUploading} onChange={event => void handleUpload(event.target.files)} />
+      <input type="file" ref={fileInputRef} className="hidden" accept="image/jpeg,image/png,image/webp" multiple={multiple} disabled={disabled || isUploading} onChange={event => void handleUpload(event.target.files)} />
 
       {error && <p className="text-sm font-medium text-red-500">{error}</p>}
 

@@ -42,8 +42,9 @@ export default function TourDetailHero({ tour }: TourDetailHeroProps) {
             alt={tour.name}
             fill
             priority
+            quality={90}
             className="object-cover transition-transform duration-700 group-hover:scale-105"
-            sizes="(max-width: 1280px) 100vw, 800px"
+            sizes="(min-width: 1280px) 805px, (min-width: 1024px) calc((100vw - 72px) * 2 / 3), (min-width: 640px) calc(100vw - 48px), calc(100vw - 32px)"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 

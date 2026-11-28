@@ -1,12 +1,13 @@
 "use client";
 
+import { ContentImageUpload } from "@/components/common/form_controls/ContentImageUpload";
 import { ImageWithFallback } from "@/components/common/dialogs_and_feedback/media/ImageWithFallback";
 import { LOCATION_LEVEL_LABELS } from "@/lib/locations/admin/hierarchy";
-import { Camera, Eye, ImageIcon, Loader2, MapPin, Mountain, Save, UploadCloud, X } from "lucide-react";
+import { Eye, ImageIcon, Loader2, MapPin, Mountain, Save } from "lucide-react";
 import type { LocationImageSidebarProps } from "shared";
 import { useAdminContentReadOnly } from '@/components/common/admin_shared/guards/AdminContentPermission';
 
-export function LocationImageSidebar({ form, uploading, saving, fileInputRef, onFormChange, onFileUpload, onCancel, onSave, parentLabel }: LocationImageSidebarProps & { parentLabel?: string }) {
+export function LocationImageSidebar({ form, uploading, saving, onFormChange, onUploadingChange, onCancel, onSave, parentLabel }: LocationImageSidebarProps & { parentLabel?: string }) {
   const readOnly = useAdminContentReadOnly();
   return (
     <div className="space-y-3">
@@ -15,16 +16,17 @@ export function LocationImageSidebar({ form, uploading, saving, fileInputRef, on
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-blue-50 text-[#075bff]"><ImageIcon size={18} /></span>
           <div><h2 className="text-[15px] font-bold text-[#07123e]">Ảnh bìa địa điểm</h2><p className="mt-0.5 text-xs text-[#7187a9]">Tải lên hình ảnh đại diện cho địa điểm này.</p></div>
         </div>
-        <button type="button" disabled={readOnly || uploading || saving} onClick={() => fileInputRef.current?.click()} aria-label={form.image_url ? "Thay đổi ảnh bìa địa điểm" : "Tải ảnh bìa địa điểm"}
-          className={`relative flex aspect-[4/3] w-full flex-col items-center justify-center overflow-hidden rounded-xl border bg-blue-50/30 text-[#075bff] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:cursor-wait ${form.image_url ? "border-[#e1edfc]" : "border-dashed border-blue-200 hover:bg-blue-50/70 hover:border-[#075bff]"}`}>
-          {form.image_url ? <><ImageWithFallback src={form.image_url} alt={form.name || "Ảnh bìa địa điểm"} className="absolute inset-0 h-full w-full object-cover" /><span className="absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-lg bg-[#07123e]/75 backdrop-blur-xs px-2.5 py-1 text-[11px] font-semibold text-white shadow-xs"><Camera size={13} />Thay đổi ảnh</span></> : <><span className="mb-2.5 grid size-11 place-items-center rounded-full bg-blue-50 text-[#075bff] shadow-xs"><UploadCloud size={22} /></span><span className="text-xs font-bold text-[#07123e]">Chọn ảnh bìa địa điểm</span><span className="mt-1 text-[11px] text-[#7187a9]">JPG, PNG, WebP · Tối đa 5 MB</span></>}
-          {uploading && <span className="absolute inset-0 flex items-center justify-center gap-2 bg-white/85 text-xs font-semibold text-[#07123e]"><Loader2 size={18} className="animate-spin text-[#075bff]" />Đang tải ảnh...</span>}
-        </button>
-        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[11px] text-[#7187a9]">JPG, PNG, WebP · Tối đa 5 MB</p>
-          {form.image_url && <button type="button" disabled={readOnly || uploading || saving} onClick={() => onFormChange(prev => ({ ...prev, image_url: "" }))} className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50"><X size={12} />Gỡ ảnh</button>}
-        </div>
-        <input type="file" ref={fileInputRef} onChange={onFileUpload} accept="image/jpeg,image/png,image/webp" disabled={readOnly || uploading || saving} className="hidden" />
+        <ContentImageUpload
+          resource="location"
+          value={form.image_url}
+          disabled={readOnly || saving}
+          label="Chọn ảnh bìa địa điểm"
+          onUploadingChange={onUploadingChange}
+          onChange={value => onFormChange(previous => ({
+            ...previous,
+            image_url: Array.isArray(value) ? value[0] || "" : value,
+          }))}
+        />
       </section>
 
       <section className="rounded-[14px] border border-[#e1edfc] bg-white p-4.5 sm:p-5 shadow-2xs">

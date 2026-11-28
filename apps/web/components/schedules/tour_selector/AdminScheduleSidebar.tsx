@@ -3,7 +3,7 @@
 import { useAdminContentReadOnly } from '@/components/common/admin_shared/guards/AdminContentPermission';
 
 import CustomDropdown from "@/components/common/form_controls/CustomDropdown";
-import { ImageUpload } from "@/components/common/form_controls/ImageUpload";
+import { ContentImageUpload } from "@/components/common/form_controls/ContentImageUpload";
 import { Image, Info, Layers3, Loader2, NotebookText, Save } from "lucide-react";
 import type { ScheduleSidebarProps } from "shared";
 import { useEffect, useRef } from "react";
@@ -25,7 +25,7 @@ export function ScheduleSidebar({ form, isPast, saving, uploading, onSave, onUpl
   return <aside aria-label="Ảnh đại diện, trạng thái và lưu lịch khởi hành" className="flex min-w-0 flex-col gap-[22px] lg:self-stretch">
     <ScheduleEditorCard title="Ảnh đại diện" description="Ảnh bìa cho đợt tour này." icon={Image}>
       <div className="[&_[data-image-upload-dropzone]]:rounded-[15px] [&_[data-image-upload-dropzone]]:border [&_[data-image-upload-dropzone]]:border-[#9ec4ff] [&_[data-image-upload-dropzone]]:bg-[linear-gradient(145deg,#f3f8ff,#fff)] [&_[data-image-upload-dropzone]]:px-3 [&_[data-image-upload-dropzone]]:py-[19px] [&_[data-image-upload-dropzone]_p:first-of-type]:text-[14px] [&_[data-image-upload-dropzone]_p:first-of-type]:text-[#354966] [&_[data-image-upload-dropzone]_p:last-of-type]:text-[12px] [&_[data-image-upload-dropzone]_p:last-of-type]:leading-[1.7]">
-        <ImageUpload endpoint="/admin/tours/upload-schedule-image" value={form.cover_image_url} disabled={isPast || saving} onUploadingChange={onUploadingChange} label="Kéo thả ảnh vào đây hoặc nhấn để chọn" onChange={value => onFormChange(previous => ({ ...previous, cover_image_url: Array.isArray(value) ? value[0] || "" : value }))} />
+        <ContentImageUpload resource="schedule" value={form.cover_image_url} disabled={isPast || saving} onUploadingChange={onUploadingChange} label="Kéo thả ảnh vào đây hoặc nhấn để chọn" onChange={value => onFormChange(previous => ({ ...previous, cover_image_url: Array.isArray(value) ? value[0] || "" : value }))} />
       </div>
     </ScheduleEditorCard>
     <div ref={controlsRef} className="flex shrink-0 flex-col gap-[22px] lg:sticky lg:top-[min(16px,calc(100dvh_-_var(--schedule-controls-height,500px)_-_16px))] lg:z-[5]">

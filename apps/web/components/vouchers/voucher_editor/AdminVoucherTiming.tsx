@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminDatePicker } from "@/components/common/date_time/AdminDatePicker";
-import { ImageUpload } from "@/components/common/form_controls/ImageUpload";
+import { ContentImageUpload } from "@/components/common/form_controls/ContentImageUpload";
 import { TimeInput } from "@/components/common/date_time/TimeInput";
 import { CalendarDays } from "lucide-react";
 import type { VoucherModalProps } from "shared";
@@ -174,13 +174,14 @@ export function VoucherTiming({
         </div>
       </div>
 
-      {/* Hình ảnh voucher: Sử dụng ImageUpload như phần tour */}
+      {/* Hình ảnh voucher */}
       <div className="pt-2 border-t border-[#edf1f8]">
         <label className="ui-voucher-modal-label block m-[0_0_7px] text-[#697e9f] text-[10px] font-[750] tracking-[.065em]! leading-[16px] uppercase">
           Hình ảnh voucher
         </label>
         <div className="[&>div>div:first-child]:rounded-[15px] [&>div>div:first-child]:border [&>div>div:first-child]:border-[#9ec4ff] [&>div>div:first-child]:bg-[linear-gradient(145deg,#f3f8ff,#fff)] [&>div>div:first-child]:px-3 [&>div>div:first-child]:py-[16px] [&>div>div:first-child_p:first-of-type]:text-[14px] [&>div>div:first-child_p:first-of-type]:text-[#354966] [&>div>div:first-child_p:last-of-type]:text-[12px] [&>div>div:first-child_p:last-of-type]:leading-[1.7]">
-          <ImageUpload
+          <ContentImageUpload
+            resource="voucher"
             multiple={false}
             maxFiles={1}
             label="Kéo thả ảnh vào đây hoặc nhấn để chọn"

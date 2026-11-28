@@ -2,7 +2,7 @@
 
 import { useAdminContentReadOnly } from "@/components/common/admin_shared/guards/AdminContentPermission";
 import CustomDropdown from "@/components/common/form_controls/CustomDropdown";
-import { ImageUpload } from "@/components/common/form_controls/ImageUpload";
+import { ContentImageUpload } from "@/components/common/form_controls/ContentImageUpload";
 import { Image as ImageIcon, Loader2, Save, Sparkles, Tag } from "lucide-react";
 import type { PostEditorSidebarProps as Props } from "shared";
 import { slugify } from "shared";
@@ -32,8 +32,8 @@ export function PostEditorSidebar({
         icon={ImageIcon}
       >
         <div className="space-y-3.5">
-          <ImageUpload
-            endpoint="/admin/posts/upload-image"
+          <ContentImageUpload
+            resource="post"
             value={form.thumbnail}
             onChange={(url) =>
               onFormChange((prev) => ({

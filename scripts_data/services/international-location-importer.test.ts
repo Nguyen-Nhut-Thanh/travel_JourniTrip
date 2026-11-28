@@ -100,12 +100,50 @@ function memoryDatabase() {
   return { client, get state() { return state; }, get transactions() { return transactions; }, failDetails() { failDetails = true; } };
 }
 
-test('offline dry-run validates all 187 locations without opening a transaction', async () => {
+test('offline dry-run validates all 859 locations without opening a transaction', async () => {
   const db = memoryDatabase();
   const result = await importInternationalLocations({ dryRun: true, client: db.client });
-  assert.deepEqual(result.summary, { countries: 15, regions: 37, provinces: 45, attractions: 90, totalLocations: 187 });
+  assert.deepEqual(result.summary, { countries: 15, regions: 63, provinces: 180, attractions: 601, totalLocations: 859 });
   assert.equal(db.transactions, 0);
   assert.equal(result.createdCount, 0);
+});
+
+test('expanded catalog covers the four focus countries with populated regions and provinces', () => {
+  const data = normalizeInternationalLocations(fullData);
+  const coverage = [
+    { code: 'JP', regions: 10, provinces: 47, attractions: 155 },
+    { code: 'CN', regions: 7, provinces: 31, attractions: 131 },
+    { code: 'FR', regions: 13, provinces: 53, attractions: 168 },
+    { code: 'KR', regions: 6, provinces: 16, attractions: 81 },
+  ];
+  for (const expected of coverage) {
+    const locations = data.locations.filter(l => l.country_code === expected.code);
+    const attractions = data.attractions.filter(a => a.country_code === expected.code);
+    assert.equal(locations.filter(l => l.level_id === 4).length, expected.regions, expected.code);
+    assert.equal(locations.filter(l => l.level_id === 5).length, expected.provinces, expected.code);
+    assert.equal(attractions.length, expected.attractions, expected.code);
+    for (const region of locations.filter(l => l.level_id === 4)) {
+      assert.ok(locations.some(l => l.parent_slug === region.slug), `Empty region: ${region.slug}`);
+    }
+    for (const province of locations.filter(l => l.level_id === 5)) {
+      assert.ok(attractions.filter(a => a.province_slug === province.slug).length >= 3, `Sparse province: ${province.slug}`);
+    }
+    const names = new Set<string>();
+    for (const attraction of attractions) {
+      const key = `${attraction.province_slug}:${attraction.name.normalize('NFKC').toLocaleLowerCase('vi')}`;
+      assert.ok(!names.has(key), `Duplicate attraction name: ${attraction.slug}`);
+      names.add(key);
+      for (const field of ['description', 'highlights', 'best_time', 'cuisine', 'tags'] as const) {
+        assert.ok(attraction[field]?.trim(), `Missing ${field}: ${attraction.slug}`);
+      }
+    }
+    assert.deepEqual(fullData.summary.by_country.find((c: { country_code: string }) => c.country_code === expected.code), {
+      country_code: expected.code, name: locations.find(l => l.level_id === 3)!.name,
+      regions: expected.regions, provinces_or_equivalent: expected.provinces, attractions: expected.attractions,
+    });
+  }
+  assert.equal(fullData.summary.total_locations_including_attractions, data.locations.length + data.attractions.length);
+  assert.equal(fullData.summary.attractions, data.attractions.length);
 });
 
 test('normalization orders parents and rejects invalid cross-country references and duplicate slugs', () => {
@@ -142,14 +180,14 @@ test('imports the complete dataset and updates it without duplicating IDs or tou
   const db = memoryDatabase();
   db.state.locations.push({ location_id: 900, name: 'Việt Nam', slug: 'viet-nam', level_id: 3, location_type: 'country', country_code: 'VN', parent_id: null, note: 'Giữ nguyên', featured_image: null, is_featured: false });
   const first = await importInternationalLocations({ client: db.client });
-  assert.equal(first.createdCount, 187);
+  assert.equal(first.createdCount, 859);
   const ids = db.state.locations.map(l => [l.slug, l.location_id]);
   const second = await importInternationalLocations({ client: db.client });
   assert.equal(second.createdCount, 0);
-  assert.equal(second.updatedCount, 187);
+  assert.equal(second.updatedCount, 859);
   assert.deepEqual(db.state.locations.map(l => [l.slug, l.location_id]), ids);
   assert.equal(db.state.locations.find(l => l.slug === 'viet-nam')!.note, 'Giữ nguyên');
-  assert.equal(db.state.details.size, 90);
+  assert.equal(db.state.details.size, 601);
   assert.equal(db.state.images.length, 0);
   for (const child of db.state.locations.filter(l => l.parent_id !== null)) {
     const parent = db.state.locations.find(l => l.location_id === child.parent_id)!;

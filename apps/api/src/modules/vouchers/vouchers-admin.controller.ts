@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
@@ -19,13 +20,25 @@ import {
   type VoucherInput,
 } from 'shared';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { UseImageUpload } from '../../common/decorators/use-image-upload.decorator';
+import { uploadToFolder } from '../../common/decorators/use-folder-upload';
+import { CloudinaryService } from '../../infrastructure/storage/cloudinary.service';
 import { AdminAuthGuard } from '../auth/admin.guard';
 import { VouchersService } from './vouchers.service';
 
 @Controller()
 @UseGuards(AdminAuthGuard)
 export class VouchersAdminController {
-  constructor(private readonly vouchersService: VouchersService) {}
+  constructor(
+    private readonly vouchersService: VouchersService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
+
+  @Post('admin/marketing/vouchers/upload-image')
+  @UseImageUpload()
+  async uploadImage(@UploadedFile() file: Express.Multer.File) {
+    return uploadToFolder(this.cloudinaryService, file, 'JourniTrip/vouchers');
+  }
 
   @Get('admin/marketing/vouchers')
   async findAll() {

@@ -10,6 +10,7 @@
 | `images/tours/` | Trang tour và lịch trình |
 | `images/booking/` | Trang đặt tour: vé, hướng dẫn viên, bảo hiểm, chụp ảnh |
 | `images/account/` | Trang tài khoản: avatar mặc định và biểu tượng |
+| `images/placeholders/` | Ảnh dự phòng (fallback/placeholder) khi ảnh tour, avatar tải lỗi hoặc chưa có |
 | `images/shared/` | Ảnh dùng chung: ảnh tour mặc định, ảnh bìa, footer và quốc kỳ |
 
 ## Quy ước

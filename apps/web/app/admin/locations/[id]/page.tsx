@@ -7,16 +7,13 @@ import { LocationLevelSelector } from "@/components/locations/location_editor/Ad
 import InlineNotice from "@/components/common/dialogs_and_feedback/media/InlineNotice";
 import { getAdminLocationDetail, saveAdminLocation } from "@/lib/locations/admin/api";
 import { buildLocationHierarchyState, createDefaultLocationDetailForm, fetchLocationOptionsByLevel, slugifyLocationName } from "@/lib/locations/admin/hierarchy";
-import { getToken } from "@/lib/auth/client/session";
 import { adminFetch } from "@/lib/http/adminFetch";
-import { API_BASE } from "@/lib/http/config";
-import { uploadAuthenticatedFile } from "@/lib/http/uploadApi";
 import { useToast } from "@/lib/notifications/useToast";
 import { AdminScenicHeaderBackground } from "@/components/common/admin_shared/layout/AdminScenicHeaderBackground";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { LOCATION_TYPE_BY_LEVEL, type AdminLocationItem, type LocationDetailForm } from "shared";
 
 export default function AdminLocationDetailPage() {
@@ -31,7 +28,6 @@ function AdminLocationDetailContent() {
   const router = useRouter();
   const { success, error: showError } = useToast();
   const isNew = id === "new";
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -189,43 +185,6 @@ function AdminLocationDetailContent() {
     else if (form.level_id === 6)
       setForm((prev) => ({ ...prev, parent_id: level5Id }));
   }, [form.level_id, level3Id, level4Id, level5Id]);
-
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      showError("Vui lòng chọn ảnh JPG, PNG hoặc WebP");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      showError("Ảnh bìa không được vượt quá 5 MB");
-      return;
-    }
-    const token = getToken();
-    if (!token) {
-      showError("Bạn chưa đăng nhập");
-      return;
-    }
-
-    setUploading(true);
-
-    try {
-      const data = await uploadAuthenticatedFile(
-        `${API_BASE}/admin/locations/upload`,
-        token,
-        file,
-        "Lỗi khi upload ảnh",
-      );
-      setForm((prev) => ({ ...prev, image_url: data?.url || "" }));
-    } catch {
-      showError("Lỗi kết nối upload");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const validate = () => {
     if (!form.name.trim()) {
@@ -393,9 +352,8 @@ function AdminLocationDetailContent() {
             parentLabel={parentLabel}
             uploading={uploading}
             saving={saving}
-            fileInputRef={fileInputRef}
             onFormChange={setForm}
-            onFileUpload={handleFileUpload}
+            onUploadingChange={setUploading}
             onCancel={() => router.push("/admin/locations")}
             onSave={handleSave}
           />

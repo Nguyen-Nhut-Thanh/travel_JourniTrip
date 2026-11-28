@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import type { PublicTourDetail, ScheduleConflict, TourSchedule } from "shared";
+import { TOUR_PLACEHOLDER_IMAGE, TOUR_PLACEHOLDER_WARM } from "@/lib/utils/images";
 
 export interface BookingConflictModalProps {
   open: boolean;
@@ -280,11 +281,11 @@ export function BookingConflictModal({
                     <img
                       src={
                         priorTour?.imageUrl ||
-                        "https://images.unsplash.com/photo-1589308078059-be1415eab4c3?auto=format&fit=crop&w=400&q=80"
+                        TOUR_PLACEHOLDER_IMAGE
                       }
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).src =
-                          "https://placehold.co/300x360/e2e8f0/475569?text=Tour";
+                          TOUR_PLACEHOLDER_IMAGE;
                       }}
                       alt={priorTour?.tourName || "Tour đã đặt"}
                       className="h-full w-full object-cover"
@@ -404,11 +405,11 @@ export function BookingConflictModal({
                       src={
                         currentSchedule?.cover_image_url ||
                         currentTour?.tour_images?.[0]?.image_url ||
-                        "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=400&q=80"
+                        TOUR_PLACEHOLDER_WARM
                       }
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).src =
-                          "https://placehold.co/300x360/ffedd5/c2410c?text=Tour";
+                          TOUR_PLACEHOLDER_WARM;
                       }}
                       alt={currentTour?.name || "Tour đang đặt"}
                       className="h-full w-full object-cover"

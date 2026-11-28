@@ -14,7 +14,7 @@ import type {
   ScheduleItinerarySectionProps as Props,
 } from "shared";
 import CustomDropdown from "@/components/common/form_controls/CustomDropdown";
-import { ImageUpload } from "@/components/common/form_controls/ImageUpload";
+import { ContentImageUpload } from "@/components/common/form_controls/ContentImageUpload";
 import {
   getTransportTypeIcon,
   getTransportTypeIconComponent,
@@ -196,8 +196,8 @@ export function ScheduleItinerarySection({
                           </p>
                         </div>
 
-                        <ImageUpload
-                          endpoint="/admin/tours/upload-schedule-image"
+                        <ContentImageUpload
+                          resource="schedule"
                           value={day.image_url || ""}
                           disabled={isPast}
                           multiple={false}

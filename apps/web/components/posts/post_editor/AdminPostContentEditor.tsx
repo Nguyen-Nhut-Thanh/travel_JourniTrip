@@ -1,7 +1,7 @@
 'use client';
 import { useRef, useState } from 'react';
 import { Bold, Heading2, ImagePlus, Italic, List, ListOrdered, Link2, Quote } from 'lucide-react';
-import { ImageUpload } from '@/components/common/form_controls/ImageUpload';
+import { ContentImageUpload } from '@/components/common/form_controls/ContentImageUpload';
 
 export function PostContentEditor({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const textarea = useRef<HTMLTextAreaElement>(null);
@@ -44,7 +44,7 @@ export function PostContentEditor({ value, onChange }: { value: string; onChange
       if (!/^(https?:\/\/|\/(?!\/))[^\s)]+$/i.test(linkUrl)) { setLinkError('Nhập địa chỉ bắt đầu bằng https:// hoặc /'); return; }
       insert('[', `](${linkUrl})`, 'Nội dung liên kết'); setLinkOpen(false); setLinkUrl(''); setLinkError('');
     }} className="rounded-lg bg-blue-600 px-3 py-2 text-xs text-white">Chèn liên kết</button></div>}
-    {imageOpen && <div className="space-y-3 border-b bg-sky-50 p-4"><p className="text-xs font-semibold">Tải ảnh cho nội dung bài viết</p><ImageUpload endpoint="/admin/posts/upload-image" value={image} onChange={url => setImage(Array.isArray(url) ? url[0] || '' : url)} /><input aria-label="Chú thích ảnh" value={caption} onChange={event => setCaption(event.target.value)} placeholder="Chú thích / mô tả ảnh" className="w-full rounded-lg border p-2 text-sm" /><button type="button" disabled={!image} onClick={() => { insert(`\n\n![${caption.replace(/[\[\]\n]/g, '')}](${image})\n\n`); setImageOpen(false); setImage(''); setCaption(''); }} className="rounded-lg bg-blue-600 px-3 py-2 text-xs text-white disabled:opacity-40">Chèn vào bài</button></div>}
+    {imageOpen && <div className="space-y-3 border-b bg-sky-50 p-4"><p className="text-xs font-semibold">Tải ảnh cho nội dung bài viết</p><ContentImageUpload resource="post" value={image} onChange={url => setImage(Array.isArray(url) ? url[0] || '' : url)} /><input aria-label="Chú thích ảnh" value={caption} onChange={event => setCaption(event.target.value)} placeholder="Chú thích / mô tả ảnh" className="w-full rounded-lg border p-2 text-sm" /><button type="button" disabled={!image} onClick={() => { insert(`\n\n![${caption.replace(/[\[\]\n]/g, '')}](${image})\n\n`); setImageOpen(false); setImage(''); setCaption(''); }} className="rounded-lg bg-blue-600 px-3 py-2 text-xs text-white disabled:opacity-40">Chèn vào bài</button></div>}
     <textarea ref={textarea} aria-label="Nội dung chi tiết" value={value} onChange={event => onChange(event.target.value)} onSelect={event => { selection.current = { start: event.currentTarget.selectionStart, end: event.currentTarget.selectionEnd }; }} className="min-h-[420px] w-full resize-y bg-white p-4 text-sm leading-7 text-slate-800 outline-none focus:ring-2 focus:ring-inset focus:ring-blue-200" placeholder={'Chia sẻ kinh nghiệm du lịch của bạn...\n\nDùng thanh công cụ để tạo tiêu đề mục, danh sách và chèn ảnh.'} />
     <p className="border-t border-slate-100 bg-slate-50 px-4 py-2 text-xs text-slate-500">{value.trim() ? value.trim().split(/\s+/).length : 0} từ · {Math.max(1, Math.ceil(value.split(/\s+/).length / 220))} phút đọc</p>
   </div>;
